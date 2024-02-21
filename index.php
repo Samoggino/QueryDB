@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/styles/global.css">
-    <title>La mia pagina PHP</title>
+    <link rel="icon" href="images/favicon/favicon.ico" type="image">
+    <title>Progetto</title>
 </head>
 
 <body>
@@ -35,6 +36,22 @@
         // Stampare il saluto con i valori inseriti dall'utente
         echo "<p>Ciao, $nome $cognome!</p>";
     }
+    ?>
+
+    <?php // provo la connessione al database
+    require_once 'helper/connessione_mysql.php';
+    require_once 'helper/crea_tabella.php';
+
+    $pdo = connectToDatabase();
+    
+    // Creazione di una tabella nel database
+    creaTabella($pdo);
+    
+        if ($pdo) {
+            echo "<p>Connessione al database avvenuta con successo!</p>";
+        } else {
+            echo "<p>Errore di connessione al database!</p>";
+        }
     ?>
 
 </body>
