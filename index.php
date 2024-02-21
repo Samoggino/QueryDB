@@ -40,19 +40,24 @@
 
     <?php // provo la connessione al database
     require_once 'helper/connessione_mysql.php';
+    require_once 'helper/connessione_mongodb.php';
     require_once 'helper/crea_tabella.php';
 
-    $pdo = connectToDatabase();
     
+    $pdo = connectToDatabase();
+
     // Creazione di una tabella nel database
     creaTabella($pdo);
-    
-        if ($pdo) {
-            echo "<p>Connessione al database avvenuta con successo!</p>";
-        } else {
-            echo "<p>Errore di connessione al database!</p>";
-        }
+
+    if ($pdo) {
+        echo "<p>Connessione al database avvenuta con successo!</p>";
+    } else {
+        echo "<p>Errore di connessione al database!</p>";
+    }
     ?>
+
+    
+
 
 </body>
 
