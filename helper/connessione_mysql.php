@@ -1,5 +1,9 @@
 <?php
-function connectToDatabase()
+
+/**
+ * Funzione per connettersi al database
+ */
+function connectToDatabaseMYSQL()
 {
     $dsn = 'mysql:host=localhost;dbname=test';
     $username = 'root';
