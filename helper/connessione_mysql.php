@@ -1,11 +1,15 @@
 <?php
 
 /**
- * Funzione per connettersi al database
+ * Funzione per connettersi al database, sostituire i valori con quelli corretti
  */
 function connectToDatabaseMYSQL()
 {
-    $dsn = 'mysql:host=localhost;dbname=test';
+
+    $hostname = "localhost";
+    $dbname = "ESQLDB";
+
+    $dsn = "mysql:host=$hostname;dbname=$dbname";
     $username = 'root';
     $password = 'fbyhm3J#pmE%6g2%7d1@';
     $options = [
@@ -17,7 +21,6 @@ function connectToDatabaseMYSQL()
         $pdo = new PDO($dsn, $username, $password, $options);
         return $pdo;
     } catch (PDOException $e) {
-        // Gestione degli errori
         echo "Errore di connessione al database: " . $e->getMessage();
         return null;
     }

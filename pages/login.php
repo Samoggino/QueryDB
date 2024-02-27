@@ -30,12 +30,29 @@
                     </div>
                     <div class="flip-card__back">
                         <div class="title">Sign up</div>
-                        <form method="POST" action="" class="flip-card__form">
+                        <form method="POST" action="" class="flip-card__form" id="signup-form">
                             <input for="nome" name="nome" class="flip-card__input" placeholder="Nome" type="text" required>
                             <input for="cognome" name="cognome" class="flip-card__input" placeholder="Cognome" type="text" required>
                             <input for="email" name="email" class="flip-card__input" placeholder="Email" type="email" required>
                             <input for="password" name="password" class="flip-card__input" placeholder="Password" type="password" required>
+                            <input for="telefono" name="telefono" class="flip-card__input" placeholder="Telefono" type="text">
                             <input type="hidden" name="action" value="registrazione"> <!-- Campo nascosto per indicare registrazione -->
+                            <div>
+                                <label for="studente-checkbox" class="flip-card__label">Studente</label>
+                                <input type="checkbox" id="studente-checkbox" class="flip-card__checkbox" name="studente">
+                                <div id="studente" style="display: none;">
+                                    <input for="anno-immatricolazione" name="anno_immatricolazione" class="flip-card__input" placeholder="Anno di immatricolazione" type="text">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="professore-checkbox" class="flip-card__label">Professore</label>
+                                <input type="checkbox" id="professore-checkbox" class="flip-card__checkbox" name="professore">
+                                <div id="professore" style="display: none;">
+                                    <input for="dipartimento" name="dipartimento" class="flip-card__input" placeholder="Dipartimento" type="text">
+                                    <input for="corso" name="corso" class="flip-card__input" placeholder="Corso" type="text">
+                                </div>
+                            </div>
+                            <input type="hidden" for ="tipo_utente" name="tipo_utente" id="tipo_utente" value="">
                             <button class="flip-card__btn" name="registrazione">Registrami!</button> <!-- Pulsante per eseguire la registrazione -->
                         </form>
                     </div>
@@ -43,6 +60,47 @@
             </label>
         </div>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var studenteCheckbox = document.getElementById("studente-checkbox");
+            var professoreCheckbox = document.getElementById("professore-checkbox");
+            var studente_div = document.getElementById("studente");
+            var professore_div = document.getElementById("professore");
+            var tipoUtenteInput = document.getElementById("tipo_utente"); // Definizione della variabile tipoUtenteInput
+
+            studenteCheckbox.addEventListener("change", function() {
+                if (this.checked) {
+                    tipoUtenteInput.value = "studente";
+                    studente_div.style.display = "block";
+                    professoreCheckbox.checked = false; // Disabilita la checkbox professore quando selezioni studente
+                    professore_div.style.display = "none"; // Nasconde il campo dipartimento quando selezioni studente
+                } else {
+                    studente_div.style.display = "none";
+                }
+            });
+
+            professoreCheckbox.addEventListener("change", function() {
+                if (this.checked) {
+                    tipoUtenteInput.value = "professore";
+                    professore_div.style.display = "block";
+                    studenteCheckbox.checked = false; // Disabilita la checkbox studente quando selezioni professore
+                    studente_div.style.display = "none"; // Nasconde il campo anno immatricolazione quando selezioni professore
+                } else {
+                    professore_div.style.display = "none";
+                }
+            });
+
+            var form = document.getElementById("signup-form");
+
+            form.addEventListener("submit", function(event) {
+                if (!studenteCheckbox.checked && !professoreCheckbox.checked) {
+                    event.preventDefault(); // Impedisce l'invio del modulo se nessuna checkbox è selezionata
+                    alert("Seleziona almeno una delle opzioni: Studente o Professore.");
+                }
+            });
+        });
+    </script>
 
 
     <?php

@@ -8,12 +8,12 @@ function login()
         $email = $_POST["email"];
         $password = $_POST["password"];
 
-        $pdo = connectToDatabaseMYSQL();
-        if ($pdo) {
-            $sql = "SELECT * FROM utenti WHERE email = :email AND password = :password";
-            $query = $pdo->prepare($sql);
-            $query->execute(['email' => $email, 'password' => $password]);
-            $righe_del_database = $query->fetchAll();
+        $database = connectToDatabaseMYSQL();
+        if ($database) {
+            // Utilizzo della stored procedure
+            $query = "CALL authenticate_user('$email', '$password')";
+            $risultato_della_query = $database->query($query);
+            $righe_del_database = $risultato_della_query->fetchAll();
 
             foreach ($righe_del_database as $singola_riga) {
                 if ($singola_riga) {
