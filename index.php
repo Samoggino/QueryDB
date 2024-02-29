@@ -13,8 +13,14 @@
     <h1>Benvenuto sulla mia pagina PHP!</h1>
     <p>Questa è una pagina PHP di esempio.</p>
 
+    <!-- Aggiunta del bottone per il reindirizzamento -->
+    <a href="pages/login.php"><button>Accedi</button></a>
+
     <!-- sudo php --server localhost:8080 --docroot /home/samoggino/VSC/basi/ -->
     <?php
+    // require './helper/connessione_mongodb.php';
+    // connectToDatabaseMONGODB();
+
     header("Location: pages/login.php");
     ?>
 

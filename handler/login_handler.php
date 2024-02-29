@@ -1,5 +1,7 @@
 <?php
 require_once '../helper/connessione_mysql.php';
+require '../helper/connessione_mongodb.php';
+
 
 function login()
 {
@@ -18,6 +20,11 @@ function login()
             foreach ($righe_del_database as $singola_riga) {
                 if ($singola_riga) {
                     echo "<p>Ciao, " . $singola_riga['nome'] . " " . $singola_riga['cognome'] . "!</p>";
+                    connectToDatabaseMONGODB([
+                        'campo1' => 'ciaooooooooooooooooo',
+                        'campo2' => 'valore2',
+                        'campo3' => 'valore3'
+                    ]);
                     // header("Location: ../landing.html");
                     // exit;
                 } else {

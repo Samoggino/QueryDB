@@ -1,23 +1,16 @@
 <?php
-require 'composer/vendor/autoload.php'; // include Composer's autoloader
+require  '../composer/vendor/autoload.php'; // include Composer's autoloader
 
-function connectToDatabaseMONGODB()
+function connectToDatabaseMONGODB($document)
 {
     // Connessione al server MongoDB
     $mongoClient = new MongoDB\Client("mongodb://localhost:27017");
 
     // Selezione del database
-    $database = $mongoClient->prova_database;
+    $database = $mongoClient->database_prova;
 
     // Selezione della collezione
-    $collection = $database->paolo;
-
-    // Documento da inserire
-    $document = [
-        'campo1' => 'valore1',
-        'campo2' => 'valore2',
-        'campo3' => 'valore3'
-    ];
+    $collection = $database->nuova_collezione;
 
     // Inserimento del documento nella collezione
     $result = $collection->insertOne($document);
