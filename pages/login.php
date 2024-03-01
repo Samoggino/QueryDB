@@ -41,7 +41,8 @@
                                 <label for="studente-checkbox" class="flip-card__label">Studente</label>
                                 <input type="checkbox" id="studente-checkbox" class="flip-card__checkbox" name="studente">
                                 <div id="studente" style="display: none;">
-                                    <input for="anno-immatricolazione" name="anno_immatricolazione" class="flip-card__input" placeholder="Anno di immatricolazione" type="text">
+                                    <input for="anno_immatricolazione" name="anno_immatricolazione" class="flip-card__input" placeholder="Anno di immatricolazione" type="text">
+                                    <input for="codice_alfanumerico" name="codice_alfanumerico" class="flip-card__input" placeholder="Codice" type="text">
                                 </div>
                             </div>
                             <div>
@@ -109,7 +110,6 @@
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (isset($_POST['login'])) {
-            echo "<p>login() function called!</p>";
             login();
         } elseif (isset($_POST['registrazione'])) {
             registrazione();

@@ -18,9 +18,6 @@
 
     <!-- sudo php --server localhost:8080 --docroot /home/samoggino/VSC/basi/ -->
     <?php
-    // require './helper/connessione_mongodb.php';
-    // connectToDatabaseMONGODB();
-
     header("Location: pages/login.php");
     ?>
 

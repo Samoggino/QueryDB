@@ -7,10 +7,10 @@ function connectToDatabaseMONGODB($document)
     $mongoClient = new MongoDB\Client("mongodb://localhost:27017");
 
     // Selezione del database
-    $database = $mongoClient->database_prova;
+    $database = $mongoClient->database_log;
 
     // Selezione della collezione
-    $collection = $database->nuova_collezione;
+    $collection = $database->logs;
 
     // Inserimento del documento nella collezione
     $result = $collection->insertOne($document);

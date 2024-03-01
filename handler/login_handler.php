@@ -1,42 +1,71 @@
 <?php
-require_once '../helper/connessione_mysql.php';
 require '../helper/connessione_mongodb.php';
-
-
 function login()
 {
-    echo "<p>login() function called!</p>";
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $email = $_POST["email"];
-        $password = $_POST["password"];
+    global $database, $email, $PASSWORD, $utente;
 
-        $database = connectToDatabaseMYSQL();
-        if ($database) {
-            // Utilizzo della stored procedure
-            $query = "CALL authenticate_user('$email', '$password')";
-            $risultato_della_query = $database->query($query);
-            $righe_del_database = $risultato_della_query->fetchAll();
+    try {
+        echo "<p>login() function called!</p>";
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            $email = $_POST["email"];
+            $PASSWORD = $_POST["password"];
 
-            foreach ($righe_del_database as $singola_riga) {
-                if ($singola_riga) {
-                    echo "<p>Ciao, " . $singola_riga['nome'] . " " . $singola_riga['cognome'] . "!</p>";
-                    connectToDatabaseMONGODB([
-                        'campo1' => 'ciaooooooooooooooooo',
-                        'campo2' => 'valore2',
-                        'campo3' => 'valore3'
-                    ]);
-                    // header("Location: ../landing.html");
-                    // exit;
+            $database = connectToDatabaseMYSQL();
+            if ($database) {
+                // Utilizzo della stored procedure
+                $query = "CALL authenticateUser('$email', '$PASSWORD')";
+                echo "<p>Query: $query</p>";
+                $risultato_della_query = $database->query($query);
+                $utente = $risultato_della_query->fetch();
+
+                echo "<p>Utente: " . $utente['nome'] . " " . $utente['cognome'] . "</p>";
+
+                // Close the cursor for the previous query
+                $risultato_della_query->closeCursor();
+
+                // inserisci su mongo il record del login
+                $query = "CALL VerificaTipoUtente('$email')";
+
+                if ($result = getUtenteType($database, $email)) { // Use a function to get the user type
+                    if ($result['Ruolo'] == 'Studente') {
+                        echo "<p>Sei uno studente!</p>";
+                        connectToDatabaseMONGODB([
+                            'ruolo' => 'studente',
+                            'email' => $email
+                        ]);
+                    } elseif ($result['Ruolo']  == 'Professore') {
+                        echo "<p>Sei un professore!</p>";
+                        connectToDatabaseMONGODB([
+                            'ruolo' => 'professore',
+                            'email' => $email
+                        ]);
+                    } else {
+                        echo "<p>Errore nel recupero del tipo utente!</p>";
+                    }
+
+                    if (count($result) == 0) {
+                        echo "<p>Utente non trovato!</p>";
+                    }
                 } else {
-                    echo "<p>Utente non trovato!</p>";
+                    echo "<p>Errore di connessione al database!</p>";
                 }
             }
-
-            if (count($righe_del_database) == 0) {
-                echo "<p>Utente non trovato!</p>";
-            }
-        } else {
-            echo "<p>Errore di connessione al database!</p>";
         }
+    } catch (\Throwable $th) {
+        //  throw $th;
+        echo "<p>Errore: " . $th->getMessage() . "</p>";
     }
+}
+
+
+
+function getUtenteType($database, $email)
+{
+    $query = "CALL VerificaTipoUtente('$email')";
+    $risultato_della_query = $database->query($query);
+    $righe_del_database = $risultato_della_query->fetch();
+
+    echo "<p>Eseguo getUtenteType</p>";
+
+    return $righe_del_database;
 }
