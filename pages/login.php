@@ -107,10 +107,12 @@
     <?php
     require '../handler/login_handler.php';
     require '../handler/registrazione_handler.php';
+        require '../handler/crea_tabella.php';
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (isset($_POST['login'])) {
-            login();
+            // login();
+            creaTabella();
         } elseif (isset($_POST['registrazione'])) {
             registrazione();
         }
