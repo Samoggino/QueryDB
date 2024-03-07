@@ -457,3 +457,47 @@ WHERE
     titolo_test = p_titolo_test;
 
 END $$ DELIMITER;
+
+-- crea tabella dei QUESITI
+CREATE TABLE IF NOT EXISTS
+    Quesito (
+        id INT AUTO_INCREMENT                                                 ,
+        test_associato VARCHAR(100) NOT NULL                                  ,
+        descrizione TEXT NOT NULL                                             ,
+        livello_difficolta ENUM('BASSO', 'MEDIO', 'ALTO') NOT NULL            ,
+        PRIMARY KEY (id, test_associato)                                      ,
+        FOREIGN KEY (test_associato) REFERENCES Test (titolo) ON DELETE CASCADE
+    );
+
+-- procedura per inserire un nuovo QUESITO
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS `InserisciNuovoQuesito` (
+    IN p_test_associato VARCHAR(100),
+    IN p_descrizione TEXT
+) BEGIN DECLARE EXIT
+HANDLER FOR SQLEXCEPTION BEGIN
+ROLLBACK;
+
+RESIGNAL;
+
+END;
+
+DECLARE EXIT
+HANDLER FOR SQLWARNING BEGIN
+ROLLBACK;
+
+RESIGNAL;
+
+END;
+
+START TRANSACTION;
+
+-- Inserisce il quesito nella tabella Quesito
+INSERT INTO
+    Quesito (test_associato, descrizione)
+VALUES
+    (p_test_associato, p_descrizione);
+
+COMMIT;
+
+END $$ DELIMITER;

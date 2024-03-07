@@ -1,17 +1,18 @@
 <?php
-// Funzione per la connessione MySQL utilizzando PDO
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 require_once "../helper/connessione_mysql.php";
 
-try {
-    // Messaggi di errore
-    $msg = "";
 
+try {
     // Verifica se il modulo di caricamento è stato inviato
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Connessione al database
         $conn = connectToDatabaseMYSQL();
-
         $titolo_test = $_POST['titolo_test'];
+
+
+        echo "Titolo test: " . $titolo_test;
         $visualizza_risposte = isset($_POST['visualizzaRisposteCheckbox']) ? 1 : 0;
 
         $sql = "CALL InserisciNuovoTest(:titolo_test, :visualizza_risposte)";
@@ -22,7 +23,7 @@ try {
         if ($statement->execute()) {
             echo "Test inserito con successo.";
         } else {
-            $msg = "Errore durante l'inserimento del test nel database.";
+            echo "La query non è stata eseguita correttamente.";
         }
 
         // Verifica se è stata selezionata un'immagine
@@ -42,26 +43,27 @@ try {
             if ($statement->execute()) {
                 echo "Immagine caricata con successo.";
             } else {
-                $msg = "Errore durante l'inserimento dell'immagine nel database.";
+                echo "L'immagine non è stata inserita nel db perchè c'è stato un errore.";
+            }
+
+            // Recupera l'immagine dal database
+            $sql = "CALL RecuperaFotoTest(:titolo_test)";
+            $statement = $conn->prepare($sql);
+            $statement->bindParam(':titolo_test', $titolo_test);
+            $statement->execute();
+            $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+            // Se è stata trovata un'immagine, visualizzala
+            if ($row) {
+                $immagine = $row['foto'];
+                echo "<h2>Immagine Caricata</h2>";
+                echo "<img src='data:image/jpeg;base64," . base64_encode($immagine) . "' alt='Immagine Caricata'>";
+            } else {
+                echo "Nessuna immagine trovata per questo T.";
             }
         }
-
-
-        // Recupera l'immagine dal database
-        $sql = "CALL RecuperaFotoTest(:titolo_test)";
-        $statement = $conn->prepare($sql);
-        $statement->bindParam(':titolo_test', $titolo_test);
-        $statement->execute();
-        $row = $statement->fetch(PDO::FETCH_ASSOC);
-
-        // Se è stata trovata un'immagine, visualizzala
-        if ($row) {
-            $immagine = $row['foto'];
-            echo "<h2>Immagine Caricata</h2>";
-            echo "<img src='data:image/jpeg;base64," . base64_encode($immagine) . "' alt='Immagine Caricata'>";
-        } else {
-            echo "Nessuna immagine trovata per questo T.";
-        }
+        $new_url = "Location: crea_quesito.php?titolo_test=" . $titolo_test;
+        header($new_url);
     }
 } catch (\Throwable $th) {
     //throw $th;
@@ -69,17 +71,15 @@ try {
 }
 ?>
 
-
-
 <!DOCTYPE html>
 <html>
 
 <head>
-    <title>Caricamento Immagine</title>
+    <title>Creazione test</title>
 </head>
 
 <body>
-    <h2>Carica un'immagine</h2>
+    <h1>Crea un test</h1>
     <form id="uploadForm" method="post" action="" enctype="multipart/form-data">
         <input for="titolo_test" name="titolo_test" placeholder="Titolo" type="text" required>
 
@@ -89,9 +89,8 @@ try {
 
         <input type="file" name="file_immagine" accept="image/*"><br><br>
         <label for="file_immagine">Seleziona un'immagine:</label><br>
-        <input type="submit" value="Carica Immagine">
+        <input type="submit" value="Crea">
     </form>
-    <?php echo $msg; ?>
 </body>
 
 <script>

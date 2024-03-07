@@ -53,7 +53,7 @@
                                     <input for="corso" name="corso" class="flip-card__input" placeholder="Corso" type="text">
                                 </div>
                             </div>
-                            <input type="hidden" for ="tipo_utente" name="tipo_utente" id="tipo_utente" value="">
+                            <input type="hidden" for="tipo_utente" name="tipo_utente" id="tipo_utente" value="">
                             <button class="flip-card__btn" name="registrazione">Registrami!</button> <!-- Pulsante per eseguire la registrazione -->
                         </form>
                     </div>
@@ -62,6 +62,7 @@
         </div>
     </div>
 
+    <!-- impasto a mano con 90% di idratazione non si può fare. cit -SerAn51 -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             var studenteCheckbox = document.getElementById("studente-checkbox");
@@ -107,7 +108,7 @@
     <?php
     require '../handler/login_handler.php';
     require '../handler/registrazione_handler.php';
-        require '../handler/crea_tabella.php';
+    require '../handler/crea_tabella.php';
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (isset($_POST['login'])) {
