@@ -8,15 +8,15 @@ try {
     // Verifica se il modulo di caricamento è stato inviato
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Connessione al database
-        $conn = connectToDatabaseMYSQL();
-        $titolo_test = $_POST['titolo_test'];
+        $db = connectToDatabaseMYSQL();
 
+        $titolo_test = $_POST['titolo_test'];
 
         echo "Titolo test: " . $titolo_test;
         $visualizza_risposte = isset($_POST['visualizzaRisposteCheckbox']) ? 1 : 0;
 
         $sql = "CALL InserisciNuovoTest(:titolo_test, :visualizza_risposte)";
-        $statement = $conn->prepare($sql);
+        $statement = $db->prepare($sql);
         $statement->bindParam(':titolo_test', $titolo_test);
         $statement->bindParam(':visualizza_risposte', $visualizza_risposte);
 
@@ -33,9 +33,9 @@ try {
 
             // Prepara la query per l'inserimento dell'immagine
             $sql = "CALL InserisciNuovaFotoTest(:dati_immagine, :titolo_test)";
-            $statement = $conn->prepare($sql);
+            $statement = $db->prepare($sql);
 
-            // Associa i dati dell'immagine e l'ID del test alla query
+            // Associa i dati dell'immagine e il titolo del test alla query
             $statement->bindParam(':dati_immagine', $dati_immagine, PDO::PARAM_LOB);
             $statement->bindParam(':titolo_test', $titolo_test);
 
@@ -48,7 +48,7 @@ try {
 
             // Recupera l'immagine dal database
             $sql = "CALL RecuperaFotoTest(:titolo_test)";
-            $statement = $conn->prepare($sql);
+            $statement = $db->prepare($sql);
             $statement->bindParam(':titolo_test', $titolo_test);
             $statement->execute();
             $row = $statement->fetch(PDO::FETCH_ASSOC);

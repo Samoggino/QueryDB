@@ -1,7 +1,7 @@
 <?php
 function creaTabella($pdo)
 {
-    $sql = "CREATE TABLE IF NOT EXISTS utenti (
+    $sql = "CREATE TABLE IF NOT EXISTS UTENTI (
         id INT AUTO_INCREMENT PRIMARY KEY,
         nome VARCHAR(100) NOT NULL,
         cognome VARCHAR(100) NOT NULL,

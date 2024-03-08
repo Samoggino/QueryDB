@@ -112,8 +112,8 @@
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (isset($_POST['login'])) {
-            // login();
-            creaTabella();
+            login();
+            // creaTabella();
         } elseif (isset($_POST['registrazione'])) {
             registrazione();
         }

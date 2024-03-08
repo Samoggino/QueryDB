@@ -3,9 +3,10 @@ require '../helper/connessione_mongodb.php';
 function login()
 {
     global $database, $email, $PASSWORD, $utente;
+    session_start();
+
 
     try {
-        echo "<p>login() function called!</p>";
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $email = $_POST["email"];
             $PASSWORD = $_POST["password"];
@@ -18,6 +19,13 @@ function login()
                 $risultato_della_query = $database->query($query);
                 $utente = $risultato_della_query->fetch();
 
+                if ($utente) {
+                    $_SESSION['email'] = $email;
+                } else {
+                    // lancia un'eccezione
+                    throw new Exception("Utente non trovato!");
+                }
+
                 echo "<p>Utente: " . $utente['nome'] . " " . $utente['cognome'] . "</p>";
 
                 // Close the cursor for the previous query
@@ -27,18 +35,22 @@ function login()
                 $query = "CALL VerificaTipoUtente('$email')";
 
                 if ($result = getUtenteType($database, $email)) { // Use a function to get the user type
-                    if ($result['Ruolo'] == 'Studente') {
+                    if ($result['Ruolo'] == 'STUDENTE') {
                         echo "<p>Sei uno studente!</p>";
                         connectToDatabaseMONGODB([
-                            'ruolo' => 'studente',
+                            'ruolo' => 'STUDENTE',
                             'email' => $email
                         ]);
-                    } elseif ($result['Ruolo']  == 'Professore') {
+
+                        $_SESSION['ruolo'] = 'STUDENTE';
+                    } elseif ($result['Ruolo']  == 'PROFESSORE') {
                         echo "<p>Sei un professore!</p>";
                         connectToDatabaseMONGODB([
-                            'ruolo' => 'professore',
+                            'ruolo' => 'PROFESSORE',
                             'email' => $email
                         ]);
+
+                        $_SESSION['ruolo'] = 'PROFESSORE';
                     } else {
                         echo "<p>Errore nel recupero del tipo utente!</p>";
                     }
@@ -49,6 +61,11 @@ function login()
                 } else {
                     echo "<p>Errore di connessione al database!</p>";
                 }
+            }
+
+            // stampa la session
+            foreach ($_SESSION as $key => $value) {
+                echo "<p>Session: $key => $value</p>";
             }
         }
     } catch (\Throwable $th) {

@@ -7,7 +7,7 @@ USE `ESQLDB`;
 
 -- Tabella Utente
 CREATE TABLE IF NOT EXISTS
-    Utente (
+    UTENTE (
         email VARCHAR(100) PRIMARY KEY,
         nome VARCHAR(50) NOT NULL     ,
         cognome VARCHAR(50) NOT NULL  ,
@@ -17,25 +17,25 @@ CREATE TABLE IF NOT EXISTS
 
 -- Tabella Studente
 CREATE TABLE IF NOT EXISTS
-    Studente (
+    STUDENTE (
         email_studente VARCHAR(100) PRIMARY KEY                                ,
         codice_alfanumerico VARCHAR(16) NOT NULL                               ,
         anno_immatricolazione INT NOT NULL                                     ,
-        FOREIGN KEY (email_studente) REFERENCES Utente (email) ON DELETE CASCADE
+        FOREIGN KEY (email_studente) REFERENCES UTENTE (email) ON DELETE CASCADE
     );
 
 -- Tabella Professore
 CREATE TABLE IF NOT EXISTS
-    Professore (
+    PROFESSORE (
         email_professore VARCHAR(100) PRIMARY KEY                                ,
         dipartimento VARCHAR(100) NOT NULL                                       ,
         corso VARCHAR(100) NOT NULL                                              ,
-        FOREIGN KEY (email_professore) REFERENCES Utente (email) ON DELETE CASCADE
+        FOREIGN KEY (email_professore) REFERENCES UTENTE (email) ON DELETE CASCADE
     );
 
--- Inserimento dati nella tabella Utente
+-- Inserimento dati nella tabella UTENTE
 INSERT INTO
-    Utente (email, nome, cognome, PASSWORD, telefono)
+    UTENTE (email, nome, cognome, PASSWORD, telefono)
 VALUES
     (
         'studente1@example.com',
@@ -75,7 +75,7 @@ VALUES
 
 -- Inserimento dati nella tabella Studente
 INSERT INTO
-    Studente (
+    STUDENTE (
         email_studente       ,
         anno_immatricolazione,
         codice_alfanumerico
@@ -87,7 +87,7 @@ VALUES
 
 -- Inserimento dati nella tabella Professore
 INSERT INTO
-    Professore (email_professore, dipartimento, corso)
+    PROFESSORE (email_professore, dipartimento, corso)
 VALUES
     (
         'vincenzo.scollo@example.com',
@@ -109,7 +109,7 @@ CREATE PROCEDURE IF NOT EXISTS `authenticateUser` (
 SELECT
     *
 FROM
-    Utente
+    UTENTE
 WHERE
     email = p_email
     AND PASSWORD = p_password;
@@ -146,7 +146,7 @@ START TRANSACTION;
 
 -- Inserisce l'utente nella tabella Utente
 INSERT INTO
-    Utente (email, nome, cognome, PASSWORD, telefono)
+    UTENTE (email, nome, cognome, PASSWORD, telefono)
 VALUES
     (
         p_email   ,
@@ -158,7 +158,7 @@ VALUES
 
 -- Inserisce lo studente nella tabella Studente
 INSERT INTO
-    Studente (
+    STUDENTE (
         email_studente      ,
         codice_alfanumerico ,
         anno_immatricolazione
@@ -204,7 +204,7 @@ START TRANSACTION;
 
 -- Inserisce l'utente nella tabella Utente
 INSERT INTO
-    Utente (email, nome, cognome, PASSWORD, telefono)
+    UTENTE (email, nome, cognome, PASSWORD, telefono)
 VALUES
     (
         p_email   ,
@@ -216,7 +216,7 @@ VALUES
 
 -- Inserisce il professore nella tabella Professore
 INSERT INTO
-    Professore (email_professore, dipartimento, corso)
+    PROFESSORE (email_professore, dipartimento, corso)
 VALUES
     (p_email, p_dipartimento, p_corso);
 
@@ -234,7 +234,7 @@ DECLARE is_professore INT DEFAULT 0;
 SELECT
     COUNT(*) INTO is_studente
 FROM
-    Studente
+    STUDENTE
 WHERE
     email_studente = p_email;
 
@@ -242,18 +242,18 @@ WHERE
 SELECT
     COUNT(*) INTO is_professore
 FROM
-    Professore
+    PROFESSORE
 WHERE
     email_professore = p_email;
 
 -- Restituisce il tipo di utente in base ai risultati ottenuti
 IF is_studente > 0 THEN
 SELECT
-    'Studente' AS Ruolo;
+    'STUDENTE' AS Ruolo;
 
 ELSEIF is_professore > 0 THEN
 SELECT
-    'Professore' AS Ruolo;
+    'PROFESSORE' AS Ruolo;
 
 ELSE
 SELECT
@@ -367,20 +367,22 @@ END $$ DELIMITER;
 
 -- crea tabella dei TEST
 CREATE TABLE IF NOT EXISTS
-    Test (
+    TEST (
         titolo VARCHAR(100) PRIMARY KEY                                                      ,
         dataCreazione DATETIME DEFAULT NOW() NOT NULL                                        ,
+        VisualizzaRisposte TINYINT(1) DEFAULT 0 NOT NULL                                     ,
+        email_professore VARCHAR(100) NOT NULL                                               ,
         -- TINYINT viene utilizzato come BOOLEAN, dato che MySQL non supporta il tipo BOOLEAN 
-        VisualizzaRisposte TINYINT(1) DEFAULT 0 NOT NULL
+        FOREIGN KEY (email_professore) REFERENCES PROFESSORE (email_professore) ON DELETE CASCADE
     );
 
 -- crea tabella delle foto dei test
 CREATE TABLE IF NOT EXISTS
-    Foto_test (
+    FOTO_TEST (
         foto LONGBLOB NOT NULL                                             ,
         titolo_test VARCHAR(100) NOT NULL                                  ,
         PRIMARY KEY (titolo_test)                                          ,
-        FOREIGN KEY (titolo_test) REFERENCES Test (titolo) ON DELETE CASCADE
+        FOREIGN KEY (titolo_test) REFERENCES TEST (titolo) ON DELETE CASCADE
     );
 
 -- crea procedura per inserire un nuovo TEST
@@ -408,7 +410,7 @@ START TRANSACTION;
 
 -- Inserisce il test nella tabella Test
 INSERT INTO
-    Test (titolo, VisualizzaRisposte)
+    TEST (titolo, VisualizzaRisposte)
 VALUES
     (p_titolo, p_VisualizzaRisposte);
 
@@ -438,7 +440,7 @@ START TRANSACTION;
 
 -- Inserisce la foto del test nella tabella Foto_test
 INSERT INTO
-    Foto_test (foto, titolo_test)
+    FOTO_TEST (foto, titolo_test)
 VALUES
     (p_foto, p_titolo_test);
 
@@ -452,7 +454,7 @@ CREATE PROCEDURE IF NOT EXISTS `RecuperaFotoTest` (IN p_titolo_test VARCHAR(100)
 SELECT
     foto
 FROM
-    Foto_test
+    FOTO_TEST
 WHERE
     titolo_test = p_titolo_test;
 
@@ -460,13 +462,13 @@ END $$ DELIMITER;
 
 -- crea tabella dei QUESITI
 CREATE TABLE IF NOT EXISTS
-    Quesito (
+    QUESITO (
         id INT AUTO_INCREMENT                                                 ,
         test_associato VARCHAR(100) NOT NULL                                  ,
         descrizione TEXT NOT NULL                                             ,
         livello_difficolta ENUM('BASSO', 'MEDIO', 'ALTO') NOT NULL            ,
         PRIMARY KEY (id, test_associato)                                      ,
-        FOREIGN KEY (test_associato) REFERENCES Test (titolo) ON DELETE CASCADE
+        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE
     );
 
 -- procedura per inserire un nuovo QUESITO
@@ -494,10 +496,43 @@ START TRANSACTION;
 
 -- Inserisce il quesito nella tabella Quesito
 INSERT INTO
-    Quesito (test_associato, descrizione)
+    QUESITO (test_associato, descrizione)
 VALUES
     (p_test_associato, p_descrizione);
 
 COMMIT;
 
 END $$ DELIMITER;
+
+-- quesito chiuso
+-- crea tabella dei QUESITI CHIUSI
+CREATE TABLE IF NOT EXISTS
+    QUESITO_CHIUSO (
+        numero INT AUTO_INCREMENT, -- domanda 1, domanda 2 ... domanda n 
+        test_associato VARCHAR(100) NOT NULL                                   ,
+        id_quesito INT NOT NULL                                                ,
+        testo TEXT NOT NULL                                                    ,
+        PRIMARY KEY (numero, test_associato, id_quesito)                       ,
+        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE,
+        FOREIGN KEY (id_quesito) REFERENCES QUESITO (id) ON DELETE CASCADE
+    );
+
+-- crea tabella risposteQuesitoChiuso
+CREATE TABLE IF NOT EXISTS
+    RISPOSTA_QUESITO_CHIUSO (
+        numero INT AUTO_INCREMENT, -- risposta 1, risposta 2 ... risposta n 
+        test_associato VARCHAR(100) NOT NULL,
+        id_quesito INT NOT NULL             ,
+        id_quesito_chiuso INT NOT NULL      ,
+        testo TEXT NOT NULL                 ,
+        esito BOOLEAN NOT NULL              ,
+        PRIMARY KEY (
+            numero          ,
+            test_associato  ,
+            id_quesito      ,
+            id_quesito_chiuso
+        )                                                                                  ,
+        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE            ,
+        FOREIGN KEY (id_quesito) REFERENCES QUESITO (id) ON DELETE CASCADE                 ,
+        FOREIGN KEY (id_quesito_chiuso) REFERENCES QUESITO_CHIUSO (numero) ON DELETE CASCADE
+    );

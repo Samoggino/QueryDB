@@ -14,9 +14,31 @@ try {
     $titolo_test = $_GET['titolo_test'];
     echo "Titolo test: " . $titolo_test;
 
-    // if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    //     // echo 
-    // }
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+        $db = connectToDatabaseMYSQL();
+        $descrizione_test = $_POST['descrizione_test'];
+        $difficolta = $_POST['difficolta'];
+        $tipo_quesito = $_POST['tipo_quesito'];
+
+        if (isset($_POST['aperto'])) {
+            $anno_immatricolazione = $_POST['anno_immatricolazione'];
+            $codice_alfanumerico = $_POST['codice_alfanumerico'];
+        } else {
+            $anno_immatricolazione = null;
+            $codice_alfanumerico = null;
+        }
+
+        if (isset($_POST['chiuso'])) {
+            $dipartimento = $_POST['dipartimento'];
+            $corso = $_POST['corso'];
+        } else {
+            $dipartimento = null;
+            $corso = null;
+        }
+
+        $sql = "CALL InserisciNuovoQuesito(:descrizione_test, :difficolta, :tipo_quesito, :anno_immatricolazione, :codice_alfanumerico, :dipartimento, :corso, :titolo_test)";
+    }
 } catch (\Throwable $th) {
     echo  "Errore: " . $th->getMessage();
 }
@@ -45,7 +67,7 @@ try {
             <label for="quesito-aperto-checkbox">Aperto</label>
             <input type="checkbox" id="quesito-aperto-checkbox" name="aperto">
             <div id="aperto" style="display: none;">
-                <input for="anno_immatricolazione" name="anno_immatricolazione" placeholder="Anno di immatricolazione" type="text">
+                <input for="descrizione" name="descrizione" placeholder="Descrizione" type="text">
                 <input for="codice_alfanumerico" name="codice_alfanumerico" placeholder="Codice" type="text">
             </div>
         </div>
