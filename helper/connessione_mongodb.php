@@ -17,8 +17,8 @@ function connectToDatabaseMONGODB($document)
 
     // Verifica se l'inserimento è avvenuto con successo
     if ($result->getInsertedCount() > 0) {
-        echo "Documento inserito con successo.";
+        // echo "Documento inserito con successo.";
     } else {
-        echo "Si è verificato un errore durante l'inserimento del documento.";
+        // echo "Si è verificato un errore durante l'inserimento del documento.";
     }
 }

@@ -1,3 +1,8 @@
+<?php
+session_start();
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -106,14 +111,25 @@
 
 
     <?php
-    require '../handler/login_handler.php';
-    require '../handler/registrazione_handler.php';
-    require '../handler/crea_tabella.php';
+    require_once '../handler/login_handler.php';
+    require_once '../handler/registrazione_handler.php';
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (isset($_POST['login'])) {
-            login();
-            // creaTabella();
+
+            $login = login();
+
+            if ($login) {
+                if (isset($_SESSION['email'])) {
+                    if ($_SESSION['ruolo'] == 'PROFESSORE') {
+                        echo "<script>window.location.href = 'professore.php';</script>";
+                    } elseif ($_SESSION['ruolo'] == 'STUDENTE') {
+                        echo "<script>window.location.href = 'studente.php';</script>";
+                    }
+                }
+            } else {
+                echo "<script>alert('Credenziali errate!');</script>";
+            }   
         } elseif (isset($_POST['registrazione'])) {
             registrazione();
         }

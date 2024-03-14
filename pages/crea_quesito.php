@@ -1,16 +1,12 @@
 <?php
+session_start();
 require_once "../helper/connessione_mysql.php";
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 
 try {
-    // session_start();
-    // echo "Titolo test: " . $_SESSION['titolo_test'] . "in crea quesito!";
 
-    // stampa la lunghezza dell'array _Session
-
-    // echo "Lunghezza array session: " . count($_SESSION);
     $titolo_test = $_GET['titolo_test'];
     echo "Titolo test: " . $titolo_test;
 
@@ -37,7 +33,7 @@ try {
             $corso = null;
         }
 
-        $sql = "CALL InserisciNuovoQuesito(:descrizione_test, :difficolta, :tipo_quesito, :anno_immatricolazione, :codice_alfanumerico, :dipartimento, :corso, :titolo_test)";
+        $sql = "CALL InserisciNuovoQuesito(:test_associato, :descrizione_test)";
     }
 } catch (\Throwable $th) {
     echo  "Errore: " . $th->getMessage();
@@ -62,7 +58,6 @@ try {
             <option value="Medio">Medio</option>
             <option value="Basso">Basso</option>
         </select>
-
         <div>
             <label for="quesito-aperto-checkbox">Aperto</label>
             <input type="checkbox" id="quesito-aperto-checkbox" name="aperto">
@@ -75,10 +70,15 @@ try {
             <label for="quesito-chiuso-checkbox">Chiuso</label>
             <input type="checkbox" id="quesito-chiuso-checkbox" name="chiuso">
             <div id="chiuso" style="display: none;">
-                <input for="dipartimento" name="dipartimento" placeholder="Dipartimento" type="text">
-                <input for="corso" name="corso" placeholder="Corso" type="text">
+                <div>
+                    <button type="button" id="aggiungi_quesito_chiuso">Aggiungi quesito</button><br>
+                    <button type="button" id="rimuovi_quesito_chiuso">Rimuovi quesito</button><br>
+                </div>
+                <input type="text" name="opzione" placeholder="opzione">
+                <input type="text" name="opzione" placeholder="opzione">
             </div>
         </div>
+
         <input type="hidden" for="tipo_quesito" name="tipo_quesito" id="tipo_quesito" value="">
         <button type="submit" value="crea il test">Crea il test</button>
     </form>
@@ -126,6 +126,31 @@ try {
                 alert("Seleziona almeno una delle opzioni: aperto o chiuso.");
             }
         });
+
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+
+        var quesito_chiuso_button = document.getElementById("aggiungi_quesito_chiuso");
+        quesito_chiuso_button.addEventListener('click', function() {
+            var quesito_chiuso = document.createElement('div');
+            quesito_chiuso.className = 'quesito-chiuso';
+            quesito_chiuso.innerHTML = `
+                <input type="text" name="opzione" placeholder="opzione">`;
+            document.getElementById('chiuso').appendChild(quesito_chiuso);
+        });
+
+
+        var rimuovi_quesito_chiuso_button = document.getElementById("rimuovi_quesito_chiuso");
+        rimuovi_quesito_chiuso_button.addEventListener('click', function() {
+            var quesito_chiuso = document.getElementsByClassName('quesito-chiuso');
+            if (quesito_chiuso.length > 0) {
+                quesito_chiuso[quesito_chiuso.length - 1].remove();
+            }
+        });
+
+
+
     });
 </script>
 

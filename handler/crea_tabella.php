@@ -1,92 +1,123 @@
 <?php
-require_once '../helper/connessione_mongodb.php';
+session_start();
+require '../helper/connessione_mysql.php';
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+try {
 
-function creaTabella()
+    $conn = connectToDatabaseMYSQL();
+
+
+    // Recupera i dati inviati dal form
+    $nomeTabella = $_POST['nome_tabella'];
+    $numeroAttributi = $_POST['numero_attributi'];
+    $nomiAttributi = $_POST['nome_attributo'];
+    $tipiAttributi = $_POST['tipo_attributo'];
+    $primaryKeys = isset($_POST['primary_key']) ? $_POST['primary_key'] : array();
+
+    creaLaTabella($nomeTabella, $numeroAttributi, $nomiAttributi, $tipiAttributi, $primaryKeys);
+
+
+    // Esecuzione della query di creazione
+
+    // $tabellaCreata = true;
+    try {
+        inserisciInTabellaDelleTabelle($nomeTabella);
+    } catch (\Throwable $th) {
+        $tabellaCreata = false;
+        echo "Errore nella creazione della tabella nella tabella delle tabelle! <br>";
+        echo $th->getMessage();
+    }
+
+    try {
+        inserisciInAttributi($numeroAttributi, $nomiAttributi, $tipiAttributi);
+    } catch (\Throwable $th) {
+        $tabellaCreata = false;
+        echo "Errore nell'inserimento degli attributi nella tabella degli attributi! <br>";
+        echo $th->getMessage();
+    }
+
+    // try {
+    //     inserisciInRelazioneAttributiTabella($nomeTabella, $nomiAttributi);
+    // } catch (\Throwable $th) {
+    //     $tabellaCreata = false;
+    //     echo "Errore nell'inserimento della relazione tra attributi e tabella! <br>";
+    //     echo $th->getMessage();
+    // }
+
+
+    $conn = null;
+} catch (\Throwable $th) {
+    echo $th->getMessage();
+}
+
+function creaLaTabella($nomeTabella, $numeroAttributi, $nomiAttributi, $tipiAttributi, $primaryKeys)
 {
-    // Recupero dati dal form
-    // $nome = $_POST['nome'];
-    // $data_creazione = $_POST['data_creazione'];
-    // $num_righe = $_POST['num_righe'];
-    // $attributi = $_POST['attributi'];
-    // $tipi = $_POST['tipi'];
-    // $chiavi_primarie = $_POST['chiavi_primarie'];
-    // $attributi_vincoli = $_POST['attributi_vincoli'];
-    // $tipi_vincoli = $_POST['tipi_vincoli'];
 
-    // // Inserimento della tabella
-    // $query = "INSERT INTO tabella_di_esercizio (nome, data_creazione, num_righe) VALUES (?, ?, ?)";
-    // $stmt = $conn->prepare($query);
-    // $stmt->execute([$nome, $data_creazione, $num_righe]);
-    // $tabella_id = $conn->lastInsertId();
+    $conn = connectToDatabaseMYSQL();
 
-    // // Inserimento degli attributi
-    // for ($i = 0; $i < count($attributi); $i++) {
-    //     $query = "INSERT INTO attributi (nome, tipo, tabella_id_tabella, parte_chiave) VALUES (?, ?, ?, ?)";
-    //     $stmt = $conn->prepare($query);
-    //     $stmt->execute([$attributi[$i], $tipi[$i], $tabella_id, $chiavi_primarie[$i] ?? 0]);
-    // }
+    // Creazione della tabella nel database
+    $createTableQuery = "CREATE TABLE IF NOT EXISTS $nomeTabella (";
 
-    // // Inserimento dei vincoli
-    // for ($i = 0; $i < count($attributi_vincoli); $i += 3) {
-    //     $query = "INSERT INTO vincoli (attributo1_id_attributo, attributo2_id_attributo, tipo_vincolo) VALUES (?, ?, ?)";
-    //     $stmt = $conn->prepare($query);
-    //     $stmt->execute([$attributi_vincoli[$i], $attributi_vincoli[$i + 1], $tipi_vincoli[$i / 3]]);
-    // }
+    // Aggiunge gli attributi dinamici alla query di creazione
+    for ($i = 0; $i < $numeroAttributi; $i++) {
+        $createTableQuery .= $nomiAttributi[$i] . " ";
 
-    // Redirect o visualizzazione di un messaggio di successo
-    // header('Location: index.php');
-    // exit;
-
-    // chatGPT
-
-    // Query per creare la tabella di esercizio
-    $nome_scelto = bin2hex(random_bytes(5));
-    $nome_scelto = '25c94d8853';
-    echo '' . $nome_scelto . '';
-    $sql_create_table = 'CREATE TABLE IF NOT EXISTS ' . $nome_scelto . ' (
-        id_tabella INT AUTO_INCREMENT PRIMARY KEY,
-        nome VARCHAR(255) NOT NULL,
-        data_creazione DATE,
-        num_righe INT)';    
-
-    $database = connectToDatabaseMYSQL();
-
-    if ($database->query($sql_create_table)) {
-        echo "Tabella di esercizio creata con successo<br>";
-
-        // Query per creare il trigger solo dopo la creazione della tabella
-        try {
-            $sql_create_trigger =
-                'CREATE TRIGGER IF NOT EXISTS update_' . $nome_scelto
-                . ' BEFORE INSERT ON `' . $nome_scelto . '`
-                FOR EACH ROW 
-                BEGIN
-                SET NEW.data_creazione = NOW();
-                SET NEW.num_righe = (SELECT COUNT(*) FROM `' . $nome_scelto . '`) + 1;
-                END';
-
-
-            $statement = $database->prepare($sql_create_trigger);
-
-            if ($statement->execute()) {
-                echo "Trigger creato con successo";
-            } else {
-                echo "Errore nella creazione del trigger: ";
-            }
-
-            // inserisci un elemento per testare il trigger
-            $sql_insert = 'INSERT INTO ' . $nome_scelto . ' (nome) VALUES ("prova")';
-            $statement = $database->prepare($sql_insert);
-            if ($statement->execute()) {
-                echo "Elemento inserito con successo";
-            } else {
-                echo "Errore nell'inserimento dell'elemento: ";
-            }
-        } catch (\Throwable $th) {
-            echo "" . $th->getMessage() . "";
-            //throw $th;
+        // Se il tipo è VARCHAR, aggiungi la grandezza specificata
+        if ($tipiAttributi[$i] == 'VARCHAR') {
+            $createTableQuery .= $tipiAttributi[$i] . "(100)";
+        } else {
+            $createTableQuery .= $tipiAttributi[$i];
         }
-    } else {
-        echo "Errore nella creazione della tabella di esercizio: ";
+
+        $createTableQuery .= ", ";
+    }
+
+    // aggiungi le chiavi primarie
+    $createTableQuery .= "  PRIMARY KEY (";
+
+    for ($i = 0; $i < $numeroAttributi; $i++) {
+
+        if (in_array($i, $primaryKeys)) {
+            $createTableQuery .= " " . $nomiAttributi[$i];
+            if ($i < count($primaryKeys) - 1) {
+                $createTableQuery .= ", ";
+            }
+        }
+    }
+    $createTableQuery .= "));";
+
+    echo $createTableQuery;
+
+    return $conn->exec($createTableQuery);
+}
+
+function inserisciInTabellaDelleTabelle($nomeTabella)
+{
+    $conn = connectToDatabaseMYSQL();
+    $stmt = $conn->prepare("INSERT INTO TABELLA_DELLE_TABELLE (nome_tabella) VALUES (:nome_tabella)");
+    $stmt->bindParam(':nome_tabella', $nomeTabella);
+    $stmt->execute();
+}
+
+function inserisciInAttributi($numeroAttributi, $nomiAttributi, $tipiAttributi)
+{
+    $conn = connectToDatabaseMYSQL();
+    for ($i = 0; $i < $numeroAttributi; $i++) {
+        $stmt = $conn->prepare("INSERT INTO ATTRIBUTI (nome_attributo, tipo_attributo) VALUES (:nome_attributo, :tipo_attributo)");
+        $stmt->bindParam(':nome_attributo', $nomiAttributi[$i]);
+        $stmt->bindParam(':tipo_attributo', $tipiAttributi[$i]);
+        $stmt->execute();
+    }
+}
+
+function inserisciInRelazioneAttributiTabella($nomeTabella, $nomiAttributi)
+{
+    $conn = connectToDatabaseMYSQL();
+    for ($i = 0; $i < count($nomiAttributi); $i++) {
+        $stmt = $conn->prepare("INSERT INTO RELAZIONE_ATTRIBUTI_TABELLA (nome_tabella, nome_attributo) VALUES (:nome_tabella, :nome_attributo)");
+        $stmt->bindParam(':nome_tabella', $nomeTabella);
+        $stmt->bindParam(':nome_attributo', $nomiAttributi[$i]);
+        $stmt->execute();
     }
 }
