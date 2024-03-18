@@ -289,83 +289,6 @@ END $$ DELIMITER;
 -- UPDATE esercizio
 -- SET num_righe = num_righe + 1
 -- WHERE nome = NEW.esercizio;
--- crea tabella esercizio
--- DELIMITER $$
--- CREATE PROCEDURE IF NOT EXISTS crea_tabella_di_esercizio (
---     IN nome_tabella VARCHAR(255),
---     IN data_creazione DATE      ,
---     IN num_righe INT
--- ) BEGIN DECLARE CONTINUE
--- HANDLER FOR SQLEXCEPTION BEGIN -- Gestisci eventuali errori
--- ROLLBACK;
--- END;
--- START TRANSACTION;
--- CREATE TABLE IF NOT EXISTS
---     tabella_di_esercizio (
---         nome VARCHAR(255) NOT NULL      ,
---         data_creazione DATE NOT null    ,
---         num_righe INT DEFAULT 0 NOT NULL,
---         PRIMARY KEY (nome)
---     );
--- INSERT INTO
---     tabella_di_esercizio (nome, num_righe)
--- VALUES
---     (nome_tabella, num_righe);
--- COMMIT;
--- END $$ DELIMITER;
--- crea tabella per attributi
--- DELIMITER $$
--- CREATE PROCEDURE IF NOT EXISTS crea_tabella_attributi (
---     IN id_attributo INT               ,
---     IN nome_attributo VARCHAR(255)    ,
---     IN tipo_attributo VARCHAR(255)    ,
---     IN esercizio_associato VARCHAR(255)
--- ) BEGIN DECLARE CONTINUE
--- HANDLER FOR SQLEXCEPTION BEGIN -- Gestisci eventuali errori
--- ROLLBACK;
--- END;
--- START TRANSACTION;
--- CREATE TABLE IF NOT EXISTS
---     attributo (
---         id INT AUTO_INCREMENT NOT NULL                               ,
---         nome VARCHAR(255) NOT NULL                                   ,
---         tipo VARCHAR(255) NOT NULL                                   ,
---         esercizio VARCHAR(255) NOT NULL                              ,
---         PRIMARY KEY (id)                                             ,
---         FOREIGN KEY (esercizio) REFERENCES tabella_di_esercizio (nome)
---     );
--- INSERT INTO
---     attributo (id, nome, tipo, esercizio)
--- VALUES
---     (
---         id_attributo      ,
---         nome_attributo    ,
---         tipo_attributo    ,
---         esercizio_associato
---     );
--- COMMIT;
--- END $$ DELIMITER;
--- -- crea relazione tra attributi e esercizio
--- DELIMITER $$
--- CREATE PROCEDURE IF NOT EXISTS setAttributoComeChiavePrimaria (IN tabella_id INT, IN attributo_id INT) BEGIN DECLARE CONTINUE
--- HANDLER FOR SQLEXCEPTION BEGIN -- Gestisci eventuali errori
--- ROLLBACK;
--- END;
--- START TRANSACTION;
--- CREATE TABLE IF NOT EXISTS
---     AttributiChiavePrimaria (
---         tabella_id INT                                               ,
---         attributo_id INT                                             ,
---         PRIMARY KEY (tabella_id, attributo_id)                       ,
---         FOREIGN KEY (tabella_id) REFERENCES tabella_di_esercizio (id),
---         FOREIGN KEY (attributo_id) REFERENCES attributo (id)
---     );
--- INSERT INTO
---     AttributiChiavePrimaria (tabella_id, attributo_id)
--- VALUES
---     (tabella_id, attributo_id);
--- COMMIT;
--- END $$ DELIMITER;
 -- trigger per aggiungere la data all'aggiunta di una riga nella tabella di esercizio
 -- DELIMITER $$
 -- CREATE TRIGGER IF NOT EXISTS update_tabella_di_esercizio BEFORE
@@ -486,20 +409,59 @@ END $$ DELIMITER;
 -- crea tabella dei QUESITI
 CREATE TABLE IF NOT EXISTS
     QUESITO (
-        id INT AUTO_INCREMENT                                                 ,
-        test_associato VARCHAR(100) NOT NULL                                  ,
-        descrizione TEXT NOT NULL                                             ,
-        livello_difficolta ENUM('BASSO', 'MEDIO', 'ALTO') NOT NULL            ,
-        numero_risposte INT NOT NULL DEFAULT 0                                ,
-        PRIMARY KEY (id, test_associato)                                      ,
+        numero_quesito INT NOT NULL, -- domanda 1, domanda 2 ... domanda n
+        test_associato VARCHAR(100) NOT NULL                                      ,
+        descrizione TEXT NOT NULL                                                 ,
+        livello_difficolta ENUM('BASSO', 'MEDIO', 'ALTO') DEFAULT 'BASSO' NOT NULL,
+        numero_risposte INT NOT NULL DEFAULT 0                                    ,
+        tipo_quesito ENUM('APERTO', 'CHIUSO') DEFAULT 'APERTO' NOT NULL           ,
+        PRIMARY KEY (numero_quesito, test_associato)                              ,
         FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE
+    );
+
+-- crea tabella dei QUESITI CHIUSI
+CREATE TABLE IF NOT EXISTS
+    QUESITO_CHIUSO (
+        titolo_test VARCHAR(100) NOT NULL                                ,
+        numero_quesito INT NOT NULL, -- domanda 1, domanda 2 ... domanda n
+        numero_domanda INT AUTO_INCREMENT, -- opzione a, opzione b ... opzione z 
+        PRIMARY KEY (numero_domanda, titolo_test, numero_quesito)                        ,
+        FOREIGN KEY (titolo_test) REFERENCES TEST (titolo) ON DELETE CASCADE             ,
+        FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE
+    );
+
+-- OPZIONE QUESITO CHIUSO
+CREATE TABLE IF NOT EXISTS
+    OPZIONE_QUESITO_CHIUSO (
+        numero_opzione INT AUTO_INCREMENT, -- opzione a, opzione b ... opzione z  
+        numero_quesito INT NOT NULL, -- domanda 1, domanda 2 ... domanda n
+        titolo_test VARCHAR(100) NOT NULL                                                ,
+        testo TEXT NOT NULL                                                              ,
+        is_corretta ENUM('TRUE', 'FALSE') NOT NULL DEFAULT 'FALSE'                       ,
+        PRIMARY KEY (numero_opzione, titolo_test, numero_quesito)                        ,
+        FOREIGN KEY (titolo_test) REFERENCES TEST (titolo) ON DELETE CASCADE             ,
+        FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE
+    );
+
+-- crea tabella quesito aperto
+CREATE TABLE IF NOT EXISTS
+    QUESITO_APERTO (
+        test_associato VARCHAR(100) NOT NULL                                             ,
+        numero_quesito INT NOT NULL                                                      ,
+        soluzione_professore TEXT NOT NULL                                               ,
+        PRIMARY KEY (test_associato, numero_quesito)                                     ,
+        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE          ,
+        FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE
     );
 
 -- procedura per inserire un nuovo QUESITO
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS `InserisciNuovoQuesito` (
-    IN p_test_associato VARCHAR(100),
-    IN p_descrizione TEXT
+    IN p_numero_quesito INT                               ,
+    IN p_test_associato VARCHAR(100)                      ,
+    IN p_descrizione TEXT                                 ,
+    IN p_livello_difficolta ENUM('BASSO', 'MEDIO', 'ALTO'),
+    IN p_tipo_quesito ENUM('APERTO', 'CHIUSO')
 ) BEGIN DECLARE EXIT
 HANDLER FOR SQLEXCEPTION BEGIN
 ROLLBACK;
@@ -520,52 +482,40 @@ START TRANSACTION;
 
 -- Inserisce il quesito nella tabella Quesito
 INSERT INTO
-    QUESITO (test_associato, descrizione)
+    QUESITO (
+        numero_quesito    ,
+        test_associato    ,
+        descrizione       ,
+        livello_difficolta,
+        tipo_quesito
+    )
 VALUES
-    (p_test_associato, p_descrizione);
+    (
+        p_numero_quesito    ,
+        p_test_associato    ,
+        p_descrizione       ,
+        p_livello_difficolta,
+        p_tipo_quesito
+    );
 
 COMMIT;
 
 END $$ DELIMITER;
 
 -- quesito chiuso
--- crea tabella dei QUESITI CHIUSI
-CREATE TABLE IF NOT EXISTS
-    QUESITO_CHIUSO (
-        numero_domanda INT AUTO_INCREMENT, -- domanda 1, domanda 2 ... domanda n 
-        test_associato VARCHAR(100) NOT NULL                            ,
-        id_quesito INT NOT NULL, -- risposta a, risposta b ... risposta n
-        testo TEXT NOT NULL                                                    ,
-        is_corretta TINYINT(1) NOT NULL                                        ,
-        PRIMARY KEY (numero_domanda, test_associato, id_quesito)               ,
-        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE,
-        FOREIGN KEY (id_quesito) REFERENCES QUESITO (id) ON DELETE CASCADE
-    );
-
--- crea tabella quesito aperto
-CREATE TABLE IF NOT EXISTS
-    QUESITO_APERTO (
-        test_associato VARCHAR(100) NOT NULL                                   ,
-        id_quesito INT NOT NULL                                                ,
-        soluzione_professore TEXT NOT NULL                                     ,
-        PRIMARY KEY (test_associato, id_quesito)                               ,
-        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE,
-        FOREIGN KEY (id_quesito) REFERENCES QUESITO (id) ON DELETE CASCADE
-    );
-
 -- crea tabella risposteQuesitoChiuso
 CREATE TABLE IF NOT EXISTS
     RISPOSTA_QUESITO_CHIUSO (
         numero INT AUTO_INCREMENT, -- risposta 1, risposta 2 ... risposta n 
-        test_associato VARCHAR(100) NOT NULL                                                       ,
-        id_quesito INT NOT NULL                                                                    ,
-        id_quesito_chiuso INT NOT NULL                                                             ,
-        testo TEXT NOT NULL                                                                        ,
-        esito BOOLEAN NOT NULL                                                                     ,
-        PRIMARY KEY (numero, test_associato, id_quesito)                                           ,
-        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE                    ,
-        FOREIGN KEY (id_quesito) REFERENCES QUESITO (id) ON DELETE CASCADE                         ,
-        FOREIGN KEY (id_quesito_chiuso) REFERENCES QUESITO_CHIUSO (numero_domanda) ON DELETE CASCADE
+        test_associato VARCHAR(100) NOT NULL                                                           ,
+        numero_quesito INT NOT NULL                                                                    ,
+        numero_quesito_chiuso INT NOT NULL                                                             ,
+        testo TEXT NOT NULL                                                                            ,
+        esito BOOLEAN NOT NULL                                                                         ,
+        PRIMARY KEY (numero, test_associato, numero_quesito)                                           ,
+        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE                        ,
+        FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE             ,
+        FOREIGN KEY (numero_quesito_chiuso) REFERENCES QUESITO_CHIUSO (numero_domanda) ON DELETE CASCADE
     );
 
 -- crea tabella delle TABELLE create dai PROFESSORI
@@ -578,20 +528,12 @@ CREATE TABLE IF NOT EXISTS
 
 -- -- crea tabella degli ATTRIBUTI delle TABELLE create dai PROFESSORI
 CREATE TABLE IF NOT EXISTS
-    ATTRIBUTI (
-        nome_attributo VARCHAR(100) NOT NULL,
-        tipo_attributo VARCHAR(15) NOT NULL ,
-        PRIMARY KEY (nome_attributo)
-    );
-
--- crea tabella delle CHIAVI PRIMARIE delle TABELLE create dai PROFESSORI
-CREATE TABLE IF NOT EXISTS
-    RELAZIONE_ATTRIBUTI_TABELLA (
-        nome_tabella VARCHAR(20) NOT NULL                                                           ,
-        nome_attributo VARCHAR(100) NOT NULL                                                        ,
-        PRIMARY KEY (nome_tabella, nome_attributo)                                                  ,
-        FOREIGN KEY (nome_tabella) REFERENCES TABELLA_DELLE_TABELLE (nome_tabella) ON DELETE CASCADE,
-        FOREIGN KEY (nome_attributo) REFERENCES ATTRIBUTI (nome_attributo) ON DELETE CASCADE
+    TAB_ATT (
+        nome_tabella VARCHAR(20) NOT NULL                                                          ,
+        nome_attributo VARCHAR(100) NOT NULL                                                       ,
+        tipo_attributo VARCHAR(15) NOT NULL                                                        ,
+        PRIMARY KEY (nome_tabella, nome_attributo)                                                 ,
+        FOREIGN KEY (nome_tabella) REFERENCES TABELLA_DELLE_TABELLE (nome_tabella) ON DELETE CASCADE
     );
 
 -- -- crea tabella delle CHIAVI ESTERNE delle TABELLE create dai PROFESSORI
@@ -606,9 +548,77 @@ CREATE TABLE IF NOT EXISTS
             nome_attributo    ,
             tabella_vincolata ,
             attributo_vincolato
-        )                                                                                                ,
-        FOREIGN KEY (nome_tabella) REFERENCES TABELLA_DELLE_TABELLE (nome_tabella) ON DELETE CASCADE     ,
-        FOREIGN KEY (nome_attributo) REFERENCES ATTRIBUTI (nome_attributo) ON DELETE CASCADE             ,
-        FOREIGN KEY (tabella_vincolata) REFERENCES TABELLA_DELLE_TABELLE (nome_tabella) ON DELETE CASCADE,
-        FOREIGN KEY (attributo_vincolato) REFERENCES ATTRIBUTI (nome_attributo) ON DELETE CASCADE
+        )                                                                                                                      ,
+        FOREIGN KEY (nome_tabella, nome_attributo) REFERENCES TAB_ATT (nome_tabella, nome_attributo) ON DELETE CASCADE         ,
+        FOREIGN KEY (tabella_vincolata, attributo_vincolato) REFERENCES TAB_ATT (nome_tabella, nome_attributo) ON DELETE CASCADE
     );
+
+INSERT INTO
+    TABELLA_DELLE_TABELLE (nome_tabella)
+VALUES
+    ('Tabella1')          ,
+    ('Tabella2')          ,
+    ('Tabella3')          ,
+    ('Tabella4')          ,
+    ('tabella_di_esempio');
+
+-- Creazione della tabella Tabella1
+CREATE TABLE IF NOT EXISTS
+    Tabella1 (
+        id INT AUTO_INCREMENT PRIMARY KEY                        ,
+        nome VARCHAR(50) NOT NULL                                ,
+        descrizione TEXT                                         ,
+        data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
+
+-- Creazione della tabella Tabella2
+CREATE TABLE IF NOT EXISTS
+    Tabella2 (
+        id INT AUTO_INCREMENT PRIMARY KEY                        ,
+        titolo VARCHAR(100) NOT NULL                             ,
+        autore VARCHAR(100)                                      ,
+        anno_pubblicazione INT                                   ,
+        data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
+
+-- Creazione della tabella Tabella3
+CREATE TABLE IF NOT EXISTS
+    Tabella3 (
+        id INT AUTO_INCREMENT PRIMARY KEY                        ,
+        nome VARCHAR(50) NOT NULL                                ,
+        cognome VARCHAR(50) NOT NULL                             ,
+        email VARCHAR(100) NOT NULL                              ,
+        data_nascita DATE                                        ,
+        data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
+
+-- Creazione della tabella Tabella4
+CREATE TABLE IF NOT EXISTS
+    Tabella4 (
+        id INT AUTO_INCREMENT PRIMARY KEY                        ,
+        nome_prodotto VARCHAR(100) NOT NULL                      ,
+        prezzo DECIMAL(10, 2) NOT NULL                           ,
+        descrizione TEXT                                         ,
+        data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
+
+CREATE TABLE IF NOT EXISTS
+    tabella_di_esempio (
+        nome VARCHAR(100) NOT NULL   ,
+        cognome VARCHAR(100) NOT NULL,
+        eta INT NOT NULL             ,
+        PRIMARY KEY (nome, cognome)
+    );
+
+-- CREATE TABLE IF NOT EXISTS
+--     PRASSI (
+--         matricola INT                                                                                           ,
+--         cognome_prassi VARCHAR(100)                                                                             ,
+--         nome_prassi VARCHAR(100)                                                                                ,
+--         PRIMARY KEY (matricola)                                                                                 ,
+--         FOREIGN KEY (cognome_prassi, nome_prassi) REFERENCES tabella_di_esempio (cognome, nome) ON DELETE CASCADE
+--     );
+INSERT INTO
+    TEST (titolo, email_professore)
+VALUES
+    ('test1', 'professore@unibo.it');
