@@ -16,5 +16,9 @@ function getNumeroNuovoQuesito($titolo_test)
     $stmt->execute();
     $ultimo_quesito = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    return $ultimo_quesito['numero_quesito'] + 1;
+    if (count($ultimo_quesito) == 0) {
+        return 1;
+    } else {
+        return $ultimo_quesito['numero_quesito'] + 1;
+    }
 }

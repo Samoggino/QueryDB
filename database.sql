@@ -420,16 +420,15 @@ CREATE TABLE IF NOT EXISTS
     );
 
 -- crea tabella dei QUESITI CHIUSI
-CREATE TABLE IF NOT EXISTS
-    QUESITO_CHIUSO (
-        titolo_test VARCHAR(100) NOT NULL                                ,
-        numero_quesito INT NOT NULL, -- domanda 1, domanda 2 ... domanda n
-        numero_domanda INT AUTO_INCREMENT, -- opzione a, opzione b ... opzione z 
-        PRIMARY KEY (numero_domanda, titolo_test, numero_quesito)                        ,
-        FOREIGN KEY (titolo_test) REFERENCES TEST (titolo) ON DELETE CASCADE             ,
-        FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE
-    );
-
+-- CREATE TABLE IF NOT EXISTS
+--     QUESITO_CHIUSO (
+--         titolo_test VARCHAR(100) NOT NULL                                ,
+--         numero_quesito INT NOT NULL, -- domanda 1, domanda 2 ... domanda n
+--         numero_domanda INT AUTO_INCREMENT, -- opzione a, opzione b ... opzione z 
+--         PRIMARY KEY (numero_domanda, titolo_test, numero_quesito)                        ,
+--         FOREIGN KEY (titolo_test) REFERENCES TEST (titolo) ON DELETE CASCADE             ,
+--         FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE
+--     );
 -- OPZIONE QUESITO CHIUSO
 CREATE TABLE IF NOT EXISTS
     OPZIONE_QUESITO_CHIUSO (
@@ -443,16 +442,99 @@ CREATE TABLE IF NOT EXISTS
         FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE
     );
 
+-- crea la stored procedure per inserire una nuova opzione per un quesito chiuso
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS `InserisciNuovaOpzioneQuesitoChiuso` (
+    IN p_numero_quesito INT              ,
+    IN p_titolo_test VARCHAR(100)        ,
+    IN p_testo TEXT                      ,
+    IN p_is_corretta ENUM('TRUE', 'FALSE')
+) BEGIN DECLARE EXIT
+HANDLER FOR SQLEXCEPTION BEGIN
+ROLLBACK;
+
+RESIGNAL;
+
+END;
+
+DECLARE EXIT
+HANDLER FOR SQLWARNING BEGIN
+ROLLBACK;
+
+RESIGNAL;
+
+END;
+
+START TRANSACTION;
+
+-- Inserisce l'opzione nella tabella Opzione_quesito_chiuso
+INSERT INTO
+    OPZIONE_QUESITO_CHIUSO (numero_quesito, titolo_test, testo, is_corretta)
+VALUES
+    (
+        p_numero_quesito,
+        p_titolo_test   ,
+        p_testo         ,
+        p_is_corretta
+    );
+
+COMMIT;
+
+END $$ DELIMITER;
+
 -- crea tabella quesito aperto
 CREATE TABLE IF NOT EXISTS
-    QUESITO_APERTO (
+    SOLUZIONE_QUESITO_APERTO (
+        id_soluzione INT AUTO_INCREMENT, -- soluzione 1, soluzione 2 ... soluzione n
         test_associato VARCHAR(100) NOT NULL                                             ,
         numero_quesito INT NOT NULL                                                      ,
         soluzione_professore TEXT NOT NULL                                               ,
-        PRIMARY KEY (test_associato, numero_quesito)                                     ,
+        PRIMARY KEY (id_soluzione, test_associato, numero_quesito)                       ,
         FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE          ,
         FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE
     );
+
+-- crea la stored procedure per inserire una nuova soluzione per un quesito aperto
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS `InserisciNuovaSoluzioneQuesitoAperto` (
+    IN p_numero_quesito INT         ,
+    IN p_test_associato VARCHAR(100),
+    IN p_soluzione_professore TEXT
+) BEGIN DECLARE EXIT
+HANDLER FOR SQLEXCEPTION BEGIN
+ROLLBACK;
+
+RESIGNAL;
+
+END;
+
+DECLARE EXIT
+HANDLER FOR SQLWARNING BEGIN
+ROLLBACK;
+
+RESIGNAL;
+
+END;
+
+START TRANSACTION;
+
+-- Inserisce la soluzione nella tabella Quesito_aperto
+INSERT INTO
+    SOLUZIONE_QUESITO_APERTO (
+        test_associato     ,
+        numero_quesito     ,
+        soluzione_professore
+    )
+VALUES
+    (
+        p_test_associato     ,
+        p_numero_quesito     ,
+        p_soluzione_professore
+    );
+
+COMMIT;
+
+END $$ DELIMITER;
 
 -- procedura per inserire un nuovo QUESITO
 DELIMITER $$
@@ -504,20 +586,19 @@ END $$ DELIMITER;
 
 -- quesito chiuso
 -- crea tabella risposteQuesitoChiuso
-CREATE TABLE IF NOT EXISTS
-    RISPOSTA_QUESITO_CHIUSO (
-        numero INT AUTO_INCREMENT, -- risposta 1, risposta 2 ... risposta n 
-        test_associato VARCHAR(100) NOT NULL                                                           ,
-        numero_quesito INT NOT NULL                                                                    ,
-        numero_quesito_chiuso INT NOT NULL                                                             ,
-        testo TEXT NOT NULL                                                                            ,
-        esito BOOLEAN NOT NULL                                                                         ,
-        PRIMARY KEY (numero, test_associato, numero_quesito)                                           ,
-        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE                        ,
-        FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE             ,
-        FOREIGN KEY (numero_quesito_chiuso) REFERENCES QUESITO_CHIUSO (numero_domanda) ON DELETE CASCADE
-    );
-
+-- CREATE TABLE IF NOT EXISTS
+--     RISPOSTA_QUESITO_CHIUSO (
+--         numero INT AUTO_INCREMENT, -- risposta 1, risposta 2 ... risposta n 
+--         test_associato VARCHAR(100) NOT NULL                                                           ,
+--         numero_quesito INT NOT NULL                                                                    ,
+--         numero_quesito_chiuso INT NOT NULL                                                             ,
+--         testo TEXT NOT NULL                                                                            ,
+--         esito BOOLEAN NOT NULL                                                                         ,
+--         PRIMARY KEY (numero, test_associato, numero_quesito)                                           ,
+--         FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE                        ,
+--         FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE             ,
+--         FOREIGN KEY (numero_quesito_chiuso) REFERENCES QUESITO_CHIUSO (numero_domanda) ON DELETE CASCADE
+--     );
 -- crea tabella delle TABELLE create dai PROFESSORI
 CREATE TABLE IF NOT EXISTS
     TABELLA_DELLE_TABELLE (
@@ -553,55 +634,50 @@ CREATE TABLE IF NOT EXISTS
         FOREIGN KEY (tabella_vincolata, attributo_vincolato) REFERENCES TAB_ATT (nome_tabella, nome_attributo) ON DELETE CASCADE
     );
 
-INSERT INTO
-    TABELLA_DELLE_TABELLE (nome_tabella)
-VALUES
-    ('Tabella1')          ,
-    ('Tabella2')          ,
-    ('Tabella3')          ,
-    ('Tabella4')          ,
-    ('tabella_di_esempio');
-
--- Creazione della tabella Tabella1
-CREATE TABLE IF NOT EXISTS
-    Tabella1 (
-        id INT AUTO_INCREMENT PRIMARY KEY                        ,
-        nome VARCHAR(50) NOT NULL                                ,
-        descrizione TEXT                                         ,
-        data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
-
--- Creazione della tabella Tabella2
-CREATE TABLE IF NOT EXISTS
-    Tabella2 (
-        id INT AUTO_INCREMENT PRIMARY KEY                        ,
-        titolo VARCHAR(100) NOT NULL                             ,
-        autore VARCHAR(100)                                      ,
-        anno_pubblicazione INT                                   ,
-        data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
-
--- Creazione della tabella Tabella3
-CREATE TABLE IF NOT EXISTS
-    Tabella3 (
-        id INT AUTO_INCREMENT PRIMARY KEY                        ,
-        nome VARCHAR(50) NOT NULL                                ,
-        cognome VARCHAR(50) NOT NULL                             ,
-        email VARCHAR(100) NOT NULL                              ,
-        data_nascita DATE                                        ,
-        data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
-
--- Creazione della tabella Tabella4
-CREATE TABLE IF NOT EXISTS
-    Tabella4 (
-        id INT AUTO_INCREMENT PRIMARY KEY                        ,
-        nome_prodotto VARCHAR(100) NOT NULL                      ,
-        prezzo DECIMAL(10, 2) NOT NULL                           ,
-        descrizione TEXT                                         ,
-        data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
-
+-- INSERT INTO
+--     TABELLA_DELLE_TABELLE (nome_tabella)
+-- VALUES
+--     ('Tabella1')          ,
+--     ('Tabella2')          ,
+--     ('Tabella3')          ,
+--     ('Tabella4')          ,
+--     ('tabella_di_esempio');
+-- -- Creazione della tabella Tabella1
+-- CREATE TABLE IF NOT EXISTS
+--     Tabella1 (
+--         id INT AUTO_INCREMENT PRIMARY KEY                        ,
+--         nome VARCHAR(50) NOT NULL                                ,
+--         descrizione TEXT                                         ,
+--         data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+--     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
+-- -- Creazione della tabella Tabella2
+-- CREATE TABLE IF NOT EXISTS
+--     Tabella2 (
+--         id INT AUTO_INCREMENT PRIMARY KEY                        ,
+--         titolo VARCHAR(100) NOT NULL                             ,
+--         autore VARCHAR(100)                                      ,
+--         anno_pubblicazione INT                                   ,
+--         data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+--     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
+-- -- Creazione della tabella Tabella3
+-- CREATE TABLE IF NOT EXISTS
+--     Tabella3 (
+--         id INT AUTO_INCREMENT PRIMARY KEY                        ,
+--         nome VARCHAR(50) NOT NULL                                ,
+--         cognome VARCHAR(50) NOT NULL                             ,
+--         email VARCHAR(100) NOT NULL                              ,
+--         data_nascita DATE                                        ,
+--         data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+--     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
+-- -- Creazione della tabella Tabella4
+-- CREATE TABLE IF NOT EXISTS
+--     Tabella4 (
+--         id INT AUTO_INCREMENT PRIMARY KEY                        ,
+--         nome_prodotto VARCHAR(100) NOT NULL                      ,
+--         prezzo DECIMAL(10, 2) NOT NULL                           ,
+--         descrizione TEXT                                         ,
+--         data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+--     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
 CREATE TABLE IF NOT EXISTS
     tabella_di_esempio (
         nome VARCHAR(100) NOT NULL   ,
@@ -622,3 +698,19 @@ INSERT INTO
     TEST (titolo, email_professore)
 VALUES
     ('test1', 'professore@unibo.it');
+
+-- procedura per prendere il numero del nuovo quesito
+DELIMITER $$
+CREATE PROCEDURE GetNumeroNuovoQuesito (IN titolo_test VARCHAR(100)) BEGIN
+SELECT
+    numero_quesito
+FROM
+    QUESITO
+WHERE
+    test_associato = titolo_test
+ORDER BY
+    numero_quesito DESC
+LIMIT
+    1;
+
+END $$ DELIMITER;

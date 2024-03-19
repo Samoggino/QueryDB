@@ -10,47 +10,15 @@ try {
 
     $db = connectToDatabaseMYSQL();
     $titolo_test = $_GET['titolo_test'];
-    echo "Titolo test: " . $titolo_test;
+    echo "<h1>Titolo test: " . $titolo_test . "</h1>";
 
-
-    // // se esiste un test con questo nome, eliminalo
-    // $sql = "SELECT * FROM TEST WHERE titolo = :titolo_test";
-    // $stmt = $db->prepare($sql);
-    // $stmt->bindParam(':titolo_test', $titolo_test, PDO::PARAM_STR);
-    // $stmt->execute();
-    // $test = $stmt->fetch(PDO::FETCH_ASSOC);
-
-
-    // // FIXME: elimina il debug
-    // if ($test) {
-    //     // echo "Il test esiste già, lo elimino";
-    //     $sql = "DELETE FROM TEST WHERE titolo = :titolo_test";
-    // }
-
-    // Eseguire la query per ottenere il numero del quesito più alto
     $numero_quesito = getNumeroNuovoQuesito($titolo_test);
-
-    echo "<script>console.log('numero_quesito: " . $numero_quesito . "');</script>";
-
+    echo "<script>console.log('Numero quesito: " . $numero_quesito . "');</script>";
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $descrizione = $_POST['descrizione'];
         $livello_difficolta = $_POST['difficolta'];
         $tipo_quesito = $_POST['tipo_quesito'];
-
-        echo    "<script>console.log('tipo_quesito: " . $tipo_quesito . "');</script>";
-
-        $opzioni = $_POST['opzione'];
-        $opzioni_vera = $_POST['opzione_vera'];
-
-        echo "<script>console.log('titolo_test: " . $titolo_test . "');</script>";
-        echo "<script>console.log('descrizione: " . $descrizione . "');</script>";
-        echo "<script>console.log('difficolta: " . $livello_difficolta . "');</script>";
-        echo "<script>console.log('tipo_quesito: " . $tipo_quesito . "');</script>";
-
-
-
-
 
         try {
             $sql = "CALL InserisciNuovoQuesito(:numero_quesito, :test_associato, :descrizione, :livello_difficolta, :tipo_quesito)";
@@ -67,8 +35,25 @@ try {
         }
 
         if ($tipo_quesito == "APERTO") {
+
+            try {
+                $soluzioni = $_POST['soluzione'];
+                for ($i = 0; $i < count($soluzioni); $i++) {
+                    $sql = "CALL InserisciNuovaSoluzioneQuesitoAperto(:numero_quesito, :test_associato, :soluzione)";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindParam(':numero_quesito', $numero_quesito, PDO::PARAM_INT);
+                    $stmt->bindParam(':test_associato', $titolo_test, PDO::PARAM_STR);
+                    $stmt->bindParam(':soluzione', $soluzioni[$i], PDO::PARAM_STR);
+                    $stmt->execute();
+                }
+            } catch (\Throwable $th) {
+                echo  "Errore nel creare il quesito aperto: <br> ";
+                echo  "<br> SQL: " . $sql . "<br>" . $th->getMessage();
+            }
         } elseif ($tipo_quesito == "CHIUSO") {
 
+            $opzioni = $_POST['opzione'];
+            $opzioni_vera = $_POST['opzione_vera'];
             try {
                 for ($i = 0; $i < count($opzioni); $i++) {
                     if ($opzioni_vera[$i] == "on") {
@@ -115,7 +100,15 @@ try {
             <label for="quesito-aperto-checkbox">Aperto</label>
             <input type="checkbox" id="quesito-aperto-checkbox" name="APERTO">
             <div id="APERTO" style="display: none;">
-                <input for="soluzione" name="soluzione[]" placeholder="Soluzione" type="text">
+                <div>
+                    <button type="button" id="aggiungi_quesito_aperto">Aggiungi soluzione</button><br>
+                    <button type="button" id="rimuovi_quesito_aperto">Rimuovi soluzione</button><br>
+                </div>
+                <div id="soluzione_aperto">
+                    <div class="quesito-aperto">
+                        <input name="soluzione[]" placeholder="Soluzione" type="text" required>
+                    </div>
+                </div>
             </div>
         </div>
         <div>
@@ -128,7 +121,7 @@ try {
                 </div>
                 <div id="opzioni_chiuso">
                     <div class="quesito-chiuso">
-                        <input name="opzione[]" placeholder="Opzione" type="text" required>
+                        <input name="opzione[]" placeholder="Opzione" type="text">
                         <input name="opzione_vera[]" type="checkbox"> Opzione Vera
                     </div>
                 </div>
@@ -187,6 +180,26 @@ try {
 
     });
 
+
+
+    // il quesito chiuso deve avere almeno una opzione vera
+    var form = document.getElementById("form-quesito");
+
+    form.addEventListener("submit", function(event) {
+        var opzioni_vera = document.querySelectorAll('input[name="opzione_vera[]"]');
+        opzioni_vera.forEach(function(opzione_vera) {
+            if (!opzione_vera.checked) {
+                var falsaInput = document.createElement('input');
+                falsaInput.type = 'hidden';
+                falsaInput.name = opzione_vera.name;
+                falsaInput.value = 'FALSE';
+                opzione_vera.parentNode.appendChild(falsaInput);
+            }
+        });
+    });
+
+
+    // aggiunge righe per le opzioni del quesito chiuso
     document.addEventListener("DOMContentLoaded", function() {
 
         var quesito_chiuso_button = document.getElementById("aggiungi_quesito_chiuso");
@@ -209,19 +222,25 @@ try {
         });
     });
 
-    var form = document.getElementById("form-quesito");
+    // aggiunge righe per il quesito aperto
+    document.addEventListener("DOMContentLoaded", function() {
+        var quesito_aperto_button = document.getElementById("aggiungi_quesito_aperto");
+        quesito_aperto_button.addEventListener('click', function() {
+            var quesito_aperto = document.createElement('div');
+            quesito_aperto.className = 'quesito-aperto';
+            quesito_aperto.innerHTML = `
+                <input type="text" name="soluzione[]" placeholder="Soluzione" required>`;
+            document.getElementById('soluzione_aperto').appendChild(quesito_aperto);
+        });
 
-    form.addEventListener("submit", function(event) {
-        var opzioni_vera = document.querySelectorAll('input[name="opzione_vera[]"]');
-        opzioni_vera.forEach(function(opzione_vera) {
-            if (!opzione_vera.checked) {
-                var falsaInput = document.createElement('input');
-                falsaInput.type = 'hidden';
-                falsaInput.name = opzione_vera.name;
-                falsaInput.value = 'FALSE';
-                opzione_vera.parentNode.appendChild(falsaInput);
+        var rimuovi_quesito_chiuso_button = document.getElementById("rimuovi_quesito_aperto");
+        rimuovi_quesito_chiuso_button.addEventListener('click', function() {
+            var opzioni_chiuso = document.getElementById('soluzione_aperto');
+            if (opzioni_chiuso.children.length > 1) {
+                opzioni_chiuso.removeChild(opzioni_chiuso.lastChild);
             }
         });
+
     });
 </script>
 
