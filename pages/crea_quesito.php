@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once "../helper/connessione_mysql.php";
+require_once "../helper/numero_nuovo_quesito.php";
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -12,34 +13,22 @@ try {
     echo "Titolo test: " . $titolo_test;
 
 
-    // se esiste un test con questo nome, eliminalo
-    $sql = "SELECT * FROM TEST WHERE titolo = :titolo_test";
-    $stmt = $db->prepare($sql);
-    $stmt->bindParam(':titolo_test', $titolo_test, PDO::PARAM_STR);
-    $stmt->execute();
-    $test = $stmt->fetch(PDO::FETCH_ASSOC);
+    // // se esiste un test con questo nome, eliminalo
+    // $sql = "SELECT * FROM TEST WHERE titolo = :titolo_test";
+    // $stmt = $db->prepare($sql);
+    // $stmt->bindParam(':titolo_test', $titolo_test, PDO::PARAM_STR);
+    // $stmt->execute();
+    // $test = $stmt->fetch(PDO::FETCH_ASSOC);
 
 
-    // FIXME: elimina il debug
-    if ($test) {
-        // echo "Il test esiste già, lo elimino";
-        $sql = "DELETE FROM TEST WHERE titolo = :titolo_test";
-    }
+    // // FIXME: elimina il debug
+    // if ($test) {
+    //     // echo "Il test esiste già, lo elimino";
+    //     $sql = "DELETE FROM TEST WHERE titolo = :titolo_test";
+    // }
 
     // Eseguire la query per ottenere il numero del quesito più alto
-    $sql = "SELECT numero_quesito FROM QUESITO WHERE test_associato = :titolo_test ORDER BY numero_quesito DESC LIMIT 1";
-    $stmt = $db->prepare($sql);
-    $stmt->bindParam(':titolo_test', $titolo_test, PDO::PARAM_STR);
-    $stmt->execute();
-    $ultimo_quesito = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    // Se c'è un quesito presente nel database, incrementa il numero del quesito, altrimenti impostalo a 1
-    if ($ultimo_quesito) {
-        $numero_quesito = $ultimo_quesito['numero_quesito'] + 1;
-    } else {
-        $numero_quesito = 1;
-    }
-
+    $numero_quesito = getNumeroNuovoQuesito($titolo_test);
 
     echo "<script>console.log('numero_quesito: " . $numero_quesito . "');</script>";
 
@@ -61,13 +50,7 @@ try {
 
 
 
-        for ($i = 0; $i < count($opzioni); $i++) {
-            if ($opzioni_vera[$i] == "on") {
-                $opzioni_vera[$i] = "TRUE";
-            }
-            echo "<script>console.log('opzione: " . $opzioni[$i] . "');</script>";
-            echo "<script>console.log('opzione_vera: " . $opzioni_vera[$i] . "');</script>";
-        }
+
 
         try {
             $sql = "CALL InserisciNuovoQuesito(:numero_quesito, :test_associato, :descrizione, :livello_difficolta, :tipo_quesito)";
@@ -79,17 +62,31 @@ try {
             $stmt->bindParam(':tipo_quesito', $tipo_quesito, PDO::PARAM_STR);
             $stmt->execute();
         } catch (\Throwable $th) {
-            echo  "Errore: " . $th->getMessage();
-            echo  "<br> SQL: " . $sql;
+            echo  "Errore nel creare il quesito: <br> ";
+            echo  "<br> SQL: " . $sql . "<br>" . $th->getMessage();
         }
 
         if ($tipo_quesito == "APERTO") {
-            // $sql = "CALL InserisciNuovoQuesitoAperto(:test_associato, :descrizione, :tipo_quesito, :difficolta, :descrizione";
         } elseif ($tipo_quesito == "CHIUSO") {
-            // $sql = "CALL InserisciNuovoQuesitoChiuso(:test_associato, :descrizione, :tipo_quesito, :difficolta, :descrizione";
-        }
 
-        // $stmt = $db->prepare($sql);
+            try {
+                for ($i = 0; $i < count($opzioni); $i++) {
+                    if ($opzioni_vera[$i] == "on") {
+                        $opzioni_vera[$i] = "TRUE";
+                    }
+                    $sql = "CALL InserisciNuovaOpzioneQuesitoChiuso(:numero_quesito, :test_associato, :opzioni, :opzioni_vera)";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindParam(':numero_quesito', $numero_quesito, PDO::PARAM_INT);
+                    $stmt->bindParam(':test_associato', $titolo_test, PDO::PARAM_STR);
+                    $stmt->bindParam(':opzioni', $opzioni[$i], PDO::PARAM_STR);
+                    $stmt->bindParam(':opzioni_vera', $opzioni_vera[$i], PDO::PARAM_STR);
+                    $stmt->execute();
+                }
+            } catch (\Throwable $th) {
+                echo  "Errore nel creare il quesito chiuso: <br> ";
+                echo  "<br> SQL: " . $sql . "<br>" . $th->getMessage();
+            }
+        }
     }
 } catch (\Throwable $th) {
     echo  "Errore: " . $th->getMessage();
@@ -131,7 +128,7 @@ try {
                 </div>
                 <div id="opzioni_chiuso">
                     <div class="quesito-chiuso">
-                        <input name="opzione[]" placeholder="Opzione" type="text">
+                        <input name="opzione[]" placeholder="Opzione" type="text" required>
                         <input name="opzione_vera[]" type="checkbox"> Opzione Vera
                     </div>
                 </div>
@@ -197,7 +194,7 @@ try {
             var quesito_chiuso = document.createElement('div');
             quesito_chiuso.className = 'quesito-chiuso';
             quesito_chiuso.innerHTML = `
-                <input type="text" name="opzione[]" placeholder="Opzione">
+                <input type="text" name="opzione[]" placeholder="Opzione" required>
                 <input type="checkbox" name="opzione_vera[]"> Opzione Vera`;
             document.getElementById('opzioni_chiuso').appendChild(quesito_chiuso);
         });
