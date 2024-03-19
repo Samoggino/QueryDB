@@ -47,7 +47,7 @@ session_start();
                                 <input type="checkbox" id="studente-checkbox" class="flip-card__checkbox" name="studente">
                                 <div id="studente" style="display: none;">
                                     <input for="anno_immatricolazione" name="anno_immatricolazione" class="flip-card__input" placeholder="Anno di immatricolazione" type="text">
-                                    <input for="codice_alfanumerico" name="codice_alfanumerico" class="flip-card__input" placeholder="Codice" type="text">
+                                    <input for="matricola" name="matricola" class="flip-card__input" placeholder="Codice" type="text">
                                 </div>
                             </div>
                             <div>
@@ -129,7 +129,7 @@ session_start();
                 }
             } else {
                 echo "<script>alert('Credenziali errate!');</script>";
-            }   
+            }
         } elseif (isset($_POST['registrazione'])) {
             registrazione();
         }

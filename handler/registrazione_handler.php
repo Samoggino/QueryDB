@@ -24,8 +24,8 @@ function registrazione()
             $pdo = getPDO();
             if ($tipoUtente == "studente") {
                 $annoImmatricolazione = $_POST["anno_immatricolazione"];
-                $codiceAlfanumerico = $_POST["codice_alfanumerico"];
-                insertNewStudent($pdo, $email, $nome, $cognome, $PASSWORD, $telefono, $annoImmatricolazione, $codiceAlfanumerico);
+                $matricola = $_POST["matricola"];
+                insertNewStudent($pdo, $email, $nome, $cognome, $PASSWORD, $telefono, $annoImmatricolazione, $matricola);
                 echo "<p>Studente registrato con successo!</p>";
             } elseif ($tipoUtente == "professore") {
                 $dipartimento = $_POST["dipartimento"];
@@ -43,9 +43,9 @@ function registrazione()
     }
 }
 
-function insertNewStudent($pdo, $email, $nome, $cognome, $password, $telefono, $annoImmatricolazione, $codiceAlfanumerico)
+function insertNewStudent($pdo, $email, $nome, $cognome, $password, $telefono, $annoImmatricolazione, $matricola)
 {
-    $sql = "CALL InserisciNuovoStudente(:email, :nome, :cognome, :password, :telefono, :annoImmatricolazione, :codiceAlfanumerico)";
+    $sql = "CALL InserisciNuovoStudente(:email, :nome, :cognome, :password, :telefono, :annoImmatricolazione, :matricola)";
     $query = $pdo->prepare($sql);
     $query->bindParam(':email', $email, PDO::PARAM_STR);
     $query->bindParam(':nome', $nome, PDO::PARAM_STR);
@@ -53,7 +53,7 @@ function insertNewStudent($pdo, $email, $nome, $cognome, $password, $telefono, $
     $query->bindParam(':password', $password, PDO::PARAM_STR);
     $query->bindParam(':telefono', $telefono, PDO::PARAM_STR);
     $query->bindParam(':annoImmatricolazione', $annoImmatricolazione, PDO::PARAM_STR);
-    $query->bindParam(':codiceAlfanumerico', $codiceAlfanumerico, PDO::PARAM_STR);
+    $query->bindParam(':matricola', $matricola, PDO::PARAM_STR);
     $query->execute();
 }
 

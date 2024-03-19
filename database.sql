@@ -1,4 +1,3 @@
--- Active: 1708708519055@@localhost@3306@ESQLDB
 DROP DATABASE IF EXISTS `ESQLDB`;
 
 CREATE DATABASE IF NOT EXISTS `ESQLDB` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
@@ -8,10 +7,11 @@ USE `ESQLDB`;
 -- Tabella Utente
 CREATE TABLE IF NOT EXISTS
     UTENTE (
-        email VARCHAR(100) PRIMARY KEY,
-        nome VARCHAR(50) NOT NULL     ,
-        cognome VARCHAR(50) NOT NULL  ,
-        PASSWORD VARCHAR(100) NOT NULL,
+        email VARCHAR(100) PRIMARY KEY                                        ,
+        nome VARCHAR(50) NOT NULL                                             ,
+        cognome VARCHAR(50) NOT NULL                                          ,
+        PASSWORD VARCHAR(100) NOT NULL                                        ,
+        tipo_utente ENUM('STUDENTE', 'PROFESSORE') DEFAULT 'STUDENTE' NOT NULL,
         telefono VARCHAR(20)
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8 COLLATE = utf8_general_ci;
 
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS
 CREATE TABLE IF NOT EXISTS
     STUDENTE (
         email_studente VARCHAR(100) PRIMARY KEY                                ,
-        codice_alfanumerico VARCHAR(16) NOT NULL                               ,
+        matricola VARCHAR(16) NOT NULL                                         ,
         anno_immatricolazione INT NOT NULL                                     ,
         FOREIGN KEY (email_studente) REFERENCES UTENTE (email) ON DELETE CASCADE
     );
@@ -35,62 +35,80 @@ CREATE TABLE IF NOT EXISTS
 
 -- Inserimento dati nella tabella UTENTE
 INSERT INTO
-    UTENTE (email, nome, cognome, PASSWORD, telefono)
+    UTENTE (
+        email     ,
+        nome      ,
+        cognome   ,
+        PASSWORD  ,
+        telefono  ,
+        tipo_utente
+    )
 VALUES
     (
         'studente1@example.com',
         'Mario'                ,
         'Rossi'                ,
         'password123'          ,
-        '12324567'
+        '12324567'             ,
+        'STUDENTE'
     ),
     (
         'studente2@example.com',
         'Luca'                 ,
         'Bianchi'              ,
         'pass123'              ,
-        '12324567'
+        '12324567'             ,
+        'STUDENTE'
     ),
     (
         'vincenzo.scollo@example.com',
         'Anna'                       ,
         'Verdi'                      ,
         'securepass'                 ,
-        '12324567'
+        '12324567'                   ,
+        'PROFESSORE'
     ),
     (
         'mariagrazia.fabbri@example.com',
         'Carlo'                         ,
         'Neri'                          ,
         'supersecret'                   ,
-        '12324567'
+        '12324567'                      ,
+        'PROFESSORE'
     ),
     (
         'simosamoggia@gmail.com',
         'Simone'                ,
         'Samoggia'              ,
         '1234'                  ,
-        '12324567'
+        '12324567'              ,
+        'STUDENTE'
     ),
     (
         'professore@unibo.it',
         'Professor'          ,
         'Oak'                ,
         '1234'               ,
-        '12324567'
+        '12324567'           ,
+        'PROFESSORE'
+    ),
+    (
+        'studente@unibo.it',
+        'Ash'              ,
+        'Ketchum'          ,
+        '1234'             ,
+        '12324567'         ,
+        'STUDENTE'
     );
 
 -- Inserimento dati nella tabella Studente
 INSERT INTO
-    STUDENTE (
-        email_studente       ,
-        anno_immatricolazione,
-        codice_alfanumerico
-    )
+    STUDENTE (email_studente, anno_immatricolazione, matricola)
 VALUES
     ('studente1@example.com', 2019, '0123456789') ,
     ('studente2@example.com', 2020, '0123456787') ,
-    ('simosamoggia@gmail.com', 2020, '0123456787');
+    ('simosamoggia@gmail.com', 2020, '0123456787'),
+    ('studente@unibo.it', 2020, '0123456787');
 
 -- Inserimento dati nella tabella Professore
 INSERT INTO
@@ -114,18 +132,14 @@ VALUES
 
 -- Procedura di registrazione studente
 DELIMITER $$
--- Active: 1708708519055@@localhost@3306@ESQLDB
-DROP PROCEDURE IF EXISTS authenticateUser;
-
-CREATE DEFINER = `root` @`localhost` PROCEDURE `authenticateUser` (
+CREATE PROCEDURE IF NOT EXISTS `authenticateUser` (
     IN p_email VARCHAR(100)  ,
     IN p_password VARCHAR(100)
 ) BEGIN
 SELECT
-    CASE
-        WHEN COUNT(*) > 0 THEN 1
-        ELSE 0
-    END AS user_exists
+    email ,
+    nome  ,
+    cognome
 FROM
     UTENTE
 WHERE
@@ -137,12 +151,12 @@ END $$ DELIMITER;
 -- Procedura di registrazione studente
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS `InserisciNuovoStudente` (
-    IN p_email VARCHAR(100)             ,
-    IN p_nome VARCHAR(50)               ,
-    IN p_cognome VARCHAR(50)            ,
-    IN p_password VARCHAR(100)          ,
-    IN p_telefono VARCHAR(20)           ,
-    IN p_codice_alfanumerico VARCHAR(16),
+    IN p_email VARCHAR(100)      ,
+    IN p_nome VARCHAR(50)        ,
+    IN p_cognome VARCHAR(50)     ,
+    IN p_password VARCHAR(100)   ,
+    IN p_telefono VARCHAR(20)    ,
+    IN p_matricola VARCHAR(16)   ,
     IN p_anno_immatricolazione INT
 ) BEGIN DECLARE EXIT
 HANDLER FOR SQLEXCEPTION BEGIN
@@ -176,17 +190,9 @@ VALUES
 
 -- Inserisce lo studente nella tabella Studente
 INSERT INTO
-    STUDENTE (
-        email_studente      ,
-        codice_alfanumerico ,
-        anno_immatricolazione
-    )
+    STUDENTE (email_studente, matricola, anno_immatricolazione)
 VALUES
-    (
-        p_email               ,
-        p_codice_alfanumerico ,
-        p_anno_immatricolazione
-    );
+    (p_email, p_matricola, p_anno_immatricolazione);
 
 COMMIT;
 
@@ -419,16 +425,6 @@ CREATE TABLE IF NOT EXISTS
         FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE
     );
 
--- crea tabella dei QUESITI CHIUSI
--- CREATE TABLE IF NOT EXISTS
---     QUESITO_CHIUSO (
---         titolo_test VARCHAR(100) NOT NULL                                ,
---         numero_quesito INT NOT NULL, -- domanda 1, domanda 2 ... domanda n
---         numero_domanda INT AUTO_INCREMENT, -- opzione a, opzione b ... opzione z 
---         PRIMARY KEY (numero_domanda, titolo_test, numero_quesito)                        ,
---         FOREIGN KEY (titolo_test) REFERENCES TEST (titolo) ON DELETE CASCADE             ,
---         FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE
---     );
 -- OPZIONE QUESITO CHIUSO
 CREATE TABLE IF NOT EXISTS
     OPZIONE_QUESITO_CHIUSO (
@@ -442,6 +438,160 @@ CREATE TABLE IF NOT EXISTS
         FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE
     );
 
+-- crea tabella quesito aperto
+CREATE TABLE IF NOT EXISTS
+    SOLUZIONE_QUESITO_APERTO (
+        id_soluzione INT AUTO_INCREMENT, -- soluzione 1, soluzione 2 ... soluzione n
+        test_associato VARCHAR(100) NOT NULL                                             ,
+        numero_quesito INT NOT NULL                                                      ,
+        soluzione_professore TEXT NOT NULL                                               ,
+        PRIMARY KEY (id_soluzione, test_associato, numero_quesito)                       ,
+        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE          ,
+        FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE
+    );
+
+-- crea tabelle delle risposte chiuse
+CREATE TABLE IF NOT EXISTS
+    RISPOSTA_QUESITO_CHIUSO (
+        test_associato VARCHAR(100) NOT NULL                  ,
+        numero_quesito INT NOT NULL                           ,
+        scelta INT NOT NULL                                   ,
+        email_studente VARCHAR(100) NOT NULL                  ,
+        TIMESTAMP TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        esito BOOLEAN NOT NULL DEFAULT FALSE                  ,
+        PRIMARY KEY (
+            test_associato,
+            numero_quesito,
+            TIMESTAMP     ,
+            email_studente
+        )                                                                                        ,
+        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE                  ,
+        FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE       ,
+        FOREIGN KEY (scelta) REFERENCES OPZIONE_QUESITO_CHIUSO (numero_opzione) ON DELETE CASCADE,
+        FOREIGN KEY (email_studente) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE
+    );
+
+-- crea tabella delle risposte aperte
+CREATE TABLE IF NOT EXISTS
+    RISPOSTA_QUESITO_APERTO (
+        test_associato VARCHAR(100) NOT NULL                  ,
+        numero_quesito INT NOT NULL                           ,
+        email_studente VARCHAR(100) NOT NULL                  ,
+        risposta TEXT NOT NULL                                ,
+        TIMESTAMP TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        esito BOOLEAN NOT NULL DEFAULT FALSE                  ,
+        PRIMARY KEY (
+            test_associato,
+            numero_quesito,
+            TIMESTAMP     ,
+            email_studente
+        )                                                                                 ,
+        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE           ,
+        FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE,
+        FOREIGN KEY (email_studente) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE
+    );
+
+-- Inserimento valori di esempio per la tabella TEST
+INSERT INTO
+    TEST (
+        titolo            ,
+        dataCreazione     ,
+        VisualizzaRisposte,
+        email_professore
+    )
+VALUES
+    (
+        "Test di Matematica" ,
+        "2024-03-19 12:00:00",
+        1                    ,
+        "professore@unibo.it"
+    ),
+    (
+        "Test di Storia"     ,
+        "2024-03-18 10:30:00",
+        0                    ,
+        "professore@unibo.it"
+    );
+
+-- Inserimento valori di esempio per la tabella QUESITO
+INSERT INTO
+    QUESITO (
+        numero_quesito    ,
+        test_associato    ,
+        descrizione       ,
+        livello_difficolta,
+        numero_risposte   ,
+        tipo_quesito
+    )
+VALUES
+    (
+        1                                ,
+        "Test di Matematica"             ,
+        "Risolvi l'equazione x^2 - 4 = 0",
+        "MEDIO"                          ,
+        0                                ,
+        "APERTO"
+    ),
+    (
+        2                   ,
+        "Test di Matematica",
+        "Quanto fa 2+2?"    ,
+        "BASSO"             ,
+        0                   ,
+        "CHIUSO"
+    ),
+    (
+        3                                               ,
+        "Test di Storia"                                ,
+        "Chi era il primo presidente degli Stati Uniti?",
+        "ALTO"                                          ,
+        0                                               ,
+        "APERTO"
+    );
+
+-- Inserimento valori di esempio per la tabella OPZIONE_QUESITO_CHIUSO
+INSERT INTO
+    OPZIONE_QUESITO_CHIUSO (
+        numero_opzione,
+        numero_quesito,
+        titolo_test   ,
+        testo         ,
+        is_corretta
+    )
+VALUES
+    (1, 2, "Test di Matematica", "4", "TRUE") ,
+    (2, 2, "Test di Matematica", "5", "FALSE"),
+    (3, 2, "Test di Matematica", "6", "FALSE");
+
+-- Inserimento valori di esempio per la tabella SOLUZIONE_QUESITO_APERTO
+INSERT INTO
+    SOLUZIONE_QUESITO_APERTO (
+        test_associato     ,
+        numero_quesito     ,
+        soluzione_professore
+    )
+VALUES
+    (
+        "Test di Matematica"         ,
+        1                            ,
+        "Le soluzioni sono x=2 e x=-2"
+    ),
+    (
+        "Test di Storia"                                             ,
+        3                                                            ,
+        "Il primo presidente degli Stati Uniti era George Washington."
+    );
+
+-- crea tabella dei QUESITI CHIUSI
+-- CREATE TABLE IF NOT EXISTS
+--     QUESITO_CHIUSO (
+--         titolo_test VARCHAR(100) NOT NULL                                ,
+--         numero_quesito INT NOT NULL, -- domanda 1, domanda 2 ... domanda n
+--         numero_domanda INT AUTO_INCREMENT, -- opzione a, opzione b ... opzione z 
+--         PRIMARY KEY (numero_domanda, titolo_test, numero_quesito)                        ,
+--         FOREIGN KEY (titolo_test) REFERENCES TEST (titolo) ON DELETE CASCADE             ,
+--         FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE
+--     );
 -- crea la stored procedure per inserire una nuova opzione per un quesito chiuso
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS `InserisciNuovaOpzioneQuesitoChiuso` (
@@ -481,18 +631,6 @@ VALUES
 COMMIT;
 
 END $$ DELIMITER;
-
--- crea tabella quesito aperto
-CREATE TABLE IF NOT EXISTS
-    SOLUZIONE_QUESITO_APERTO (
-        id_soluzione INT AUTO_INCREMENT, -- soluzione 1, soluzione 2 ... soluzione n
-        test_associato VARCHAR(100) NOT NULL                                             ,
-        numero_quesito INT NOT NULL                                                      ,
-        soluzione_professore TEXT NOT NULL                                               ,
-        PRIMARY KEY (id_soluzione, test_associato, numero_quesito)                       ,
-        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE          ,
-        FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE
-    );
 
 -- crea la stored procedure per inserire una nuova soluzione per un quesito aperto
 DELIMITER $$

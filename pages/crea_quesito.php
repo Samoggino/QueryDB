@@ -106,7 +106,6 @@ try {
                 </div>
                 <div id="soluzione_aperto">
                     <div class="quesito-aperto">
-                        <input name="soluzione[]" placeholder="Soluzione" type="text" required>
                     </div>
                 </div>
             </div>
@@ -133,10 +132,6 @@ try {
         <input type="hidden" for="tipo_quesito" name="tipo_quesito" id="tipo_quesito" value="">
         <button type="submit" value="crea il test">Crea il test</button>
     </form>
-
-
-    <h1> </h1>
-
 </body>
 
 <script>
@@ -147,12 +142,24 @@ try {
         var chiuso_div = document.getElementById("CHIUSO");
         var tipoUtenteInput = document.getElementById("tipo_quesito"); // Definizione della variabile tipoUtenteInput
 
+
+
         quesito_aperto_checkbox.addEventListener("change", function() {
             if (this.checked) {
                 tipoUtenteInput.value = "APERTO";
                 aperto_div.style.display = "block";
                 quesito_chiuso_checkbox.checked = false; // Disabilita la checkbox chiuso quando selezioni aperto
                 chiuso_div.style.display = "none";
+
+                // <input name="soluzione[]" placeholder="Soluzione" type="text" required>
+                var quesito_aperto = document.createElement('div');
+                quesito_aperto.className = 'quesito-aperto';
+
+                if (document.getElementById('soluzione_aperto').children.length == 1) {
+                    quesito_aperto.innerHTML = `<input name="soluzione[]" placeholder="Soluzione" type="text" required>`;
+                    document.getElementById('soluzione_aperto').appendChild(quesito_aperto);
+                }
+
             } else {
                 aperto_div.style.display = "none";
             }
