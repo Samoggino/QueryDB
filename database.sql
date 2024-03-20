@@ -1004,3 +1004,19 @@ COMMIT;
 END IF;
 
 END $$ DELIMITER;
+
+-- SELECT tipo_quesito FROM QUESITO WHERE numero_quesito = :numero_quesito AND test_associato = :test_associato;
+DELIMITER $$
+CREATE PROCEDURE GetTipoQuesito (
+    IN p_numero_quesito INT        ,
+    IN p_test_associato VARCHAR(255)
+) BEGIN
+SELECT
+    tipo_quesito
+FROM
+    QUESITO
+WHERE
+    numero_quesito = p_numero_quesito
+    AND test_associato = p_test_associato;
+
+END $$ DELIMITER;

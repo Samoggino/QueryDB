@@ -24,8 +24,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $n_quesito = substr($campo, 7);
 
                     // Verifica se il quesito è aperto o chiuso
-                    $sql_tipo_quesito = "SELECT tipo_quesito FROM QUESITO WHERE numero_quesito = :numero_quesito AND test_associato = :test_associato;";
-                    $stmt = $db->prepare($sql_tipo_quesito);
+                    $sql = "CALL GetTipoQuesito(:numero_quesito, :test_associato);";
+                    $stmt = $db->prepare($sql);
                     $stmt->bindParam(':numero_quesito', $n_quesito);
                     $stmt->bindParam(':test_associato', $test_associato);
                     $stmt->execute();
