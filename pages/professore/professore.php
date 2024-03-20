@@ -13,10 +13,12 @@ session_start();
 <body>
     <?php
     echo "<h1>La tua email è : " . $_SESSION['email'] . "</h1>";
+    echo "Schermata del professore" . "<br>";
+    echo "professore.php" . "<br>";
     ?>
     <h1>Crea un test</h1>
     <form id="uploadForm" method="post" action="crea_test.php" enctype="multipart/form-data">
-        <input for="titolo_test" name="titolo_test" placeholder="Titolo" type="text" required>
+        <input for="test_associato" name="test_associato" placeholder="Titolo" type="text" required>
 
         <label for="">Visualizza risposte</label>
         <input type="checkbox" id="visualizzaRisposteCheckbox" name="visualizzaRisposteCheckbox">

@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once "../helper/connessione_mysql.php";
-require_once "../helper/numero_nuovo_quesito.php";
+require_once "../../helper/connessione_mysql.php";
+require_once "../../helper/numero_nuovo_quesito.php";
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -9,11 +9,11 @@ error_reporting(E_ALL);
 try {
 
     $db = connectToDatabaseMYSQL();
-    $titolo_test = $_GET['titolo_test'];
-    echo "<h1>Titolo test: " . $titolo_test . "</h1>";
 
-    $numero_quesito = getNumeroNuovoQuesito($titolo_test);
-    echo "<script>console.log('Numero quesito: " . $numero_quesito . "');</script>";
+    $test_associato = $_GET['test_associato'];
+    $n_quesito = getNumeroNuovoQuesito($test_associato);
+    echo "<h1>Titolo test: " . $test_associato . "</h1>";
+    echo "<script>console.log('Numero quesito: " . $n_quesito . "');</script>";
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $descrizione = $_POST['descrizione'];
@@ -23,8 +23,8 @@ try {
         try {
             $sql = "CALL InserisciNuovoQuesito(:numero_quesito, :test_associato, :descrizione, :livello_difficolta, :tipo_quesito)";
             $stmt = $db->prepare($sql);
-            $stmt->bindParam(':numero_quesito', $numero_quesito, PDO::PARAM_INT);
-            $stmt->bindParam(':test_associato', $titolo_test, PDO::PARAM_STR);
+            $stmt->bindParam(':numero_quesito', $n_quesito, PDO::PARAM_INT);
+            $stmt->bindParam(':test_associato', $test_associato, PDO::PARAM_STR);
             $stmt->bindParam(':descrizione', $descrizione, PDO::PARAM_STR);
             $stmt->bindParam(':livello_difficolta', $livello_difficolta, PDO::PARAM_STR);
             $stmt->bindParam(':tipo_quesito', $tipo_quesito, PDO::PARAM_STR);
@@ -41,8 +41,8 @@ try {
                 for ($i = 0; $i < count($soluzioni); $i++) {
                     $sql = "CALL InserisciNuovaSoluzioneQuesitoAperto(:numero_quesito, :test_associato, :soluzione)";
                     $stmt = $db->prepare($sql);
-                    $stmt->bindParam(':numero_quesito', $numero_quesito, PDO::PARAM_INT);
-                    $stmt->bindParam(':test_associato', $titolo_test, PDO::PARAM_STR);
+                    $stmt->bindParam(':numero_quesito', $n_quesito, PDO::PARAM_INT);
+                    $stmt->bindParam(':test_associato', $test_associato, PDO::PARAM_STR);
                     $stmt->bindParam(':soluzione', $soluzioni[$i], PDO::PARAM_STR);
                     $stmt->execute();
                 }
@@ -55,17 +55,20 @@ try {
             $opzioni = $_POST['opzione'];
             $opzioni_vera = $_POST['opzione_vera'];
             try {
+                $n_opzione = 1;
                 for ($i = 0; $i < count($opzioni); $i++) {
                     if ($opzioni_vera[$i] == "on") {
                         $opzioni_vera[$i] = "TRUE";
                     }
-                    $sql = "CALL InserisciNuovaOpzioneQuesitoChiuso(:numero_quesito, :test_associato, :opzioni, :opzioni_vera)";
+                    $sql = "CALL InserisciNuovaOpzioneQuesitoChiuso(:numero_opzione, :numero_quesito, :test_associato, :opzioni, :opzioni_vera)";
                     $stmt = $db->prepare($sql);
-                    $stmt->bindParam(':numero_quesito', $numero_quesito, PDO::PARAM_INT);
-                    $stmt->bindParam(':test_associato', $titolo_test, PDO::PARAM_STR);
+                    $stmt->bindParam(':numero_opzione', $n_opzione, PDO::PARAM_INT);
+                    $stmt->bindParam(':numero_quesito', $n_quesito, PDO::PARAM_INT);
+                    $stmt->bindParam(':test_associato', $test_associato, PDO::PARAM_STR);
                     $stmt->bindParam(':opzioni', $opzioni[$i], PDO::PARAM_STR);
                     $stmt->bindParam(':opzioni_vera', $opzioni_vera[$i], PDO::PARAM_STR);
                     $stmt->execute();
+                    $n_opzione++;
                 }
             } catch (\Throwable $th) {
                 echo  "Errore nel creare il quesito chiuso: <br> ";

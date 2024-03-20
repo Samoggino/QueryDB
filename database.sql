@@ -326,10 +326,10 @@ CREATE TABLE IF NOT EXISTS
 -- crea tabella delle foto dei test
 CREATE TABLE IF NOT EXISTS
     FOTO_TEST (
-        foto LONGBLOB NOT NULL                                             ,
-        titolo_test VARCHAR(100) NOT NULL                                  ,
-        PRIMARY KEY (titolo_test)                                          ,
-        FOREIGN KEY (titolo_test) REFERENCES TEST (titolo) ON DELETE CASCADE
+        foto LONGBLOB NOT NULL                                                ,
+        test_associato VARCHAR(100) NOT NULL                                  ,
+        PRIMARY KEY (test_associato)                                          ,
+        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE
     );
 
 -- crea procedura per inserire un nuovo TEST
@@ -372,7 +372,10 @@ END $$ DELIMITER;
 
 -- crea procedura per inserire una nuova foto di un test
 DELIMITER $$
-CREATE PROCEDURE IF NOT EXISTS `InserisciNuovaFotoTest` (IN p_foto LONGBLOB, IN p_titolo_test VARCHAR(100)) BEGIN DECLARE EXIT
+CREATE PROCEDURE IF NOT EXISTS `InserisciNuovaFotoTest` (
+    IN p_foto LONGBLOB             ,
+    IN p_test_associato VARCHAR(100)
+) BEGIN DECLARE EXIT
 HANDLER FOR SQLEXCEPTION BEGIN
 ROLLBACK;
 
@@ -392,9 +395,9 @@ START TRANSACTION;
 
 -- Inserisce la foto del test nella tabella Foto_test
 INSERT INTO
-    FOTO_TEST (foto, titolo_test)
+    FOTO_TEST (foto, test_associato)
 VALUES
-    (p_foto, p_titolo_test);
+    (p_foto, p_test_associato);
 
 COMMIT;
 
@@ -402,13 +405,13 @@ END $$ DELIMITER;
 
 -- procedura per restituire l'immagine di un TEST
 DELIMITER $$
-CREATE PROCEDURE IF NOT EXISTS `RecuperaFotoTest` (IN p_titolo_test VARCHAR(100)) BEGIN
+CREATE PROCEDURE IF NOT EXISTS `RecuperaFotoTest` (IN p_test_associato VARCHAR(100)) BEGIN
 SELECT
     foto
 FROM
     FOTO_TEST
 WHERE
-    titolo_test = p_titolo_test;
+    test_associato = p_test_associato;
 
 END $$ DELIMITER;
 
@@ -428,13 +431,13 @@ CREATE TABLE IF NOT EXISTS
 -- OPZIONE QUESITO CHIUSO
 CREATE TABLE IF NOT EXISTS
     OPZIONE_QUESITO_CHIUSO (
-        numero_opzione INT AUTO_INCREMENT, -- opzione a, opzione b ... opzione z  
+        numero_opzione INT, -- opzione a, opzione b ... opzione z  
         numero_quesito INT NOT NULL, -- domanda 1, domanda 2 ... domanda n
-        titolo_test VARCHAR(100) NOT NULL                                                ,
+        test_associato VARCHAR(100) NOT NULL                                             ,
         testo TEXT NOT NULL                                                              ,
-        is_corretta ENUM('TRUE', 'FALSE') NOT NULL DEFAULT 'FALSE'                       ,
-        PRIMARY KEY (numero_opzione, titolo_test, numero_quesito)                        ,
-        FOREIGN KEY (titolo_test) REFERENCES TEST (titolo) ON DELETE CASCADE             ,
+        is_corretta ENUM('TRUE', 'FALSE') DEFAULT 'FALSE' NOT NULL                       ,
+        PRIMARY KEY (numero_opzione, test_associato, numero_quesito)                     ,
+        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE          ,
         FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE
     );
 
@@ -453,12 +456,12 @@ CREATE TABLE IF NOT EXISTS
 -- crea tabelle delle risposte chiuse
 CREATE TABLE IF NOT EXISTS
     RISPOSTA_QUESITO_CHIUSO (
-        test_associato VARCHAR(100) NOT NULL                  ,
-        numero_quesito INT NOT NULL                           ,
-        scelta INT NOT NULL                                   ,
-        email_studente VARCHAR(100) NOT NULL                  ,
-        TIMESTAMP TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        esito BOOLEAN NOT NULL DEFAULT FALSE                  ,
+        test_associato VARCHAR(100) NOT NULL                          ,
+        numero_quesito INT NOT NULL                                   ,
+        email_studente VARCHAR(100) NOT NULL                          ,
+        TIMESTAMP TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL        ,
+        scelta INT NOT NULL                                           ,
+        esito ENUM('GIUSTA', 'SBAGLIATA') DEFAULT 'SBAGLIATA' NOT NULL,
         PRIMARY KEY (
             test_associato,
             numero_quesito,
@@ -474,12 +477,12 @@ CREATE TABLE IF NOT EXISTS
 -- crea tabella delle risposte aperte
 CREATE TABLE IF NOT EXISTS
     RISPOSTA_QUESITO_APERTO (
-        test_associato VARCHAR(100) NOT NULL                  ,
-        numero_quesito INT NOT NULL                           ,
-        email_studente VARCHAR(100) NOT NULL                  ,
-        risposta TEXT NOT NULL                                ,
-        TIMESTAMP TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        esito BOOLEAN NOT NULL DEFAULT FALSE                  ,
+        test_associato VARCHAR(100) NOT NULL                          ,
+        numero_quesito INT NOT NULL                                   ,
+        email_studente VARCHAR(100) NOT NULL                          ,
+        risposta TEXT NOT NULL                                        ,
+        TIMESTAMP TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL        ,
+        esito ENUM('GIUSTA', 'SBAGLIATA') DEFAULT 'SBAGLIATA' NOT NULL,
         PRIMARY KEY (
             test_associato,
             numero_quesito,
@@ -541,11 +544,35 @@ VALUES
         "CHIUSO"
     ),
     (
-        3                                               ,
+        1                                               ,
         "Test di Storia"                                ,
         "Chi era il primo presidente degli Stati Uniti?",
         "ALTO"                                          ,
         0                                               ,
+        "APERTO"
+    ),
+    (
+        3                   ,
+        "Test di Matematica",
+        "Quanto fa 5x5?"    ,
+        "MEDIO"             ,
+        0                   ,
+        "CHIUSO"
+    ),
+    (
+        2                                                  ,
+        "Test di Storia"                                   ,
+        "Chi è stato il primo uomo a camminare sulla Luna?",
+        "MEDIO"                                            ,
+        0                                                  ,
+        "APERTO"
+    ),
+    (
+        3                                             ,
+        "Test di Storia"                              ,
+        "Quando è scoppiata la prima guerra mondiale?",
+        "ALTO"                                        ,
+        0                                             ,
         "APERTO"
     );
 
@@ -554,14 +581,23 @@ INSERT INTO
     OPZIONE_QUESITO_CHIUSO (
         numero_opzione,
         numero_quesito,
-        titolo_test   ,
+        test_associato,
         testo         ,
         is_corretta
     )
 VALUES
-    (1, 2, "Test di Matematica", "4", "TRUE") ,
-    (2, 2, "Test di Matematica", "5", "FALSE"),
-    (3, 2, "Test di Matematica", "6", "FALSE");
+    (1, 2, "Test di Matematica", "4", "TRUE")         ,
+    (2, 2, "Test di Matematica", "5", "FALSE")        ,
+    (3, 2, "Test di Matematica", "6", "FALSE")        ,
+    (1, 3, "Test di Matematica", "25", "TRUE")        ,
+    (2, 3, "Test di Matematica", "30", "FALSE")       ,
+    (3, 3, "Test di Matematica", "20", "FALSE")       ,
+    (4, 2, "Test di Storia", "Neil Armstrong", "TRUE"),
+    (5, 2, "Test di Storia", "Buzz Aldrin", "FALSE")  ,
+    (6, 2, "Test di Storia", "Yuri Gagarin", "FALSE") ,
+    (7, 3, "Test di Storia", "1914", "TRUE")          ,
+    (8, 3, "Test di Storia", "1939", "FALSE")         ,
+    (9, 3, "Test di Storia", "1945", "FALSE");
 
 -- Inserimento valori di esempio per la tabella SOLUZIONE_QUESITO_APERTO
 INSERT INTO
@@ -578,25 +614,26 @@ VALUES
     ),
     (
         "Test di Storia"                                             ,
-        3                                                            ,
+        1                                                            ,
         "Il primo presidente degli Stati Uniti era George Washington."
     );
 
 -- crea tabella dei QUESITI CHIUSI
 -- CREATE TABLE IF NOT EXISTS
 --     QUESITO_CHIUSO (
---         titolo_test VARCHAR(100) NOT NULL                                ,
+--         test_associato VARCHAR(100) NOT NULL                                ,
 --         numero_quesito INT NOT NULL, -- domanda 1, domanda 2 ... domanda n
 --         numero_domanda INT AUTO_INCREMENT, -- opzione a, opzione b ... opzione z 
---         PRIMARY KEY (numero_domanda, titolo_test, numero_quesito)                        ,
---         FOREIGN KEY (titolo_test) REFERENCES TEST (titolo) ON DELETE CASCADE             ,
+--         PRIMARY KEY (numero_domanda, test_associato, numero_quesito)                        ,
+--         FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE             ,
 --         FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE
 --     );
 -- crea la stored procedure per inserire una nuova opzione per un quesito chiuso
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS `InserisciNuovaOpzioneQuesitoChiuso` (
+    IN p_numero_opzione INT              ,
     IN p_numero_quesito INT              ,
-    IN p_titolo_test VARCHAR(100)        ,
+    IN p_test_associato VARCHAR(100)     ,
     IN p_testo TEXT                      ,
     IN p_is_corretta ENUM('TRUE', 'FALSE')
 ) BEGIN DECLARE EXIT
@@ -619,11 +656,18 @@ START TRANSACTION;
 
 -- Inserisce l'opzione nella tabella Opzione_quesito_chiuso
 INSERT INTO
-    OPZIONE_QUESITO_CHIUSO (numero_quesito, titolo_test, testo, is_corretta)
+    OPZIONE_QUESITO_CHIUSO (
+        numero_opzione,
+        numero_quesito,
+        test_associato,
+        testo         ,
+        is_corretta
+    )
 VALUES
     (
+        p_numero_opzione,
         p_numero_quesito,
-        p_titolo_test   ,
+        p_test_associato,
         p_testo         ,
         p_is_corretta
     );
@@ -839,16 +883,124 @@ VALUES
 
 -- procedura per prendere il numero del nuovo quesito
 DELIMITER $$
-CREATE PROCEDURE GetNumeroNuovoQuesito (IN titolo_test VARCHAR(100)) BEGIN
+CREATE PROCEDURE GetNumeroNuovoQuesito (IN p_test_associato VARCHAR(100)) BEGIN
 SELECT
     numero_quesito
 FROM
     QUESITO
 WHERE
-    test_associato = titolo_test
+    test_associato = p_test_associato
 ORDER BY
     numero_quesito DESC
 LIMIT
     1;
+
+END $$ DELIMITER;
+
+-- inserisci risposta a quesito chiuso
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS `InserisciRispostaQuesitoChiuso` (
+    IN p_test_associato VARCHAR(100)     ,
+    IN p_numero_quesito INT              ,
+    IN p_email_studente VARCHAR(100)     ,
+    IN p_scelta INT                      ,
+    IN p_esito ENUM('GIUSTA', 'SBAGLIATA')
+) BEGIN DECLARE EXIT
+HANDLER FOR SQLEXCEPTION BEGIN
+ROLLBACK;
+
+RESIGNAL;
+
+END;
+
+DECLARE EXIT
+HANDLER FOR SQLWARNING BEGIN
+ROLLBACK;
+
+RESIGNAL;
+
+END;
+
+START TRANSACTION;
+
+-- Inserisce la risposta nella tabella Risposta_quesito_chiuso
+INSERT INTO
+    RISPOSTA_QUESITO_CHIUSO (
+        test_associato,
+        numero_quesito,
+        email_studente,
+        scelta        ,
+        esito
+    )
+VALUES
+    (
+        p_test_associato,
+        p_numero_quesito,
+        p_email_studente,
+        p_scelta        ,
+        p_esito
+    );
+
+COMMIT;
+
+END $$ DELIMITER;
+
+-- query per prendere tutti i risultati di un test di uno studente scelto
+DELIMITER $$
+CREATE PROCEDURE GetLatestTestResponses (
+    IN test_param VARCHAR(255)   ,
+    IN studente_param VARCHAR(255)
+) BEGIN DECLARE rollback_occurred BOOLEAN DEFAULT FALSE;
+
+-- In caso di errore, imposta la variabile rollback_occurred a TRUE
+DECLARE CONTINUE
+HANDLER FOR SQLEXCEPTION BEGIN
+SET
+    rollback_occurred = TRUE;
+
+END;
+
+-- Avvia la transazione
+START TRANSACTION;
+
+-- Query per ottenere le risposte più recenti
+SELECT
+    r.numero_quesito            ,
+    DATE(r.TIMESTAMP) as in_data,
+    r.scelta                    ,
+    r.esito
+FROM
+    RISPOSTA_QUESITO_CHIUSO AS r
+WHERE
+    r.test_associato = test_param
+    AND r.email_studente = studente_param
+    AND (r.numero_quesito, r.TIMESTAMP) IN (
+        SELECT
+            numero_quesito,
+            MAX(TIMESTAMP)
+        FROM
+            RISPOSTA_QUESITO_CHIUSO
+        WHERE
+            test_associato = test_param
+            AND email_studente = studente_param
+        GROUP BY
+            numero_quesito
+    )
+GROUP BY
+    r.numero_quesito,
+    r.TIMESTAMP     ,
+    r.scelta        ,
+    r.esito;
+
+-- Controlla se si è verificato un errore
+IF rollback_occurred THEN
+-- Rollback della transazione in caso di errore
+ROLLBACK;
+
+ELSE
+-- Commit della transazione se tutto è andato bene
+COMMIT;
+
+END IF;
 
 END $$ DELIMITER;

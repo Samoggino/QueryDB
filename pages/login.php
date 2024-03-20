@@ -122,9 +122,9 @@ session_start();
             if ($login) {
                 if (isset($_SESSION['email'])) {
                     if ($_SESSION['ruolo'] == 'PROFESSORE') {
-                        echo "<script>window.location.href = 'professore.php';</script>";
+                        echo "<script>window.location.href = './professore/professore.php';</script>";
                     } elseif ($_SESSION['ruolo'] == 'STUDENTE') {
-                        echo "<script>window.location.href = 'studente.php';</script>";
+                        echo "<script>window.location.href = './studente/studente.php';</script>";
                     }
                 }
             } else {

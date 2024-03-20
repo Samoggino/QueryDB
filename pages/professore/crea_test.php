@@ -2,7 +2,7 @@
 session_start();
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-require "../helper/connessione_mysql.php";
+require "../../helper/connessione_mysql.php";
 
 
 
@@ -11,13 +11,13 @@ try {
         // Connessione al database
         $db = connectToDatabaseMYSQL();
 
-        $titolo_test = $_POST['titolo_test'];
+        $test_associato = $_POST['test_associato'];
 
         $visualizza_risposte = isset($_POST['visualizzaRisposteCheckbox']) ? 1 : 0;
 
-        $sql = "CALL InserisciNuovoTest(:titolo_test, :visualizza_risposte, :email_professore)";
+        $sql = "CALL InserisciNuovoTest(:test_associato, :visualizza_risposte, :email_professore)";
         $statement = $db->prepare($sql);
-        $statement->bindParam(':titolo_test', $titolo_test);
+        $statement->bindParam(':test_associato', $test_associato);
         $statement->bindParam(':visualizza_risposte', $visualizza_risposte);
         $statement->bindParam(':email_professore', $_SESSION['email']);
 
@@ -27,7 +27,7 @@ try {
                 echo "<script> alert('Test inserito con successo!');</script>";
 
                 // Salva il titolo del test nella sessione
-                $_SESSION['titolo_test'] = $titolo_test;
+                $_SESSION['test_associato'] = $test_associato;
             } else {
                 echo "<script> alert('Errore durante l'inserimento del test!');</script>";
             }
@@ -43,12 +43,12 @@ try {
             $dati_immagine = file_get_contents($_FILES["file_immagine"]["tmp_name"]);
 
             // Prepara la query per l'inserimento dell'immagine
-            $sql = "CALL InserisciNuovaFotoTest(:dati_immagine, :titolo_test)";
+            $sql = "CALL InserisciNuovaFotoTest(:dati_immagine, :test_associato)";
             $statement = $db->prepare($sql);
 
             // Associa i dati dell'immagine e il titolo del test alla query
             $statement->bindParam(':dati_immagine', $dati_immagine, PDO::PARAM_LOB);
-            $statement->bindParam(':titolo_test', $titolo_test);
+            $statement->bindParam(':test_associato', $test_associato);
 
             // Esegui la query
             if ($statement->execute()) {
@@ -58,9 +58,9 @@ try {
             }
 
             // Recupera l'immagine dal database
-            $sql = "CALL RecuperaFotoTest(:titolo_test)";
+            $sql = "CALL RecuperaFotoTest(:test_associato)";
             $statement = $db->prepare($sql);
-            $statement->bindParam(':titolo_test', $titolo_test);
+            $statement->bindParam(':test_associato', $test_associato);
             $statement->execute();
             $row = $statement->fetch(PDO::FETCH_ASSOC);
 
@@ -74,9 +74,10 @@ try {
             }
         }
 
-        echo "ciao";
-        $new_url = "Location: crea_quesito.php?titolo_test=" . $titolo_test;
-        header($new_url);
+        // echo "ciao";
+        // $new_url = "Location: crea_quesito.php?test_associato=" . $test_associato;
+        // header($new_url);
+        header("Location: ../professore/crea_quesito.php?test_associato=" . $test_associato);
     }
 } catch (\Throwable $th) {
     //throw $th;
