@@ -950,19 +950,7 @@ DELIMITER $$
 CREATE PROCEDURE GetLatestTestResponses (
     IN test_param VARCHAR(255)   ,
     IN studente_param VARCHAR(255)
-) BEGIN DECLARE rollback_occurred BOOLEAN DEFAULT FALSE;
-
--- In caso di errore, imposta la variabile rollback_occurred a TRUE
-DECLARE CONTINUE
-HANDLER FOR SQLEXCEPTION BEGIN
-SET
-    rollback_occurred = TRUE;
-
-END;
-
--- Avvia la transazione
-START TRANSACTION;
-
+) BEGIN
 -- Query per ottenere le risposte più recenti
 SELECT
     r.numero_quesito            ,
@@ -992,17 +980,6 @@ GROUP BY
     r.scelta        ,
     r.esito;
 
--- Controlla se si è verificato un errore
-IF rollback_occurred THEN
--- Rollback della transazione in caso di errore
-ROLLBACK;
-
-ELSE
--- Commit della transazione se tutto è andato bene
-COMMIT;
-
-END IF;
-
 END $$ DELIMITER;
 
 -- SELECT tipo_quesito FROM QUESITO WHERE numero_quesito = :numero_quesito AND test_associato = :test_associato;
@@ -1018,5 +995,60 @@ FROM
 WHERE
     numero_quesito = p_numero_quesito
     AND test_associato = p_test_associato;
+
+END $$ DELIMITER;
+
+-- getAllTests
+DELIMITER $$
+CREATE PROCEDURE GetAllTests () BEGIN
+SELECT
+    *
+FROM
+    TEST;
+
+END $$ DELIMITER;
+
+-- get quesiti del test
+DELIMITER $$
+CREATE PROCEDURE GetQuesitiTest (IN p_test_associato VARCHAR(100)) BEGIN
+SELECT
+    *
+FROM
+    QUESITO
+WHERE
+    test_associato = p_test_associato;
+
+END $$ DELIMITER;
+
+-- get opzioni quesito chiuso del test
+DELIMITER $$
+CREATE PROCEDURE GetOpzioniQuesitoChiuso (
+    IN p_test_associato VARCHAR(100),
+    IN p_numero_quesito INT
+) BEGIN
+SELECT
+    *
+FROM
+    OPZIONE_QUESITO_CHIUSO
+WHERE
+    test_associato = p_test_associato
+    AND numero_quesito = p_numero_quesito;
+
+END $$ DELIMITER;
+
+-- prendi opzioni quesito chiuso vere
+DELIMITER $$
+CREATE PROCEDURE GetOpzioniCorrette (
+    IN p_test_associato VARCHAR(100),
+    IN p_numero_quesito INT
+) BEGIN
+SELECT
+    numero_opzione
+FROM
+    OPZIONE_QUESITO_CHIUSO
+WHERE
+    test_associato = p_test_associato
+    AND numero_quesito = p_numero_quesito
+    AND is_corretta = 'TRUE';
 
 END $$ DELIMITER;

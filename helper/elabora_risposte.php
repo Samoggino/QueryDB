@@ -30,6 +30,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $stmt->bindParam(':test_associato', $test_associato);
                     $stmt->execute();
                     $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    $stmt->closeCursor();
                     $tipo_quesito = $row['tipo_quesito'];
 
                     // Inserisci la risposta nel database in base al tipo di quesito
@@ -50,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     if ($tipo_quesito == 'CHIUSO') {
 
                         // prendi il quesito e verifica se la risposta è corretta
-                        $sql = "SELECT numero_opzione FROM OPZIONE_QUESITO_CHIUSO WHERE test_associato = :test_associato AND numero_quesito = :numero_quesito AND is_corretta = 'TRUE'";
+                        $sql = "CALL GetOpzioniCorrette(:test_associato, :numero_quesito);";
                         $statement = $db->prepare($sql);
                         $statement->bindParam(':test_associato', $test_associato);
                         $statement->bindParam(':numero_quesito', $n_quesito);

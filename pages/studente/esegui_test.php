@@ -14,12 +14,13 @@ if (isset($_GET['test_associato'])) {
         $db = connectToDatabaseMYSQL();
 
         // Prepara la query per selezionare i quesiti associati al test
-        $sql = "SELECT * FROM QUESITO WHERE test_associato = :test_associato";
+        $sql = "CALL GetQuesitiTest(:test_associato);";
 
         $statement = $db->prepare($sql);
         $statement->bindParam(':test_associato', $tests);
         $statement->execute();
         $quesiti = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $statement->closeCursor();
 
         echo "<h1>" . strtoupper($tests) . "</h1>";
 
@@ -63,12 +64,13 @@ function q_chiuso($quesito, $test, $db)
     echo "<h3>" . $quesito["numero_quesito"] . ". " . $quesito['descrizione'] . "</h3>";
 
     // Seleziona le opzioni per questo quesito chiuso
-    $sql_opzioni = "SELECT * FROM OPZIONE_QUESITO_CHIUSO WHERE numero_quesito = :numero_quesito AND test_associato = :test_associato";
+    $sql_opzioni = "CALL GetOpzioniQuesitoChiuso(:test_associato, :numero_quesito);";
     $statement_opzioni = $db->prepare($sql_opzioni);
     $statement_opzioni->bindParam(':numero_quesito', $quesito['numero_quesito']);
     $statement_opzioni->bindParam(':test_associato', $test);
     $statement_opzioni->execute();
     $opzioni = $statement_opzioni->fetchAll(PDO::FETCH_ASSOC);
+    $statement_opzioni->closeCursor();
 
     foreach ($opzioni as $opzione) {
         echo "<input type='radio' name='quesito" . $quesito['numero_quesito'] . "' value='" . $opzione['numero_opzione'] . "'>" . $opzione['numero_opzione'] . " " . $opzione['testo'] . "<br>";

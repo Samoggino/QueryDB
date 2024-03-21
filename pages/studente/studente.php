@@ -12,10 +12,11 @@ if (!isset($_SESSION['email'])) {
 
 // mostra i test all'utente 
 $db = connectToDatabaseMYSQL();
-$sql = "SELECT * FROM TEST";
+$sql = "CALL GetAllTests();";
 $statement = $db->prepare($sql);
 $statement->execute();
 $tests = $statement->fetchAll(PDO::FETCH_ASSOC);
+$statement->closeCursor();
 
 ?>
 

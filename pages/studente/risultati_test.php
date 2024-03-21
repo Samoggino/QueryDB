@@ -5,13 +5,14 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 $test_associato = $_GET['test_associato'];
+echo "<script> console.log('utente: " . $test_associato . "');</script>";
 $email_studente = $_SESSION['email'];
 
 // Assicurati che la connessione al database sia stabilita correttamente
 $db = connectToDatabaseMYSQL();
 
 // Preparare la query per ottenere tutti i test
-$sql = "SELECT * FROM TEST";
+$sql = "CALL GetAllTests();";
 
 // Preparare lo statement
 $statement = $db->prepare($sql);
@@ -29,6 +30,9 @@ foreach ($tests as $key => $test) {
     $statement->bindParam(':email_studente', $email_studente);
     $statement->execute();
     $risposte = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+    if (count($risposte) == 0)
+        continue;
 
     // Stampare il titolo del test e le risposte
     echo "<table>";
@@ -50,9 +54,6 @@ foreach ($tests as $key => $test) {
     echo "</table>";
     echo "<br>";
 }
-
-// Preparare la stored procedure per ottenere le risposte
-
 ?>
 
 <!DOCTYPE html>
@@ -61,7 +62,7 @@ foreach ($tests as $key => $test) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Esito <?php echo $test_associato ?></title>
+    <title>Esito <?php echo $_GET['test_associato'] ?></title>
 
     <style>
         table {
