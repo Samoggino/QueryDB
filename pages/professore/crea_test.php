@@ -16,15 +16,17 @@ try {
         $visualizza_risposte = isset($_POST['visualizzaRisposteCheckbox']) ? 1 : 0;
 
         $sql = "CALL InserisciNuovoTest(:test_associato, :visualizza_risposte, :email_professore)";
-        $statement = $db->prepare($sql);
-        $statement->bindParam(':test_associato', $test_associato);
-        $statement->bindParam(':visualizza_risposte', $visualizza_risposte);
-        $statement->bindParam(':email_professore', $_SESSION['email']);
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':test_associato', $test_associato);
+        $stmt->bindParam(':visualizza_risposte', $visualizza_risposte);
+        $stmt->bindParam(':email_professore', $_SESSION['email']);
+
 
         if ($_SESSION['ruolo'] == 'PROFESSORE') {
             echo "Sei un professore!";
-            if ($statement->execute()) {
+            if ($stmt->execute()) {
                 echo "<script> alert('Test inserito con successo!');</script>";
+                $stmt->closeCursor();
 
                 // Salva il titolo del test nella sessione
                 $_SESSION['test_associato'] = $test_associato;
@@ -44,14 +46,14 @@ try {
 
             // Prepara la query per l'inserimento dell'immagine
             $sql = "CALL InserisciNuovaFotoTest(:dati_immagine, :test_associato)";
-            $statement = $db->prepare($sql);
+            $stmt = $db->prepare($sql);
 
             // Associa i dati dell'immagine e il titolo del test alla query
-            $statement->bindParam(':dati_immagine', $dati_immagine, PDO::PARAM_LOB);
-            $statement->bindParam(':test_associato', $test_associato);
+            $stmt->bindParam(':dati_immagine', $dati_immagine, PDO::PARAM_LOB);
+            $stmt->bindParam(':test_associato', $test_associato);
 
             // Esegui la query
-            if ($statement->execute()) {
+            if ($stmt->execute()) {
                 echo "Immagine caricata con successo.";
             } else {
                 echo "L'immagine non è stata inserita nel db perchè c'è stato un errore.";
@@ -59,10 +61,10 @@ try {
 
             // Recupera l'immagine dal database
             $sql = "CALL RecuperaFotoTest(:test_associato)";
-            $statement = $db->prepare($sql);
-            $statement->bindParam(':test_associato', $test_associato);
-            $statement->execute();
-            $row = $statement->fetch(PDO::FETCH_ASSOC);
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':test_associato', $test_associato);
+            $stmt->execute();
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
             // Se è stata trovata un'immagine, visualizzala
             if ($row) {

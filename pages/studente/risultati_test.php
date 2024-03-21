@@ -15,24 +15,38 @@ $db = connectToDatabaseMYSQL();
 $sql = "CALL GetAllTests();";
 
 // Preparare lo statement
-$statement = $db->prepare($sql);
-$statement->execute();
-$tests = $statement->fetchAll(PDO::FETCH_ASSOC);
+$stmt = $db->prepare($sql);
+$stmt->execute();
+$tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$stmt->closeCursor();
+
+
+if ($tests == null || count($tests) == 0) {
+    echo "<h1>Non hai svolto alcun test</h1>";
+    throw new Exception("Non hai svolto alcun test");
+}
 
 foreach ($tests as $key => $test) {
     $test_associato = $test['titolo'];
 
 
-    $sql = "CALL GetLatestTestResponses(:test_associato, :email_studente);";
+    $sql = "CALL GetRisposteQuesiti(:test_associato, :email_studente);";
 
-    $statement = $db->prepare($sql);
-    $statement->bindParam(':test_associato', $test_associato);
-    $statement->bindParam(':email_studente', $email_studente);
-    $statement->execute();
-    $risposte = $statement->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $db->prepare($sql);
+    $stmt->bindParam(':test_associato', $test_associato);
+    $stmt->bindParam(':email_studente', $email_studente);
+    $stmt->execute();
+    $risposte = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt->closeCursor();
 
-    if (count($risposte) == 0)
+    if (count($risposte) == 0) {
         continue;
+    }
+
+    if ($test['VisualizzaRisposte'] == 0) {
+        if (isset($_POST['visualizzaRisposteHidden']) && $_POST['visualizzaRisposteHidden'] == 0)
+            continue;
+    }
 
     // Stampare il titolo del test e le risposte
     echo "<table>";
@@ -40,14 +54,38 @@ foreach ($tests as $key => $test) {
     echo "<tr>";
     echo "<th>Numero quesito</th>";
     echo "<th>Data</th>";
-    echo "<th>Scelta</th>";
+    echo "<th>Risposta</th>";
     echo "<th>Esito</th>";
     echo "</tr>";
     foreach ($risposte as $risposta) {
         echo "<tr>";
         echo "<td>" . $risposta['numero_quesito'] . "</td>";
         echo "<td>" . $risposta['in_data'] . "</td>";
-        echo "<td>" . $risposta['scelta'] . "</td>";
+
+
+        if ($risposta['tipo_risposta'] == 'CHIUSA') {
+            $sql = "CALL GetSceltaQuesitoChiuso(:test_associato, :numero_quesito, :email_studente);";
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':test_associato', $test_associato);
+            $stmt->bindParam(':numero_quesito', $risposta['numero_quesito']);
+            $stmt->bindParam(':email_studente', $email_studente);
+            $stmt->execute();
+            $scelta = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            echo "<td>" . $scelta['scelta'] . "</td>";
+        } elseif ($risposta['tipo_risposta'] == 'APERTA') {
+
+            $sql = "CALL GetRispostaQuesitoAperto(:test_associato, :numero_quesito, :email_studente);";
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':test_associato', $test_associato);
+            $stmt->bindParam(':numero_quesito', $risposta['numero_quesito']);
+            $stmt->bindParam(':email_studente', $email_studente);
+            $stmt->execute();
+            $scelta = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            echo "<td>" . $scelta['risposta'] . "</td>";
+        }
+
         echo "<td>" . $risposta['esito'] . "</td>";
         echo "</tr>";
     }
@@ -83,6 +121,44 @@ foreach ($tests as $key => $test) {
     </style>
 </head>
 
-<body></body>
+<body>
+    <p>
+        <?php
+        $sql = "SELECT * FROM RISPOSTA WHERE test_associato = :test_associato AND email_studente = :email_studente;";
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':test_associato', $_GET['test_associato']);
+        $stmt->bindParam(':email_studente', $_SESSION['email']);
+        $stmt->execute();
+        $risposte = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+
+        if (count($risposte) == 0) {
+            echo "Non hai svolto alcun test";
+        } else {
+        ?>
+    </p>
+    <form method="post" action="risultati_test.php?test_associato=<?php echo $_GET['test_associato'] ?>">
+        <input type="hidden" id="visualizzaRisposteHidden" name="visualizzaRisposteHidden" value="1">
+        <input type="checkbox" id="visualizzaRisposteCheckbox" name="visualizzaRisposteCheckbox" onclick="toggleVisualizzaRisposte()">
+        <label for="visualizzaRisposteCheckbox">Attiva il campo visualizza_risposte</label>
+        <input type="submit" value="Aggiorna">
+    </form>
+
+    <script>
+        function toggleVisualizzaRisposte() {
+            var checkbox = document.getElementById("visualizzaRisposteCheckbox");
+            var hiddenInput = document.getElementById("visualizzaRisposteHidden");
+
+            // Inverti il valore del campo nascosto quando il checkbox viene selezionato
+            if (checkbox.checked) {
+                hiddenInput.value = "0";
+            } else {
+                hiddenInput.value = "1";
+            }
+        }
+    </script>
+<?php } ?>
+</body>
+
 
 </html>

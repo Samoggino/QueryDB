@@ -17,7 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $db = connectToDatabaseMYSQL();
 
             // Ciclare attraverso i dati inviati dal form per elaborare le risposte
-            foreach ($_POST as $campo => $opzione_selezionata) {
+            foreach ($_POST as $campo => $scelta) {
                 // Verifica se il campo è una risposta a un quesito (i campi iniziano con "quesito")
                 if (substr($campo, 0, 7) === "quesito") {
                     // Ottenere il numero del quesito dal nome del campo
@@ -31,67 +31,78 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $stmt->execute();
                     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
+                    // stampa numero quesito
+                    echo "<script>console.log('Numero quesito '  + $n_quesito)</script>";
+
                     $stmt->closeCursor();
                     $tipo_quesito = $row['tipo_quesito'];
 
                     // Inserisci la risposta nel database in base al tipo di quesito
-                    /*      if ($tipo_quesito == 'APERTO') {
-                        // Preparare la query per inserire la risposta a un quesito aperto
-                        $sql_inserimento_aperto = "INSERT INTO RISPOSTA_QUESITO_APERTO (test_associato, numero_quesito, email_studente, risposta) VALUES (:test_associato, :numero_quesito, :email_studente, :risposta)";
+                    if ($tipo_quesito == 'APERTO') {
 
+                        // Prendi la risposta a un quesito aperto
+                        $sql = "SELECT * FROM QUESITO_APERTO_SOLUZIONE WHERE test_associato = :test_associato AND numero_quesito = :numero_quesito;";
+                        $stmt = $db->prepare($sql);
+                        $stmt->bindParam(':test_associato', $test_associato);
+                        $stmt->bindParam(':numero_quesito', $n_quesito);
+                        $stmt->execute();
+                        $soluzione = $stmt->fetch(PDO::FETCH_ASSOC);
+                        $stmt->closeCursor();
+
+                        $esito_aperta = "SBAGLIATA";
+
+                        echo "<script>console.log('Soluzione: " . $soluzione['soluzione_professore'] . "')</script>";
+                        echo "<script>console.log('Scelta: " . $scelta . "')</script>";
+                        if ($soluzione['soluzione_professore'] == $scelta) {
+                            $esito_aperta = "GIUSTA";
+                            echo "<script>console.log('Risposta giusta')</script>";
+                        }
+
+                        // Preparare la query per inserire la risposta a un quesito aperto
+                        $sql_inserimento_aperto = "CALL InserisciRispostaQuesitoAperto(:test_associato, :numero_quesito, :email_studente, :risposta, :esito);";
                         // Preparare lo statement
                         $statement_aperto = $db->prepare($sql_inserimento_aperto);
 
                         // Associa i parametri e esegui l'inserimento
                         $statement_aperto->bindParam(':test_associato', $test_associato);
-                        $statement_aperto->bindParam(':numero_quesito', $numero_quesito);
+                        $statement_aperto->bindParam(':numero_quesito', $n_quesito);
                         $statement_aperto->bindParam(':email_studente', $email_studente); // Assumi che l'email dello studente sia già disponibile nella sessione
-                        $statement_aperto->bindParam(':risposta', $opzione_selezionata);
+                        $statement_aperto->bindParam(':risposta', $scelta);
+                        $statement_aperto->bindParam(':esito', $esito_aperta);
                         $statement_aperto->execute();
-                    } else */
-                    if ($tipo_quesito == 'CHIUSO') {
+                    } else if ($tipo_quesito == 'CHIUSO') {
 
                         // prendi il quesito e verifica se la risposta è corretta
                         $sql = "CALL GetOpzioniCorrette(:test_associato, :numero_quesito);";
-                        $statement = $db->prepare($sql);
-                        $statement->bindParam(':test_associato', $test_associato);
-                        $statement->bindParam(':numero_quesito', $n_quesito);
-                        $statement->execute();
-                        $opzioni_corrette = $statement->fetchAll(PDO::FETCH_ASSOC);
+                        $stmt = $db->prepare($sql);
+                        $stmt->bindParam(':test_associato', $test_associato);
+                        $stmt->bindParam(':numero_quesito', $n_quesito);
+                        $stmt->execute();
+                        $opzioni_corrette = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                        $stmt->closeCursor();
 
                         $insert_q_chiuso = "CALL InserisciRispostaQuesitoChiuso(:test_associato, :numero_quesito, :email_studente, :scelta, :esito);";
 
                         // Preparare lo statement
                         $statement_chiuso = $db->prepare($insert_q_chiuso);
 
-                        $esito = 'SBAGLIATA';
+                        $esito_chiuso = 'SBAGLIATA';
                         // Associa i parametri e esegui l'inserimento
                         $statement_chiuso->bindParam(':test_associato', $test_associato);
                         $statement_chiuso->bindParam(':numero_quesito', $n_quesito);
                         $statement_chiuso->bindParam(':email_studente', $email_studente); // Assumi che l'email dello studente sia già disponibile nella sessione
-                        $statement_chiuso->bindParam(':scelta', $opzione_selezionata);
-                        $statement_chiuso->bindParam(':esito', $esito);
+                        $statement_chiuso->bindParam(':scelta', $scelta);
+                        $statement_chiuso->bindParam(':esito', $esito_chiuso);
 
-
-                        echo "<script>console.log($opzione_selezionata)</script>";
-
-                        foreach ($opzioni_corrette as $opzione) {
-                            if ($opzione['numero_opzione'] == $opzione_selezionata) {
-                                $esito = 'GIUSTA';
-                                echo "<script> console.log('numero opzione: " . $opzione['numero_opzione'] . " risposta: " . $opzione_selezionata . " corretta');</script>";
-                            }
-                        }
-
-                        echo "<script> console.log('test_associato: " . $test_associato . "');</script>";
-                        echo "<script> console.log('email_studente: " . $email_studente . "');</script>  ";
-                        echo "<script> console.log('numero_quesito: " . $n_quesito . "');</script>";
-                        echo "<script> console.log('scelta: " . $opzione_selezionata . "');</script>";
-                        echo "<script> console.log('esito: " . $esito . "');</script>";
+                        foreach ($opzioni_corrette as $opzione)
+                            if ($opzione['numero_opzione'] == $scelta)
+                                $esito_chiuso = 'GIUSTA';
 
                         try {
                             $statement_chiuso->execute();
+                            $statement_chiuso->closeCursor();
                         } catch (\Throwable $th) {
-                            echo "<script> console.log('errore: " . $th->getMessage() . "');</script>";
+                            echo "<script> console.log('Errore nell'esecuzione della query $statement_chiuso:<br>" . $th->getMessage() . "');</script>";
                         }
                     }
                 }

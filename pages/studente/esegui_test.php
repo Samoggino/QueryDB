@@ -16,11 +16,11 @@ if (isset($_GET['test_associato'])) {
         // Prepara la query per selezionare i quesiti associati al test
         $sql = "CALL GetQuesitiTest(:test_associato);";
 
-        $statement = $db->prepare($sql);
-        $statement->bindParam(':test_associato', $tests);
-        $statement->execute();
-        $quesiti = $statement->fetchAll(PDO::FETCH_ASSOC);
-        $statement->closeCursor();
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':test_associato', $tests);
+        $stmt->execute();
+        $quesiti = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
 
         echo "<h1>" . strtoupper($tests) . "</h1>";
 
@@ -39,6 +39,9 @@ if (isset($_GET['test_associato'])) {
             echo "<input type='submit' value='Invia risposte'>";
             echo "</form>";
         }
+
+        // Chiudi la connessione al database
+        $db = null;
     } catch (PDOException $e) {
         // Gestisci eventuali eccezioni
         echo "Errore di connessione al database: " . $e->getMessage();
@@ -86,3 +89,20 @@ function q_aperto($quesito)
     echo "<input type='text' name='quesito" . $quesito['numero_quesito'] . "'><br>";
     echo "</div>";
 }
+
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - <?php $_GET['test_associato'] ?></title>
+</head>
+
+<body>
+
+</body>
+
+</html>
