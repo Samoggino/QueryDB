@@ -24,9 +24,8 @@ $stmt->closeCursor();
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test per lo studente</title>
+    <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
 </head>
 
 <body>

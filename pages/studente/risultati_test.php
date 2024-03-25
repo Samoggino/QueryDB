@@ -1,8 +1,11 @@
 <?php
 session_start();
-require '../../helper/connessione_mysql.php';
+require "./query.php";
+require_once '../../helper/connessione_mysql.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
+
+// FIXME: la parte che mostra la risposta non funziona
 
 $test_associato = $_GET['test_associato'];
 echo "<script> console.log('utente: " . $test_associato . "');</script>";
@@ -29,15 +32,7 @@ if ($tests == null || count($tests) == 0) {
 foreach ($tests as $key => $test) {
     $test_associato = $test['titolo'];
 
-
-    $sql = "CALL GetRisposteQuesiti(:test_associato, :email_studente);";
-
-    $stmt = $db->prepare($sql);
-    $stmt->bindParam(':test_associato', $test_associato);
-    $stmt->bindParam(':email_studente', $email_studente);
-    $stmt->execute();
-    $risposte = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $stmt->closeCursor();
+    $risposte = getRisposte($test_associato, $email_studente);
 
     if (count($risposte) == 0) {
         continue;
@@ -50,11 +45,12 @@ foreach ($tests as $key => $test) {
 
     // Stampare il titolo del test e le risposte
     echo "<table>";
-    echo "<tr><th colspan='4'>" . $test_associato . "</th></tr>"; // Utilizzo colspan per estendere il titolo su 4 colonne
+    echo "<tr><th colspan='5'>" . $test_associato . "</th></tr>"; // Utilizzo colspan per estendere il titolo su 4 colonne
     echo "<tr>";
     echo "<th>Numero quesito</th>";
     echo "<th>Data</th>";
-    echo "<th>Risposta</th>";
+    echo "<th>Risposta dello studente</th>";
+    echo "<th>Risposta del professore</th>";
     echo "<th>Esito</th>";
     echo "</tr>";
     foreach ($risposte as $risposta) {
@@ -73,6 +69,16 @@ foreach ($tests as $key => $test) {
             $scelta = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
             echo "<td>" . $scelta['scelta'] . "</td>";
+
+            $sql = "CALL GetOpzioniCorrette(:test_associato, :numero_quesito)";
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':test_associato', $test_associato);
+            $stmt->bindParam(':numero_quesito', $risposta['numero_quesito']);
+            $stmt->execute();
+            $opzioni = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+
+            echo "<td>" . $opzioni[0]['numero_opzione'] . "</td>";
         } elseif ($risposta['tipo_risposta'] == 'APERTA') {
 
             $sql = "CALL GetRispostaQuesitoAperto(:test_associato, :numero_quesito, :email_studente);";
@@ -84,7 +90,11 @@ foreach ($tests as $key => $test) {
             $scelta = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
             echo "<td>" . $scelta['risposta'] . "</td>";
+            echo "<td> - </td>";
         }
+
+
+
 
         echo "<td>" . $risposta['esito'] . "</td>";
         echo "</tr>";
@@ -100,10 +110,13 @@ foreach ($tests as $key => $test) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
+
     <title>Esito <?php echo $_GET['test_associato'] ?></title>
 
     <style>
         table {
+            max-width: 50%;
             border-collapse: collapse;
             width: 100%;
         }

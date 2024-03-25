@@ -11,7 +11,7 @@ try {
         // Connessione al database
         $db = connectToDatabaseMYSQL();
 
-        $test_associato = $_POST['test_associato'];
+        $test_associato = $_POST['titolo_test_creato'];
 
         $visualizza_risposte = isset($_POST['visualizzaRisposteCheckbox']) ? 1 : 0;
 

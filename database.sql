@@ -526,140 +526,6 @@ CREATE TABLE IF NOT EXISTS
         ) ON DELETE CASCADE
     );
 
--- Inserimento valori di esempio per la tabella TEST
-INSERT INTO
-    TEST (
-        titolo            ,
-        dataCreazione     ,
-        VisualizzaRisposte,
-        email_professore
-    )
-VALUES
-    (
-        "Test di Matematica" ,
-        "2024-03-19 12:00:00",
-        1                    ,
-        "professore@unibo.it"
-    ),
-    (
-        "Test di Storia"     ,
-        "2024-03-18 10:30:00",
-        0                    ,
-        "professore@unibo.it"
-    );
-
--- Inserimento valori di esempio per la tabella QUESITO
-INSERT INTO
-    QUESITO (
-        numero_quesito    ,
-        test_associato    ,
-        descrizione       ,
-        livello_difficolta,
-        numero_risposte   ,
-        tipo_quesito
-    )
-VALUES
-    (
-        1                                ,
-        "Test di Matematica"             ,
-        "Risolvi l'equazione x^2 - 4 = 0",
-        "MEDIO"                          ,
-        0                                ,
-        "APERTO"
-    ),
-    (
-        2                   ,
-        "Test di Matematica",
-        "Quanto fa 2+2?"    ,
-        "BASSO"             ,
-        0                   ,
-        "CHIUSO"
-    ),
-    (
-        1                                               ,
-        "Test di Storia"                                ,
-        "Chi era il primo presidente degli Stati Uniti?",
-        "ALTO"                                          ,
-        0                                               ,
-        "APERTO"
-    ),
-    (
-        3                   ,
-        "Test di Matematica",
-        "Quanto fa 5x5?"    ,
-        "MEDIO"             ,
-        0                   ,
-        "CHIUSO"
-    ),
-    (
-        2                                                  ,
-        "Test di Storia"                                   ,
-        "Chi è stato il primo uomo a camminare sulla Luna?",
-        "MEDIO"                                            ,
-        0                                                  ,
-        "APERTO"
-    ),
-    (
-        3                                             ,
-        "Test di Storia"                              ,
-        "Quando è scoppiata la prima guerra mondiale?",
-        "ALTO"                                        ,
-        0                                             ,
-        "APERTO"
-    );
-
--- Inserimento valori di esempio per la tabella QUESITO_CHIUSO_OPZIONE
-INSERT INTO
-    QUESITO_CHIUSO_OPZIONE (
-        numero_opzione,
-        numero_quesito,
-        test_associato,
-        testo         ,
-        is_corretta
-    )
-VALUES
-    (1, 2, "Test di Matematica", "4", "TRUE")         ,
-    (2, 2, "Test di Matematica", "5", "FALSE")        ,
-    (3, 2, "Test di Matematica", "6", "FALSE")        ,
-    (1, 3, "Test di Matematica", "25", "TRUE")        ,
-    (2, 3, "Test di Matematica", "30", "FALSE")       ,
-    (3, 3, "Test di Matematica", "20", "FALSE")       ,
-    (4, 2, "Test di Storia", "Neil Armstrong", "TRUE"),
-    (5, 2, "Test di Storia", "Buzz Aldrin", "FALSE")  ,
-    (6, 2, "Test di Storia", "Yuri Gagarin", "FALSE") ,
-    (7, 3, "Test di Storia", "1914", "TRUE")          ,
-    (8, 3, "Test di Storia", "1939", "FALSE")         ,
-    (9, 3, "Test di Storia", "1945", "FALSE");
-
--- Inserimento valori di esempio per la tabella QUESITO_APERTO_SOLUZIONE
-INSERT INTO
-    QUESITO_APERTO_SOLUZIONE (
-        test_associato     ,
-        numero_quesito     ,
-        soluzione_professore
-    )
-VALUES
-    (
-        "Test di Matematica"         ,
-        1                            ,
-        "Le soluzioni sono x=2 e x=-2"
-    ),
-    (
-        "Test di Storia"                                             ,
-        1                                                            ,
-        "Il primo presidente degli Stati Uniti era George Washington."
-    );
-
--- crea tabella dei QUESITI CHIUSI
--- CREATE TABLE IF NOT EXISTS
---     QUESITO_CHIUSO (
---         test_associato VARCHAR(100) NOT NULL                                ,
---         numero_quesito INT NOT NULL, -- domanda 1, domanda 2 ... domanda n
---         numero_domanda INT AUTO_INCREMENT, -- opzione a, opzione b ... opzione z 
---         PRIMARY KEY (numero_domanda, test_associato, numero_quesito)                        ,
---         FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE             ,
---         FOREIGN KEY (numero_quesito) REFERENCES QUESITO (numero_quesito) ON DELETE CASCADE
---     );
 -- crea la stored procedure per inserire una nuova opzione per un quesito chiuso
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS `InserisciNuovaOpzioneQuesitoChiuso` (
@@ -1057,43 +923,6 @@ COMMIT;
 
 END $$ DELIMITER;
 
--- query per prendere tutti i risultati di un test di uno studente scelto
--- DELIMITER $$
--- CREATE PROCEDURE GetRisposteQuesitiChiusi (
---     IN p_test_associato VARCHAR(100)   ,
---     IN p_email_studente VARCHAR(100)
--- ) BEGIN
--- -- Query per ottenere le risposte più recenti
--- SELECT
---     r.numero_quesito            ,
---     DATE(r.TIMESTAMP) as in_data,
---     r.scelta                    ,
---     r.esito
--- FROM
---     RISPOSTA_QUESITO_CHIUSO AS r
--- WHERE
---     r.test_associato = p_test_associato
---     AND r.email_studente = p_email_studente
---     AND (r.numero_quesito, r.TIMESTAMP) IN (
---         SELECT
---             numero_quesito,
---             MAX(TIMESTAMP)
---         FROM
---             RISPOSTA_QUESITO_CHIUSO
---         WHERE
---             test_associato = p_test_associato
---             AND email_studente = p_email_studente
---         GROUP BY
---             numero_quesito
---     )
--- GROUP BY
---     r.numero_quesito,
---     r.TIMESTAMP     ,
---     r.scelta        ,
---     r.esito
--- ORDER BY
---     r.numero_quesito ASC;
--- END $$ DELIMITER;
 DELIMITER $$
 CREATE PROCEDURE GetRisposteQuesiti (
     IN p_test_associato VARCHAR(100),
@@ -1118,6 +947,7 @@ WHERE
         WHERE
             test_associato = p_test_associato
             AND email_studente = p_email_studente
+            AND TIMESTAMP
         GROUP BY
             numero_quesito
     )
@@ -1131,7 +961,6 @@ ORDER BY
 
 END $$ DELIMITER;
 
--- SELECT tipo_quesito FROM QUESITO WHERE numero_quesito = :numero_quesito AND test_associato = :test_associato;
 DELIMITER $$
 CREATE PROCEDURE GetTipoQuesito (
     IN p_numero_quesito INT        ,
@@ -1228,7 +1057,17 @@ FROM
 WHERE
     test_associato = p_test_associato
     AND numero_quesito = p_numero_quesito
-    AND email_studente = p_email_studente;
+    AND email_studente = p_email_studente
+    AND `TIMESTAMP` in (
+        SELECT
+            MAX(`TIMESTAMP`)
+        FROM
+            RISPOSTA_QUESITO_APERTO
+        WHERE
+            test_associato = p_test_associato
+            AND numero_quesito = p_numero_quesito
+            AND email_studente = p_email_studente
+    );
 
 END $$ DELIMITER;
 
@@ -1246,6 +1085,254 @@ FROM
 WHERE
     test_associato = p_test_associato
     AND numero_quesito = p_numero_quesito
-    AND email_studente = p_email_studente;
+    AND email_studente = p_email_studente
+    AND `TIMESTAMP` IN (
+        SELECT
+            MAX(`TIMESTAMP`)
+        FROM
+            RISPOSTA_QUESITO_CHIUSO
+        WHERE
+            test_associato = p_test_associato
+            AND numero_quesito = p_numero_quesito
+            AND email_studente = p_email_studente
+    );
 
 END $$ DELIMITER;
+
+-- CREA tabella SVOLGIMENTO TEST
+CREATE TABLE IF NOT EXISTS
+    SVOLGIMENTO_TEST (
+        titolo_test VARCHAR(100) NOT NULL                                                 ,
+        email_studente VARCHAR(100) NOT NULL                                              ,
+        data_inzio TIMESTAMP                                                              ,
+        data_fine TIMESTAMP                                                               ,
+        stato ENUM('APERTO', 'IN_COMPLETAMENTO', 'CONCLUSO') DEFAULT 'APERTO' NOT NULL    ,
+        PRIMARY KEY (titolo_test, email_studente)                                         ,
+        FOREIGN KEY (titolo_test) REFERENCES TEST (titolo) ON DELETE CASCADE              ,
+        FOREIGN KEY (email_studente) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE
+    );
+
+-- CREA PROCEDURA per inserire un nuovo SVOLGIMENTO TEST
+DELIMITER $$
+DROP PROCEDURE IF EXISTS `InserisciNuovoSvolgimentoTest` $$
+CREATE PROCEDURE IF NOT EXISTS `InserisciNuovoSvolgimentoTest` (
+    IN p_titolo_test VARCHAR(100)  ,
+    IN p_email_studente VARCHAR(100)
+) BEGIN DECLARE EXIT
+HANDLER FOR SQLEXCEPTION BEGIN
+ROLLBACK;
+
+RESIGNAL;
+
+END;
+
+DECLARE EXIT
+HANDLER FOR SQLWARNING BEGIN
+ROLLBACK;
+
+RESIGNAL;
+
+END;
+
+START TRANSACTION;
+
+-- Inserisce il svolgimento del test nella tabella Svolgimento_test
+INSERT INTO
+    SVOLGIMENTO_TEST (titolo_test, email_studente)
+VALUES
+    (p_titolo_test, p_email_studente);
+
+COMMIT;
+
+END $$ DELIMITER;
+
+-- inserisci il nuovo test creato all'interno di svolgimento_test per ogni studente con lo stato APERTO
+DELIMITER $$
+DROP TRIGGER IF EXISTS after_test_creation $$
+CREATE TRIGGER IF NOT EXISTS after_test_creation AFTER
+INSERT
+    ON TEST FOR EACH ROW BEGIN
+    -- Inserire i record per tutti gli studenti nella tabella SVOLGIMENTO_TEST
+INSERT INTO
+    SVOLGIMENTO_TEST (titolo_test, email_studente)
+SELECT
+    NEW.titolo   ,
+    email_studente
+FROM
+    STUDENTE;
+
+END $$ DELIMITER;
+
+-- TRIGGER che si aziona quando un utente inserisce una risposta
+-- la tabella svolgimento_test viene aggiornata e viene settata la data di inzio e lo stato IN_COMPLETAMENTO
+DELIMITER $$
+DROP TRIGGER IF EXISTS update_svolgimento_test $$
+CREATE TRIGGER IF NOT EXISTS update_svolgimento_test AFTER
+INSERT
+    ON RISPOSTA FOR EACH ROW BEGIN DECLARE is_prima_risposta INT;
+
+SELECT
+    COUNT(*) INTO is_prima_risposta
+FROM
+    RISPOSTA
+WHERE
+    test_associato = NEW.test_associato
+    AND email_studente = NEW.email_studente;
+
+IF is_prima_risposta = 1 THEN
+UPDATE SVOLGIMENTO_TEST
+SET
+    data_inzio = NOW()       ,
+    stato = 'IN_COMPLETAMENTO'
+WHERE
+    titolo_test = NEW.test_associato
+    AND email_studente = NEW.email_studente;
+
+END IF;
+
+-- Se tutte le risposte inserite sono giuste, setta lo stato a CONCLUSO e la data di fine del test
+IF(
+    SELECT
+        COUNT(*)
+    FROM
+        RISPOSTA
+    WHERE
+        test_associato = NEW.test_associato
+        AND email_studente = NEW.email_studente
+        AND esito = 'GIUSTA'
+) = (
+    SELECT
+        COUNT(*)
+    FROM
+        RISPOSTA
+    WHERE
+        test_associato = NEW.test_associato
+        AND email_studente = NEW.email_studente
+) THEN
+UPDATE SVOLGIMENTO_TEST
+SET
+    stato = 'CONCLUSO'      ,
+    data_fine = NEW.TIMESTAMP
+WHERE
+    titolo_test = NEW.test_associato
+    AND email_studente = NEW.email_studente;
+
+END IF;
+
+END $$ DELIMITER;
+
+-- Inserimento valori di esempio per la tabella TEST
+INSERT INTO
+    TEST (
+        titolo            ,
+        dataCreazione     ,
+        VisualizzaRisposte,
+        email_professore
+    )
+VALUES
+    (
+        "Test di Matematica" ,
+        "2024-03-19 12:00:00",
+        1                    ,
+        "professore@unibo.it"
+    ),
+    (
+        "Test di Storia"     ,
+        "2024-03-18 10:30:00",
+        0                    ,
+        "professore@unibo.it"
+    );
+
+-- Inserimento valori di esempio per la tabella QUESITO
+INSERT INTO
+    QUESITO (
+        numero_quesito    ,
+        test_associato    ,
+        descrizione       ,
+        livello_difficolta,
+        numero_risposte   ,
+        tipo_quesito
+    )
+VALUES
+    (
+        1                            ,
+        "Test di Matematica"         ,
+        "Risolvi l'equazione x-2 = 0",
+        "MEDIO"                      ,
+        0                            ,
+        "APERTO"
+    ),
+    (
+        2                   ,
+        "Test di Matematica",
+        "Quanto fa 2+2?"    ,
+        "BASSO"             ,
+        0                   ,
+        "CHIUSO"
+    ),
+    (
+        1                                               ,
+        "Test di Storia"                                ,
+        "Chi era il primo presidente degli Stati Uniti?",
+        "ALTO"                                          ,
+        0                                               ,
+        "APERTO"
+    ),
+    (
+        3                   ,
+        "Test di Matematica",
+        "Quanto fa 5x5?"    ,
+        "MEDIO"             ,
+        0                   ,
+        "CHIUSO"
+    ),
+    (
+        2                                                  ,
+        "Test di Storia"                                   ,
+        "Chi è stato il primo uomo a camminare sulla Luna?",
+        "MEDIO"                                            ,
+        0                                                  ,
+        "CHIUSO"
+    ),
+    (
+        3                                             ,
+        "Test di Storia"                              ,
+        "Quando è scoppiata la prima guerra mondiale?",
+        "ALTO"                                        ,
+        0                                             ,
+        "CHIUSO"
+    );
+
+-- Inserimento valori di esempio per la tabella QUESITO_CHIUSO_OPZIONE
+INSERT INTO
+    QUESITO_CHIUSO_OPZIONE (
+        numero_opzione,
+        numero_quesito,
+        test_associato,
+        testo         ,
+        is_corretta
+    )
+VALUES
+    (1, 2, "Test di Matematica", "4", "TRUE")         ,
+    (2, 2, "Test di Matematica", "5", "FALSE")        ,
+    (3, 2, "Test di Matematica", "6", "FALSE")        ,
+    (1, 3, "Test di Matematica", "25", "TRUE")        ,
+    (2, 3, "Test di Matematica", "30", "FALSE")       ,
+    (3, 3, "Test di Matematica", "20", "FALSE")       ,
+    (1, 2, "Test di Storia", "Neil Armstrong", "TRUE"),
+    (2, 2, "Test di Storia", "Buzz Aldrin", "FALSE")  ,
+    (3, 2, "Test di Storia", "Yuri Gagarin", "FALSE") ,
+    (1, 3, "Test di Storia", "1914", "TRUE")          ,
+    (2, 3, "Test di Storia", "1939", "FALSE")         ,
+    (3, 3, "Test di Storia", "1945", "FALSE");
+
+-- Inserimento valori di esempio per la tabella QUESITO_APERTO_SOLUZIONE
+INSERT INTO
+    QUESITO_APERTO_SOLUZIONE (
+        test_associato     ,
+        numero_quesito     ,
+        soluzione_professore
+    )
+VALUES
+    ("Test di Matematica", 1, "2")             ,
+    ("Test di Storia", 1, "George Washington.");

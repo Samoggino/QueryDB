@@ -13,6 +13,8 @@ if (isset($_POST['test_associato'])) {
 
 <head>
     <title>Creazione test</title>
+    <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
+
 </head>
 
 <body>
@@ -24,7 +26,7 @@ if (isset($_POST['test_associato'])) {
     ?>
     <h2>Crea un test</h2>
     <form id="uploadForm" method="post" action="crea_test.php" enctype="multipart/form-data">
-        <input for="titolo" name="titolo" placeholder="Titolo" type="text" required>
+        <input for="titolo_test_creato" name="titolo_test_creato" placeholder="Titolo" type="text" required>
 
         <label for="">Visualizza risposte</label>
         <input type="checkbox" id="visualizzaRisposteCheckbox" name="visualizzaRisposteCheckbox">

@@ -96,13 +96,12 @@ function q_aperto($quesito)
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test - <?php $_GET['test_associato'] ?></title>
+    <title>Test - <?php echo $_GET['test_associato']; ?></title>
+    <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
 </head>
 
 <body>
-
+    
 </body>
 
 </html>
