@@ -7,6 +7,8 @@ error_reporting(E_ALL);
 
 // FIXME: la parte che mostra la risposta non funziona
 
+// FIXME: problema sul set dello stato del test
+
 $test_associato = $_GET['test_associato'];
 echo "<script> console.log('utente: " . $test_associato . "');</script>";
 $email_studente = $_SESSION['email'];
