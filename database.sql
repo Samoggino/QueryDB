@@ -1190,7 +1190,7 @@ WHERE
 
 END IF;
 
--- Se tutte le risposte inserite sono giuste, setta lo stato a CONCLUSO e la data di fine del test
+-- Se tutte le ultime risposte inserite sono giuste, setta lo stato a CONCLUSO e la data di fine del test
 IF(
     SELECT
         COUNT(*)
@@ -1200,14 +1200,22 @@ IF(
         test_associato = NEW.test_associato
         AND email_studente = NEW.email_studente
         AND esito = 'GIUSTA'
+        AND `TIMESTAMP` IN (
+            SELECT
+                MAX(`TIMESTAMP`)
+            FROM
+                RISPOSTA
+            WHERE
+                test_associato = NEW.test_associato
+                AND email_studente = NEW.email_studente
+        )
 ) = (
     SELECT
         COUNT(*)
     FROM
-        RISPOSTA
+        `QUESITO`
     WHERE
         test_associato = NEW.test_associato
-        AND email_studente = NEW.email_studente
 ) THEN
 UPDATE SVOLGIMENTO_TEST
 SET
