@@ -42,7 +42,10 @@ $stmt->closeCursor();
     }
     ?>
 
-
+    <br>
+    <h1>Vai ai messaggi</h1>
+    <a href="/pages/messaggi.php">Messaggi</a>
+    
 
 
 </body>

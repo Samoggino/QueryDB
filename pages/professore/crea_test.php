@@ -13,12 +13,9 @@ try {
 
         $test_associato = $_POST['titolo_test_creato'];
 
-        $visualizza_risposte = isset($_POST['visualizzaRisposteCheckbox']) ? 1 : 0;
-
-        $sql = "CALL InserisciNuovoTest(:test_associato, :visualizza_risposte, :email_professore)";
+        $sql = "CALL InserisciNuovoTest(:test_associato, :email_professore)";
         $stmt = $db->prepare($sql);
         $stmt->bindParam(':test_associato', $test_associato);
-        $stmt->bindParam(':visualizza_risposte', $visualizza_risposte);
         $stmt->bindParam(':email_professore', $_SESSION['email']);
 
 
@@ -76,12 +73,8 @@ try {
             }
         }
 
-        // echo "ciao";
-        // $new_url = "Location: crea_quesito.php?test_associato=" . $test_associato;
-        // header($new_url);
         header("Location: ../professore/crea_quesito.php?test_associato=" . $test_associato);
     }
 } catch (\Throwable $th) {
-    //throw $th;
-    echo "" . $th->getMessage() . "";
+    echo "ERRORE:<br>" . $th->getMessage() . "";
 }

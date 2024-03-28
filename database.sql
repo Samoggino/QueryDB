@@ -336,7 +336,6 @@ CREATE TABLE IF NOT EXISTS
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS `InserisciNuovoTest` (
     IN p_titolo VARCHAR(100)         ,
-    IN p_VisualizzaRisposte BOOLEAN  ,
     IN p_email_professore VARCHAR(100)
 ) BEGIN DECLARE EXIT
 HANDLER FOR SQLEXCEPTION BEGIN
@@ -358,13 +357,9 @@ START TRANSACTION;
 
 -- Inserisce il test nella tabella Test
 INSERT INTO
-    TEST (titolo, VisualizzaRisposte, email_professore)
+    TEST (titolo, email_professore)
 VALUES
-    (
-        p_titolo            ,
-        p_VisualizzaRisposte,
-        p_email_professore
-    );
+    (p_titolo, p_email_professore);
 
 COMMIT;
 
@@ -1229,25 +1224,47 @@ END IF;
 
 END $$ DELIMITER;
 
+-- show results 
+DELIMITER $$
+CREATE PROCEDURE MostraRisultati (IN p_test_associato VARCHAR(100)) BEGIN
+UPDATE TEST
+SET
+    VisualizzaRisposte = 1
+WHERE
+    titolo = p_test_associato;
+
+END $$ DELIMITER;
+
+-- se il prof modifica il test impostanto visualizzatest come true, allora contrassegna tutti i test come conclusi
+DELIMITER $$
+DROP TRIGGER IF EXISTS update_test_conclusi $$
+CREATE TRIGGER IF NOT EXISTS update_test_conclusi AFTER
+UPDATE ON TEST FOR EACH ROW BEGIN
+-- Se il professore ha impostato VisualizzaRisposte a 1, contrassegna tutti i test come CONCLUSI
+IF NEW.VisualizzaRisposte = 1 THEN
+UPDATE SVOLGIMENTO_TEST
+SET
+    stato = 'CONCLUSO',
+    data_fine = NOW()
+WHERE
+    titolo_test = NEW.titolo;
+
+END IF;
+
+END $$ DELIMITER;
+
 -- Inserimento valori di esempio per la tabella TEST
 INSERT INTO
-    TEST (
-        titolo            ,
-        dataCreazione     ,
-        VisualizzaRisposte,
-        email_professore
-    )
+    TEST (titolo, dataCreazione, email_professore)
 VALUES
     (
         "Test di Matematica" ,
         "2024-03-19 12:00:00",
-        1                    ,
         "professore@unibo.it"
     ),
     (
         "Test di Storia"     ,
         "2024-03-18 10:30:00",
-        0                    ,
         "professore@unibo.it"
     );
 
@@ -1344,3 +1361,237 @@ INSERT INTO
 VALUES
     ("Test di Matematica", 1, "2")             ,
     ("Test di Storia", 1, "George Washington.");
+
+-- tabella dei messaggi
+CREATE TABLE IF NOT EXISTS
+    MESSAGGIO (
+        id INT AUTO_INCREMENT                                                 ,
+        titolo VARCHAR(100) NOT NULL                                          ,
+        testo TEXT NOT NULL                                                   ,
+        data_inserimento DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL          ,
+        test_associato VARCHAR(100) NOT NULL                                  ,
+        PRIMARY KEY (id)                                                      ,
+        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE
+    );
+
+-- messaggio che invia uno studente al professore
+CREATE TABLE IF NOT EXISTS
+    MESSAGGIO_PRIVATO (
+        id_messaggio INT NOT NULL                                                           ,
+        mittente VARCHAR(100) NOT NULL                                                      ,
+        destinatario VARCHAR(100) NOT NULL                                                  ,
+        PRIMARY KEY (id_messaggio)                                                          ,
+        FOREIGN KEY (id_messaggio) REFERENCES MESSAGGIO (id) ON DELETE CASCADE              ,
+        FOREIGN KEY (mittente) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE       ,
+        FOREIGN KEY (destinatario) REFERENCES PROFESSORE (email_professore) ON DELETE CASCADE
+    );
+
+-- messaggio che invia un professore a tutti gli studenti
+CREATE TABLE IF NOT EXISTS
+    BROADCAST (
+        id_messaggio INT NOT NULL                                                        ,
+        mittente VARCHAR(100) NOT NULL                                                   ,
+        destinatario VARCHAR(100) NOT NULL                                               ,
+        PRIMARY KEY (id_messaggio, destinatario)                                         ,
+        FOREIGN KEY (id_messaggio) REFERENCES MESSAGGIO (id) ON DELETE CASCADE           ,
+        FOREIGN KEY (mittente) REFERENCES PROFESSORE (email_professore) ON DELETE CASCADE,
+        FOREIGN KEY (destinatario) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE
+    );
+
+-- studente invia messaggio
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS `InviaMessaggioDaStudente` (
+    IN p_titolo VARCHAR(100)        ,
+    IN p_testo TEXT                 ,
+    IN p_test_associato VARCHAR(100),
+    IN p_mittente VARCHAR(100)      ,
+    IN p_destinatario VARCHAR(100)
+) BEGIN DECLARE EXIT
+HANDLER FOR SQLEXCEPTION BEGIN
+ROLLBACK;
+
+RESIGNAL;
+
+END;
+
+DECLARE EXIT
+HANDLER FOR SQLWARNING BEGIN
+ROLLBACK;
+
+RESIGNAL;
+
+END;
+
+START TRANSACTION;
+
+-- Inserisce il messaggio nella tabella MESSAGGIO
+INSERT INTO
+    MESSAGGIO (titolo, testo, test_associato)
+VALUES
+    (p_titolo, p_testo, p_test_associato);
+
+-- Inserisce il messaggio nella tabella MESSAGGIO_PRIVATO
+INSERT INTO
+    MESSAGGIO_PRIVATO (id_messaggio, mittente, destinatario)
+VALUES
+    (LAST_INSERT_ID(), p_mittente, p_destinatario);
+
+COMMIT;
+
+END $$ DELIMITER;
+
+-- docente invia messaggio a tutti gli studenti
+DELIMITER $$
+CREATE PROCEDURE `InviaMessaggioDaDocente` (
+    IN p_mittente VARCHAR(100)     ,
+    IN p_titolo VARCHAR(100)       ,
+    IN p_testo TEXT                ,
+    IN p_test_associato VARCHAR(100)
+) BEGIN DECLARE last_id INT;
+
+-- Inserisce il messaggio nella tabella MESSAGGIO
+INSERT INTO
+    MESSAGGIO (titolo, testo, test_associato)
+VALUES
+    (p_titolo, p_testo, p_test_associato);
+
+INSERT INTO
+    BROADCAST (id_messaggio, mittente, destinatario)
+SELECT
+    LAST_INSERT_ID() AS id_messaggio,
+    p_mittente                      ,
+    email_studente
+FROM
+    STUDENTE;
+
+END $$ DELIMITER;
+
+-- get messaggi studente
+DELIMITER $$
+CREATE PROCEDURE GetMessaggiStudente (IN p_email_studente VARCHAR(100)) BEGIN
+SELECT
+    m.id              ,
+    m.titolo          ,
+    m.testo           ,
+    m.data_inserimento,
+    m.test_associato  ,
+    b.mittente
+FROM
+    `MESSAGGIO` as m,
+    `BROADCAST` as b
+WHERE
+    m.id = b.id_messaggio
+    AND b.destinatario = p_email_studente;
+
+END $$ DELIMITER;
+
+-- get messaggi professore
+DELIMITER $$
+CREATE PROCEDURE GetMessaggiProfessore (IN p_email_professore VARCHAR(100)) BEGIN
+SELECT
+    m.id              ,
+    m.titolo          ,
+    m.testo           ,
+    m.data_inserimento,
+    m.test_associato  ,
+    DM.mittente
+FROM
+    `MESSAGGIO` as m        ,
+    `MESSAGGIO_PRIVATO` as DM
+WHERE
+    m.id = DM.id_messaggio
+    AND DM.destinatario = p_email_professore;
+
+END $$ DELIMITER;
+
+-- Inserimento di 3 messaggi privati da studente@unibo.it a professore@unibo.it con il test associato "Test di Matematica"
+INSERT INTO
+    MESSAGGIO (titolo, testo, test_associato)
+VALUES
+    (
+        'Domanda su argomento trattato in classe'                                                                                                                  ,
+        'Salve Professore, avrei bisogno di chiarimenti sull''argomento trattato durante l''ultima lezione di Matematica. Potrebbe fornirmi qualche delucidazione?',
+        'Test di Matematica'
+    );
+
+INSERT INTO
+    MESSAGGIO_PRIVATO (id_messaggio, mittente, destinatario)
+VALUES
+    (
+        LAST_INSERT_ID()    ,
+        'studente@unibo.it' ,
+        'professore@unibo.it'
+    );
+
+INSERT INTO
+    MESSAGGIO (titolo, testo, test_associato)
+VALUES
+    (
+        'Richiesta di proroga per consegna compito'                                                                                                                                  ,
+        'Buongiorno Professore, mi trovo in difficoltà e vorrei chiederle gentilmente una proroga per la consegna del compito di Matematica. Spero possa concedermela. Grazie mille.',
+        'Test di Matematica'
+    );
+
+INSERT INTO
+    MESSAGGIO_PRIVATO (id_messaggio, mittente, destinatario)
+VALUES
+    (
+        LAST_INSERT_ID()    ,
+        'studente@unibo.it' ,
+        'professore@unibo.it'
+    );
+
+INSERT INTO
+    MESSAGGIO (titolo, testo, test_associato)
+VALUES
+    (
+        'Richiesta appuntamento per consulenza'                                                                                                                   ,
+        'Salve Professore, vorrei fissare un appuntamento per discutere alcune questioni relative al progetto di Matematica. Quando potrebbe essermi disponibile?',
+        'Test di Matematica'
+    );
+
+INSERT INTO
+    MESSAGGIO_PRIVATO (id_messaggio, mittente, destinatario)
+VALUES
+    (
+        LAST_INSERT_ID()    ,
+        'studente@unibo.it' ,
+        'professore@unibo.it'
+    );
+
+-- Inserimento di 2 messaggi di broadcast da professore@unibo.it a tutti gli studenti con il test associato "Test di Storia"
+INSERT INTO
+    MESSAGGIO (titolo, testo, test_associato)
+VALUES
+    (
+        "Comunicazione importante riguardante l'esame"                                                                                                                             ,
+        'Buongiorno studenti, vi scrivo per comunicarvi un cambiamento nella data dell''esame di Storia. Si prega di fare riferimento al sito web del corso per maggiori dettagli.',
+        'Test di Storia'
+    );
+
+INSERT INTO
+    BROADCAST (id_messaggio, mittente, destinatario)
+VALUES
+    (
+        LAST_INSERT_ID()     ,
+        'professore@unibo.it',
+        'studente@unibo.it'
+    );
+
+INSERT INTO
+    MESSAGGIO (titolo, testo, test_associato)
+VALUES
+    (
+        'Avviso: lezioni sospese'                                                                                                                                                                                              ,
+        "Cari studenti, vi informo che le lezioni di domani saranno sospese a causa di un'imprevista emergenza riguardante il corso di Storia. Vi aggiornerò appena possibile riguardo alla ripresa delle attività didattiche.",
+        'Test di Storia'
+    );
+
+INSERT INTO
+    BROADCAST (id_messaggio, mittente, destinatario)
+VALUES
+    (
+        LAST_INSERT_ID()     ,
+        'professore@unibo.it',
+        'studente@unibo.it'
+    );

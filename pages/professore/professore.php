@@ -1,5 +1,8 @@
 <?php
 session_start();
+require_once '../../helper/connessione_mysql.php';
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
 if (isset($_POST['test_associato'])) {
     $test_associato = $_POST['test_associato'];
@@ -27,11 +30,6 @@ if (isset($_POST['test_associato'])) {
     <h2>Crea un test</h2>
     <form id="uploadForm" method="post" action="crea_test.php" enctype="multipart/form-data">
         <input for="titolo_test_creato" name="titolo_test_creato" placeholder="Titolo" type="text" required>
-
-        <label for="">Visualizza risposte</label>
-        <input type="checkbox" id="visualizzaRisposteCheckbox" name="visualizzaRisposteCheckbox">
-        <input type="hidden" id="visualizzaRisposteHidden" name="visualizzaRisposteHidden" value="0">
-
         <input type="file" name="file_immagine" accept="image/*"><br><br>
         <label for="file_immagine">Seleziona un'immagine:</label><br>
         <input type="submit" value="Crea">
@@ -39,29 +37,41 @@ if (isset($_POST['test_associato'])) {
 
     <h2>Aggiungi quesito</h2>
     <h3>Scegli un test</h3>
-    <form method="post" action="">
+    <form id="aggiungi-quesito-form" method="post" action="">
         <select name="test_associato" for="test_associato">
             <?php
-            require "../../helper/connessione_mysql.php";
-            $db = connectToDatabaseMYSQL();
-            $sql = "CALL GetTestDelProfessore(:email_professore);";
-            $stmt = $db->prepare($sql);
-            $stmt->bindParam(':email_professore', $_SESSION['email']);
-            try {
-                $stmt->execute();
-                $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-                foreach ($tests as $test) {
-                    echo "<option value='" . $test['titolo'] . "'>" . $test['titolo'] . "</option>";
-                }
-            } catch (\Throwable $th) {
-                echo "<script>console.log('Errore: " . $th . "');</script>";
-            }
-            $stmt->closeCursor();
+            require_once "./tendina_test.php";
+            tendinaTest();
             ?>
         </select>
         <input type="submit" value="Aggiungi quesito">
     </form>
+
+
+    <?php
+    require_once "./tendina_test.php";
+    $db = connectToDatabaseMYSQL();
+    $sql = "CALL GetTestDelProfessore(:email_professore);";
+    $stmt = $db->prepare($sql);
+    $stmt->bindParam(':email_professore', $_SESSION['email']);
+    try {
+        $stmt->execute();
+        $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($tests as $test) {
+            echo "<a href='modifica_test.php?test_associato=" . $test['titolo'] . "'>" . $test['titolo'] . "</a>" . "<br>";
+        }
+    } catch (\Throwable $th) {
+        echo "<script>console.log('Errore: " . $th . "');</script>";
+    }
+    $stmt->closeCursor();
+    ?>
+
+
+    <h1>Vai ai messaggi</h1>
+    <a href="/pages/messaggi.php">Messaggi</a>
+
+    <h1>Vai a creazione tabella </h1>
+    <a href="/pages/professore/crea_tabella_esercizio.php">Crea tabella</a>
 </body>
 
 
@@ -73,15 +83,6 @@ if (isset($_POST['test_associato'])) {
 
     window.addEventListener('load', function() {
         document.getElementById('uploadForm').reset();
-    });
-    // Ottieni il riferimento al form
-    const visualizzaRisposteCheckbox = document.getElementById('visualizzaRisposteCheckbox');
-
-    // Ascolta gli eventi di cambio
-    visualizzaRisposteCheckbox.addEventListener('change', function() {
-        // Se il checkbox è selezionato, imposta il valore dell'input nascosto a 1, altrimenti a 0
-        const value = this.checked ? 1 : 0;
-        document.getElementById('visualizzaRisposteHidden').value = value;
     });
 </script>
 
