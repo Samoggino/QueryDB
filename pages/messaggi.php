@@ -114,7 +114,7 @@ function tendinaTest()
             tendinaProfessori();
             tendinaTest()
             ?>
-            <input type='submit' value='Invia'>
+            </div>
         </form>
     <?php visualizzaMessaggi();
     } elseif ($_SESSION['ruolo'] == 'PROFESSORE') { ?>

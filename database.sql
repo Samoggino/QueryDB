@@ -569,6 +569,30 @@ COMMIT;
 
 END $$ DELIMITER;
 
+-- aggiorna il numero_risposte di un quesito quando viene aggiunto una nuova opzione
+DELIMITER $$
+CREATE TRIGGER IF NOT EXISTS update_numero_risposte_q_chiuso AFTER
+INSERT
+    ON QUESITO_CHIUSO_OPZIONE FOR EACH ROW
+UPDATE QUESITO
+SET
+    numero_risposte = numero_risposte + 1
+WHERE
+    test_associato = NEW.test_associato
+    AND numero_quesito = NEW.numero_quesito $$ DELIMITER;
+
+-- aggiorna il numero_risposte di un quesito quando viene aggiunto una nuova opzione
+DELIMITER $$
+CREATE TRIGGER IF NOT EXISTS update_numero_risposte_q_aperto AFTER
+INSERT
+    ON QUESITO_APERTO_SOLUZIONE FOR EACH ROW
+UPDATE QUESITO
+SET
+    numero_risposte = numero_risposte + 1
+WHERE
+    test_associato = NEW.test_associato
+    AND numero_quesito = NEW.numero_quesito $$ DELIMITER;
+
 -- crea la stored procedure per inserire una nuova soluzione per un quesito aperto
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS `InserisciNuovaSoluzioneQuesitoAperto` (

@@ -53,24 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <title>Modifica test</title>
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="../../styles/table.css">
     <style>
-        table {
-            max-width: 50%;
-            border-collapse: collapse;
-            width: 100%;
-        }
-
-        th,
-        td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: center;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-
         img {
             max-width: 250px;
             max-height: 250px;
