@@ -3,34 +3,64 @@ session_start();
 require '../helper/connessione_mysql.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
+
 try {
 
     $db = connectToDatabaseMYSQL();
+    // TODO: ha il problema dell'ordine della chiave della tabella di riferimento
+    // un modo per risolvere è quello di creare una tabella delle chiavi.
 
     $input_data = array(
         'nome_tabella' => 'PRASSI',
         'numero_attributi' => 3,
         'attributi' => array(
-            array('nome' => 'matricola', 'tipo' => 'INT'),
-            array('nome' => 'cognome_prassi', 'tipo' => 'VARCHAR'),
-            array('nome' => 'nome_prassi', 'tipo' => 'VARCHAR')
+            array(
+                'nome' => 'matricola',
+                'tipo' => 'INT'
+            ),
+            array(
+                'nome' => 'cognome_prassi',
+                'tipo' => 'VARCHAR'
+            ),
+            array(
+                'nome' => 'nome_prassi',
+                'tipo' => 'VARCHAR'
+            ),
+            array(
+                'nome' => 'id_tabella1',
+                'tipo' => 'INT'
+            )
         ),
         'primary_keys' => array(0),
         'foreign_keys' => array(
-            array('attributo' => 'cognome_prassi', 'tabella_riferimento' => 'tabella_di_esempio', 'attributo_riferimento' => 'cognome'),
-            array('attributo' => 'nome_prassi', 'tabella_riferimento' => 'tabella_di_esempio', 'attributo_riferimento' => 'nome')
+            array(
+                'attributo' => 'cognome_prassi',
+                'tabella_riferimento' => 'tabella_di_esempio',
+                'attributo_riferimento' => 'cognome'
+            ),
+            array(
+                'attributo' => 'nome_prassi',
+                'tabella_riferimento' => 'tabella_di_esempio',
+                'attributo_riferimento' => 'nome'
+            ),
+            array(
+                'attributo' => 'id_tabella1',
+                'tabella_riferimento' => 'Tabella1',
+                'attributo_riferimento' => 'id'
+            )
         )
     );
-    // Recupera i dati inviati dal form
-    // Rimuovi il recupero dei dati dalle variabili POST
-    // $nome_tabella = $_POST['nome_tabella'];
-    // $numero_attributi = $_POST['numero_attributi'];
-    // $nome_attributo = $_POST['nome_attributo'];
-    // $tipo_attributo = $_POST['tipo_attributo'];
-    // $primary_keys = isset($_POST['primary_key']) ? $_POST['primary_key'] : array();
-    // $foreign_key = isset($_POST['foreign_key']) ? $_POST['foreign_key'] : array();
-    // $array_tabelle_vincolate = $_POST['tabella_vincolata'];
-    // $array_attributi_vincolati = $_POST['attributo_vincolato'];
+
+    //  Recupera i dati inviati dal form
+    //  Rimuovi il recupero dei dati dalle variabili POST
+    //  $nome_tabella = $_POST['nome_tabella'];
+    //  $numero_attributi = $_POST['numero_attributi'];
+    //  $nome_attributo = $_POST['nome_attributo'];
+    //  $tipo_attributo = $_POST['tipo_attributo'];
+    //  $primary_keys = isset($_POST['primary_key']) ? $_POST['primary_key'] : array();
+    //  $foreign_key = isset($_POST['foreign_key']) ? $_POST['foreign_key'] : array();
+    //  $array_tabelle_vincolate = $_POST['tabella_vincolata'];
+    //  $array_attributi_vincolati = $_POST['attributo_vincolato'];
 
 
     // Utilizza i dati forniti nell'array associativo
@@ -48,162 +78,64 @@ try {
     $array_tabelle_vincolate = array_column($foreign_keys, 'tabella_riferimento');
     $array_attributi_vincolati = array_column($foreign_keys, 'attributo_riferimento');
 
+    $conn = connectToDatabaseMYSQL();
+    // Creazione della tabella nel database
+    $query_corrente = "CREATE TABLE IF NOT EXISTS $nome_tabella (";
 
 
-    creaLaTabella(
-        $nome_tabella,
+
+    $query_corrente = attributi(
+        $query_corrente,
         $numero_attributi,
         $nome_attributo,
         $tipo_attributo,
-        $primary_keys,
-        $foreign_keys,
-        $array_tabelle_vincolate,
-        $array_attributi_vincolati
     );
 
+    $query_corrente = primary_key($query_corrente, $primary_keys, $nome_attributo);
 
-    // Esecuzione della query di creazione
+    $query_corrente = foreign_key($input_data, $query_corrente);
 
-    // $tabellaCreata = true;
-    try {
-        // inserisciInTabellaDelleTabelle($nome_tabella);
-    } catch (\Throwable $th) {
-        $tabellaCreata = false;
-        echo "Errore nella creazione della tabella nella tabella delle tabelle! <br>";
-        echo $th->getMessage();
-    }
+    $query_corrente .= ");";
 
-    try {
-        // inserisciInAttributi($numero_attributi, $nome_attributo, $tipo_attributo, $nome_tabella);
-    } catch (\Throwable $th) {
-        $tabellaCreata = false;
-        echo "Errore nell'inserimento degli attributi nella tabella degli attributi! <br>";
-        echo $th->getMessage();
-    }
-
+    echo "$query_corrente";
     $db = null;
 } catch (\Throwable $th) {
     echo $th->getMessage();
 }
 
-function creaLaTabella(
-    $nome_tabella,
+function attributi(
+    $query_corrente,
     $numero_attributi,
     $nome_attributo,
     $tipo_attributo,
-    $primary_keys,
-    $foreign_keys,
-    $array_tabelle_vincolate,
-    $array_attributi_vincolati
 ) {
 
-
-    // foreach ($nome_attributo as $key => $value) {
-    //     echo "<script>console.log('Nome attributo: $value');</script>";
-    // }
-
-    // foreach ($tipo_attributo as $key => $value) {
-    //     echo "<script>console.log('Tipo attributo: $value');</script>";
-    // }
-
-    // foreach ($primary_keys as $key => $value) {
-    //     echo "<script>console.log('Chiave primaria: $value');</script>";
-    // }
-
-    // foreach ($foreign_keys as $key => $value) {
-    //     echo "<script>console.log('Chiave esterna: $value');</script>";
-    // }
-
-    // foreach ($array_tabelle_vincolate as $key => $value) {
-    //     echo "<script>console.log('Tabella vincolata: $value');</script>";
-    // }
-
-    // foreach ($array_attributi_vincolati as $key => $value) {
-    //     echo "<script>console.log('Attributo vincolato: $value');</script>";
-    // }
-
-    $conn = connectToDatabaseMYSQL();
-    // Creazione della tabella nel database
-    $createTableQuery = "CREATE TABLE IF NOT EXISTS $nome_tabella (";
     // Aggiunge gli attributi dinamici alla query di creazione
     for ($i = 0; $i < $numero_attributi; $i++) {
-        $createTableQuery .= $nome_attributo[$i] . " ";
+        $query_corrente .= $nome_attributo[$i] . " ";
         // Se il tipo è VARCHAR, aggiungi la grandezza specificata
         if ($tipo_attributo[$i] == 'VARCHAR') {
-            $createTableQuery .= $tipo_attributo[$i] . "(100)";
+            $query_corrente .= $tipo_attributo[$i] . "(100)";
         } else {
-            $createTableQuery .= $tipo_attributo[$i];
+            $query_corrente .= $tipo_attributo[$i];
         }
         // Aggiunge virgola se non è l'ultimo attributo
         if ($i < $numero_attributi - 1) {
-            $createTableQuery .= ", ";
+            $query_corrente .= ", ";
         }
     }
-    // Aggiungi le chiavi primarie
-    if (count($primary_keys) > 0) {
-        $createTableQuery .= ", PRIMARY KEY (";
-        foreach ($primary_keys as $key) {
-            $createTableQuery .= $nome_attributo[$key] . ", ";
-        }
-        $createTableQuery = rtrim($createTableQuery, ", "); // Rimuove l'ultima virgola
-        $createTableQuery .= ")";
-    }
 
-    foreach ($foreign_keys as $foreign_key) {
-        $referenceTable = $foreign_key['tabella_riferimento'];
-        $referenceAttribute = $foreign_key['attributo_riferimento'];
-
-        // Aggiungi i valori alle rispettive array
-        $array_tabelle_vincolate[] = $referenceTable;
-        $array_attributi_vincolati[] = $referenceAttribute;
-    }
-
-    // // Aggiungi le chiavi esterne
-    if (!empty($foreign_keys) && !empty($array_attributi_vincolati)) {
-        $foreign_keyQuery = '';
-        $references = array();
-
-        foreach ($foreign_keys as $key => $foreign_key) {
-            $referenceTable = $foreign_key['tabella_riferimento'];
-            $referenceAttribute = $foreign_key['attributo_riferimento'];
-
-            if (!isset($references[$referenceTable])) {
-                $references[$referenceTable] = array();
-            }
-            $references[$referenceTable][] = $referenceAttribute;
-        }
-
-        foreach ($references as $referenceTable => $referenceAttributes) {
-            // $foreign_keyQuery .= ", FOREIGN KEY (" . implode(', ', $referenceAttributes) . ") REFERENCES $referenceTable(" . implode(', ', $referenceAttributes) . ") ON DELETE CASCADE";
-            $foreign_keyQuery .= ", FOREIGN KEY ( cognome_prassi, nome_prassi  ) REFERENCES $referenceTable(" . implode(', ', $referenceAttributes) . ") ON DELETE CASCADE";
-        }
-
-        $createTableQuery .= $foreign_keyQuery;
-    }
-
-    $createTableQuery .= ");";
-    echo "<script>console.log('$createTableQuery');</script>";
-    // Esegui la query di creazione della tabella
-    try {
-        // delete if exists
-        $conn->exec("DROP TABLE IF EXISTS $nome_tabella");
-        $conn->exec($createTableQuery);
-        echo "Tabella creata con successo.";
-    } catch (PDOException $e) {
-        echo "Errore durante la creazione della tabella: " . $e->getMessage();
-    }
+    return $query_corrente;
 }
 
 
-
-
-
+/*
 function inserisciInTabellaDelleTabelle($nome_tabella)
 {
     $conn = connectToDatabaseMYSQL();
     $stmt = $conn->prepare("INSERT INTO TABELLA_DELLE_TABELLE (nome_tabella) VALUES (:nome_tabella)");
     $stmt->bindParam(':nome_tabella', $nome_tabella);
-    $stmt->execute();
+    // $stmt->execute();
 }
 
 function inserisciInAttributi($numero_attributi, $nome_attributo, $tipo_attributo, $nome_tabella)
@@ -214,6 +146,55 @@ function inserisciInAttributi($numero_attributi, $nome_attributo, $tipo_attribut
         $stmt->bindParam(':nome_tabella', $nome_tabella);
         $stmt->bindParam(':nome_attributo', $nome_attributo[$i]);
         $stmt->bindParam(':tipo_attributo', $tipo_attributo[$i]);
-        $stmt->execute();
+        // $stmt->execute();
     }
+}*/
+
+function primary_key($query_corrente, $primary_keys, $nome_attributo)
+{
+    // Aggiungi le chiavi primarie
+    if (count($primary_keys) > 0) {
+        $query_corrente .= ", PRIMARY KEY (";
+        foreach ($primary_keys as $key) {
+            $query_corrente .= $nome_attributo[$key] . ", ";
+        }
+        $query_corrente = rtrim($query_corrente, ", "); // Rimuove l'ultima virgola
+        $query_corrente .= ")";
+    }
+
+    return $query_corrente . ", ";
+}
+
+
+function foreign_key($input_data, $query_corrente)
+{
+    $groupby_tabella_rif = array();
+    foreach ($input_data['foreign_keys'] as $foreign_key) {
+        $tabella_riferimento = $foreign_key['tabella_riferimento'];
+        if (!isset($groupby_tabella_rif[$tabella_riferimento])) {
+            $groupby_tabella_rif[$tabella_riferimento] = 1;
+        } else {
+            $groupby_tabella_rif[$tabella_riferimento]++;
+        }
+    }
+
+    foreach ($groupby_tabella_rif as $key => $count_tab_rif) {
+
+        if ($count_tab_rif > 1) {
+            for ($i = 0; $i < $count_tab_rif; $i++) {
+                $attributo[$i] = $input_data['foreign_keys'][$i]['attributo'];
+                $attributo_riferimento[$i] = $input_data['foreign_keys'][$i]['attributo_riferimento'];
+            }
+            $query_corrente .=  "FOREIGN KEY (" . implode(", ", $attributo) . ") REFERENCES $key(" . implode(", ", $attributo_riferimento) . ") ON DELETE CASCADE, ";
+        } else {
+            $attributo = $input_data['foreign_keys'][2]['attributo'];
+            $attributo_riferimento = $input_data['foreign_keys'][2]['attributo_riferimento'];
+            $query_corrente .= "FOREIGN KEY ($attributo) REFERENCES $key($attributo_riferimento) ON DELETE CASCADE, ";
+        }
+    }
+
+    // rimuovi l'ultima virgola di $query_foreign_key
+    $query_corrente = rtrim($query_corrente, ", ");
+
+    return $query_corrente;
 }

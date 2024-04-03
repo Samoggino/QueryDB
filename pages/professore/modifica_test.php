@@ -63,7 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 
 <body>
-
+    <!-- TODO: il trigger per il numero_risposte deve fare riferimento alle risposte 
+    date dagli studenti e non le opzioni inserite dal professore, 
+    viene chiarita questa cosa solamente nella descrizioni delle view -->
     <?php
 
     $visualizza_risposte_checkbox = $test['VisualizzaRisposte'] == 1 ? 1 : 0;

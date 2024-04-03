@@ -105,10 +105,10 @@ VALUES
 INSERT INTO
     STUDENTE (email_studente, anno_immatricolazione, matricola)
 VALUES
-    ('studente1@example.com', 2019, '0123456789') ,
-    ('studente2@example.com', 2020, '0123456787') ,
-    ('simosamoggia@gmail.com', 2020, '0123456787'),
-    ('studente@unibo.it', 2020, '0123456787');
+    ('studente1@example.com', 2019, '00123456') ,
+    ('studente2@example.com', 2020, '00987654') ,
+    ('simosamoggia@gmail.com', 2020, '00970758'),
+    ('studente@unibo.it', 2020, '00567890');
 
 -- Inserimento dati nella tabella Professore
 INSERT INTO
@@ -571,27 +571,15 @@ END $$ DELIMITER;
 
 -- aggiorna il numero_risposte di un quesito quando viene aggiunto una nuova opzione
 DELIMITER $$
-CREATE TRIGGER IF NOT EXISTS update_numero_risposte_q_chiuso AFTER
+CREATE TRIGGER IF NOT EXISTS update_numero_risposte_al_quesito AFTER
 INSERT
-    ON QUESITO_CHIUSO_OPZIONE FOR EACH ROW
-UPDATE QUESITO
+    ON `RISPOSTA` FOR EACH ROW
+UPDATE `QUESITO`
 SET
-    numero_risposte = numero_risposte + 1
+    `numero_risposte` = `numero_risposte` + 1
 WHERE
-    test_associato = NEW.test_associato
-    AND numero_quesito = NEW.numero_quesito $$ DELIMITER;
-
--- aggiorna il numero_risposte di un quesito quando viene aggiunto una nuova opzione
-DELIMITER $$
-CREATE TRIGGER IF NOT EXISTS update_numero_risposte_q_aperto AFTER
-INSERT
-    ON QUESITO_APERTO_SOLUZIONE FOR EACH ROW
-UPDATE QUESITO
-SET
-    numero_risposte = numero_risposte + 1
-WHERE
-    test_associato = NEW.test_associato
-    AND numero_quesito = NEW.numero_quesito $$ DELIMITER;
+    `test_associato` = NEW.test_associato
+    AND `numero_quesito` = NEW.numero_quesito $$ DELIMITER;
 
 -- crea la stored procedure per inserire una nuova soluzione per un quesito aperto
 DELIMITER $$
@@ -620,9 +608,9 @@ START TRANSACTION;
 -- Inserisce la soluzione nella tabella Quesito_aperto
 INSERT INTO
     QUESITO_APERTO_SOLUZIONE (
-        test_associato     ,
-        numero_quesito     ,
-        soluzione_professore
+        `test_associato`     ,
+        `numero_quesito`     ,
+        `soluzione_professore`
     )
 VALUES
     (
@@ -733,50 +721,55 @@ CREATE TABLE IF NOT EXISTS
         FOREIGN KEY (tabella_vincolata, attributo_vincolato) REFERENCES TAB_ATT (nome_tabella, nome_attributo) ON DELETE CASCADE
     );
 
--- INSERT INTO
---     TABELLA_DELLE_TABELLE (nome_tabella)
--- VALUES
---     ('Tabella1')          ,
---     ('Tabella2')          ,
---     ('Tabella3')          ,
---     ('Tabella4')          ,
---     ('tabella_di_esempio');
--- -- Creazione della tabella Tabella1
--- CREATE TABLE IF NOT EXISTS
---     Tabella1 (
---         id INT AUTO_INCREMENT PRIMARY KEY                        ,
---         nome VARCHAR(50) NOT NULL                                ,
---         descrizione TEXT                                         ,
---         data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
---     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
--- -- Creazione della tabella Tabella2
--- CREATE TABLE IF NOT EXISTS
---     Tabella2 (
---         id INT AUTO_INCREMENT PRIMARY KEY                        ,
---         titolo VARCHAR(100) NOT NULL                             ,
---         autore VARCHAR(100)                                      ,
---         anno_pubblicazione INT                                   ,
---         data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
---     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
--- -- Creazione della tabella Tabella3
--- CREATE TABLE IF NOT EXISTS
---     Tabella3 (
---         id INT AUTO_INCREMENT PRIMARY KEY                        ,
---         nome VARCHAR(50) NOT NULL                                ,
---         cognome VARCHAR(50) NOT NULL                             ,
---         email VARCHAR(100) NOT NULL                              ,
---         data_nascita DATE                                        ,
---         data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
---     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
--- -- Creazione della tabella Tabella4
--- CREATE TABLE IF NOT EXISTS
---     Tabella4 (
---         id INT AUTO_INCREMENT PRIMARY KEY                        ,
---         nome_prodotto VARCHAR(100) NOT NULL                      ,
---         prezzo DECIMAL(10, 2) NOT NULL                           ,
---         descrizione TEXT                                         ,
---         data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
---     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
+INSERT INTO
+    TABELLA_DELLE_TABELLE (nome_tabella)
+VALUES
+    ('Tabella1')          ,
+    ('Tabella2')          ,
+    ('Tabella3')          ,
+    ('Tabella4')          ,
+    ('tabella_di_esempio');
+
+-- Creazione della tabella Tabella1
+CREATE TABLE IF NOT EXISTS
+    Tabella1 (
+        id INT AUTO_INCREMENT PRIMARY KEY                        ,
+        nome VARCHAR(50) NOT NULL                                ,
+        descrizione TEXT                                         ,
+        data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
+
+-- Creazione della tabella Tabella2
+CREATE TABLE IF NOT EXISTS
+    Tabella2 (
+        id INT AUTO_INCREMENT PRIMARY KEY                        ,
+        titolo VARCHAR(100) NOT NULL                             ,
+        autore VARCHAR(100)                                      ,
+        anno_pubblicazione INT                                   ,
+        data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
+
+-- Creazione della tabella Tabella3
+CREATE TABLE IF NOT EXISTS
+    Tabella3 (
+        id INT AUTO_INCREMENT PRIMARY KEY                        ,
+        nome VARCHAR(50) NOT NULL                                ,
+        cognome VARCHAR(50) NOT NULL                             ,
+        email VARCHAR(100) NOT NULL                              ,
+        data_nascita DATE                                        ,
+        data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
+
+-- Creazione della tabella Tabella4
+CREATE TABLE IF NOT EXISTS
+    Tabella4 (
+        id INT AUTO_INCREMENT PRIMARY KEY                        ,
+        nome_prodotto VARCHAR(100) NOT NULL                      ,
+        prezzo DECIMAL(10, 2) NOT NULL                           ,
+        descrizione TEXT                                         ,
+        data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
+
 CREATE TABLE IF NOT EXISTS
     tabella_di_esempio (
         nome VARCHAR(100) NOT NULL   ,
@@ -791,7 +784,7 @@ CREATE TABLE IF NOT EXISTS
 --         cognome_prassi VARCHAR(100)                                                                             ,
 --         nome_prassi VARCHAR(100)                                                                                ,
 --         PRIMARY KEY (matricola)                                                                                 ,
---         FOREIGN KEY (cognome_prassi, nome_prassi) REFERENCES tabella_di_esempio (cognome, nome) ON DELETE CASCADE
+--         FOREIGN KEY (cognome_prassi, nome_prassi) REFERENCES tabella_di_esempio (nome, cognome) ON DELETE CASCADE
 --     );
 INSERT INTO
     TEST (titolo, email_professore)
@@ -1619,3 +1612,121 @@ VALUES
         'professore@unibo.it',
         'studente@unibo.it'
     );
+
+-- classifica test conclusi dagli studenti
+CREATE VIEW
+    Classifica_test_completati AS
+SELECT
+    s.matricola,
+    (
+        SELECT
+            COUNT(*)
+        FROM
+            SVOLGIMENTO_TEST st
+        WHERE
+            st.email_studente = s.email_studente
+            AND st.stato = 'CONCLUSO'
+    ) AS Test_conclusi
+FROM
+    STUDENTE s
+GROUP BY
+    s.email_studente,
+    Test_conclusi
+ORDER BY
+    Test_conclusi DESC;
+
+# Visualizzare	la	classifica	degli	studenti,	sulla	base	del	numero	di	risposte	corrette	inserite	
+# rispetto	al	numero	 totale	di	risposte	inserite.	Nella	classifica	NON	devono	apparire	i	dati	
+# sensibili	dello	studente	(nome,	cognome,	email)	ma	solo	il	codice	alfanumerico.
+DROP VIEW IF EXISTS Classifica_risposte_giusta;
+
+CREATE VIEW
+    Classifica_risposte_giusta AS
+SELECT
+    s.matricola,
+    (
+        CASE
+            WHEN (
+                SELECT
+                    count(*) as tot_risposte
+                FROM
+                    RISPOSTA r1
+                WHERE
+                    r1.email_studente = s.email_studente
+                    AND r1.`TIMESTAMP` IN (
+                        SELECT
+                            MAX(`TIMESTAMP`)
+                        FROM
+                            RISPOSTA r2
+                        WHERE
+                            r2.email_studente = s.email_studente
+                    )
+            ) > 0 THEN (
+                SELECT
+                    COUNT(*) as risp_giuste
+                FROM
+                    RISPOSTA r
+                WHERE
+                    r.email_studente = s.email_studente
+                    AND r.esito = 'GIUSTA'
+                    AND r.`TIMESTAMP` IN (
+                        SELECT
+                            MAX(`TIMESTAMP`)
+                        FROM
+                            RISPOSTA r2
+                        WHERE
+                            r2.email_studente = s.email_studente
+                    )
+            ) / (
+                SELECT
+                    count(*) as tot_risposte
+                FROM
+                    RISPOSTA r1
+                WHERE
+                    r1.email_studente = s.email_studente
+                    AND r1.`TIMESTAMP` IN (
+                        SELECT
+                            MAX(`TIMESTAMP`)
+                        FROM
+                            RISPOSTA r2
+                        WHERE
+                            r2.email_studente = s.email_studente
+                    )
+            )
+            ELSE 0
+        END
+    ) AS Risposte_corrette
+FROM
+    STUDENTE s
+GROUP BY
+    s.matricola     ,
+    Risposte_corrette
+ORDER BY
+    Risposte_corrette DESC;
+
+DELIMITER $$
+CREATE PROCEDURE GetClassificaRisposteGiuste () BEGIN
+SELECT
+    rg.matricola                   ,
+    rg.Risposte_corrette as Rapporto
+FROM
+    Classifica_risposte_giusta as rg;
+
+END $$ DELIMITER;
+
+-- stored procedure per avere l'ordine delle chiavi primarie di una tabella
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS `GetPrimaryKey` (IN p_table_name VARCHAR(100)) BEGIN
+SELECT
+    TABLE_NAME ,
+    COLUMN_NAME,
+    SEQ_IN_INDEX
+FROM
+    INFORMATION_SCHEMA.STATISTICS
+WHERE
+    TABLE_NAME = p_table_name
+    AND INDEX_NAME = 'PRIMARY'
+ORDER BY
+    SEQ_IN_INDEX;
+
+END $$ DELIMITER;

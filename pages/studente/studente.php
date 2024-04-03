@@ -45,7 +45,11 @@ $stmt->closeCursor();
     <br>
     <h1>Vai ai messaggi</h1>
     <a href="/pages/messaggi.php">Messaggi</a>
-    
+
+    <br>
+    <h1>Vai alle classifiche</h1>
+    <a href="../classifiche.php">Classifiche</a>
+
 
 
 </body>
