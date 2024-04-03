@@ -12,7 +12,7 @@ try {
 
     $input_data = array(
         'nome_tabella' => 'PRASSI',
-        'numero_attributi' => 3,
+        'numero_attributi' => 4,
         'attributi' => array(
             array(
                 'nome' => 'matricola',
@@ -27,7 +27,7 @@ try {
                 'tipo' => 'VARCHAR'
             ),
             array(
-                'nome' => 'id_tabella1',
+                'nome' => 'eta_prassi',
                 'tipo' => 'INT'
             )
         ),
@@ -44,12 +44,14 @@ try {
                 'attributo_riferimento' => 'nome'
             ),
             array(
-                'attributo' => 'id_tabella1',
-                'tabella_riferimento' => 'Tabella1',
-                'attributo_riferimento' => 'id'
+                'attributo' => 'eta_prassi',
+                'tabella_riferimento' => 'tabella_di_esempio',
+                'attributo_riferimento' => 'eta'
             )
         )
     );
+
+
 
     //  Recupera i dati inviati dal form
     //  Rimuovi il recupero dei dati dalle variabili POST
@@ -78,7 +80,7 @@ try {
     $array_tabelle_vincolate = array_column($foreign_keys, 'tabella_riferimento');
     $array_attributi_vincolati = array_column($foreign_keys, 'attributo_riferimento');
 
-    $conn = connectToDatabaseMYSQL();
+    $db = connectToDatabaseMYSQL();
     // Creazione della tabella nel database
     $query_corrente = "CREATE TABLE IF NOT EXISTS $nome_tabella (";
 
@@ -91,13 +93,18 @@ try {
         $tipo_attributo,
     );
 
+
     $query_corrente = primary_key($query_corrente, $primary_keys, $nome_attributo);
 
     $query_corrente = foreign_key($input_data, $query_corrente);
 
     $query_corrente .= ");";
 
-    echo "$query_corrente";
+    echo "<script>console.log('" . $query_corrente . "')</script>";
+
+    $stmt = $db->prepare($query_corrente);
+    // $stmt->execute();
+
     $db = null;
 } catch (\Throwable $th) {
     echo $th->getMessage();
@@ -110,21 +117,24 @@ function attributi(
     $tipo_attributo,
 ) {
 
-    // Aggiunge gli attributi dinamici alla query di creazione
-    for ($i = 0; $i < $numero_attributi; $i++) {
-        $query_corrente .= $nome_attributo[$i] . " ";
-        // Se il tipo è VARCHAR, aggiungi la grandezza specificata
-        if ($tipo_attributo[$i] == 'VARCHAR') {
-            $query_corrente .= $tipo_attributo[$i] . "(100)";
-        } else {
-            $query_corrente .= $tipo_attributo[$i];
+    try {
+        // Aggiunge gli attributi dinamici alla query di creazione
+        for ($i = 0; $i < $numero_attributi; $i++) {
+            $query_corrente .= $nome_attributo[$i] . " ";
+            // Se il tipo è VARCHAR, aggiungi la grandezza specificata
+            if ($tipo_attributo[$i] == 'VARCHAR') {
+                $query_corrente .= $tipo_attributo[$i] . "(100)";
+            } else {
+                $query_corrente .= $tipo_attributo[$i];
+            }
+            // Aggiunge virgola se non è l'ultimo attributo
+            if ($i < $numero_attributi - 1) {
+                $query_corrente .= ", ";
+            }
         }
-        // Aggiunge virgola se non è l'ultimo attributo
-        if ($i < $numero_attributi - 1) {
-            $query_corrente .= ", ";
-        }
+    } catch (\Throwable $th) {
+        echo "ATTRIBUTES PROBLEM <br>" . $th->getMessage();
     }
-
     return $query_corrente;
 }
 
@@ -152,49 +162,116 @@ function inserisciInAttributi($numero_attributi, $nome_attributo, $tipo_attribut
 
 function primary_key($query_corrente, $primary_keys, $nome_attributo)
 {
-    // Aggiungi le chiavi primarie
-    if (count($primary_keys) > 0) {
-        $query_corrente .= ", PRIMARY KEY (";
-        foreach ($primary_keys as $key) {
-            $query_corrente .= $nome_attributo[$key] . ", ";
+    try {
+        // Aggiungi le chiavi primarie
+        if (count($primary_keys) > 0) {
+            $query_corrente .= ", PRIMARY KEY (";
+            foreach ($primary_keys as $key) {
+                $query_corrente .= $nome_attributo[$key] . ", ";
+            }
+            $query_corrente = rtrim($query_corrente, ", "); // Rimuove l'ultima virgola
+            $query_corrente .= ")";
         }
-        $query_corrente = rtrim($query_corrente, ", "); // Rimuove l'ultima virgola
-        $query_corrente .= ")";
+    } catch (\Throwable $th) {
+        echo "PRIMARY KEY PROBLEM <br>" . $th->getMessage();
     }
 
-    return $query_corrente . ", ";
+    return $query_corrente;
 }
 
 
 function foreign_key($input_data, $query_corrente)
 {
-    $groupby_tabella_rif = array();
-    foreach ($input_data['foreign_keys'] as $foreign_key) {
-        $tabella_riferimento = $foreign_key['tabella_riferimento'];
-        if (!isset($groupby_tabella_rif[$tabella_riferimento])) {
-            $groupby_tabella_rif[$tabella_riferimento] = 1;
-        } else {
-            $groupby_tabella_rif[$tabella_riferimento]++;
+
+    try {
+        // prendi gli indici delle chiavi esterne
+
+
+        $json = convertToJSONFormat($input_data); // Converto l'array in formato JSON per facilitare la manipolazione
+        $decodedJson = json_decode($json, true);
+
+        // Esempio di utilizzo
+        foreach ($decodedJson['foreign_keys'] as $tableName => $attributes) {
+
+            $db = connectToDatabaseMYSQL();
+            $sql = "CALL GetPrimaryKey(:tableName)";
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':tableName', $tableName);
+            $stmt->execute();
+            $attributi_ordinati = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt = null;
+
+            $attributes = verificaOrdine($attributi_ordinati, $attributes);
+
+            $query_corrente .= ", FOREIGN KEY (" . implode(", ", array_column($attributes, 'attributo')) . ") REFERENCES $tableName(" . implode(", ", array_column($attributes, 'attributo_riferimento')) . ") ON DELETE CASCADE ";
         }
+
+        // Rimuovi l'ultima virgola
+        // $query_corrente = rtrim($query_corrente, ", ");
+    } catch (\Throwable $th) {
+        echo "FOREIGN KEY PROBLEM <br>" . $th->getMessage();
     }
-
-    foreach ($groupby_tabella_rif as $key => $count_tab_rif) {
-
-        if ($count_tab_rif > 1) {
-            for ($i = 0; $i < $count_tab_rif; $i++) {
-                $attributo[$i] = $input_data['foreign_keys'][$i]['attributo'];
-                $attributo_riferimento[$i] = $input_data['foreign_keys'][$i]['attributo_riferimento'];
-            }
-            $query_corrente .=  "FOREIGN KEY (" . implode(", ", $attributo) . ") REFERENCES $key(" . implode(", ", $attributo_riferimento) . ") ON DELETE CASCADE, ";
-        } else {
-            $attributo = $input_data['foreign_keys'][2]['attributo'];
-            $attributo_riferimento = $input_data['foreign_keys'][2]['attributo_riferimento'];
-            $query_corrente .= "FOREIGN KEY ($attributo) REFERENCES $key($attributo_riferimento) ON DELETE CASCADE, ";
-        }
-    }
-
-    // rimuovi l'ultima virgola di $query_foreign_key
-    $query_corrente = rtrim($query_corrente, ", ");
-
     return $query_corrente;
+}
+
+function convertToJSONFormat($input)
+{
+    $output = array();
+
+    foreach ($input['foreign_keys'] as $key => $value) {
+        $tableName = $value['tabella_riferimento'];
+
+        if (!isset($output['foreign_keys'][$tableName])) {
+            $output['foreign_keys'][$tableName] = array();
+        }
+
+        $output['foreign_keys'][$tableName][] = array(
+            'attributo' => $value['attributo'],
+            'attributo_riferimento' => $value['attributo_riferimento']
+        );
+    }
+
+    return json_encode($output, JSON_PRETTY_PRINT);
+}
+
+function verificaOrdine($attributi_ordinati, $attributes)
+{
+
+    // verifica che l'attributo sia chiave della tabella di riferimento, se non lo è rimuovilo da attributes 
+    foreach ($attributes as $key => $value) {
+        if (!in_array($value['attributo_riferimento'], array_column($attributi_ordinati, 'NOME_ATTRIBUTO'))) {
+            unset($attributes[$key]);
+        }
+    }
+
+
+    // Creare una matrice associativa con il nome dell'attributo come chiave e l'indice come valore
+    $indiceAttributiOrdinati = array();
+    foreach ($attributi_ordinati as $attributo) {
+        $indiceAttributiOrdinati[$attributo['NOME_ATTRIBUTO']] = $attributo['INDICE'];
+    }
+
+    // Ordinare gli attributi locali in base all'indice ottenuto dalla matrice associativa
+    usort($attributes, function ($a, $b) use ($indiceAttributiOrdinati) {
+        $indiceA = isset($indiceAttributiOrdinati[$a['attributo_riferimento']]) ? $indiceAttributiOrdinati[$a['attributo_riferimento']] : PHP_INT_MAX;
+        $indiceB = isset($indiceAttributiOrdinati[$b['attributo_riferimento']]) ? $indiceAttributiOrdinati[$b['attributo_riferimento']] : PHP_INT_MAX;
+        return $indiceA - $indiceB;
+    });
+
+    // controllo l'ordine degli attributi, se manca un elemento della chiave esterna allora lancia un'eccezione
+    for ($i = 0; $i < count($attributes); $i++) {
+        echo  $attributes[$i]['attributo_riferimento'] . " = " . $attributi_ordinati[$i]['NOME_ATTRIBUTO'] . "?<br>";
+        if ($attributes[$i]['attributo_riferimento'] != $attributi_ordinati[$i]['NOME_ATTRIBUTO']) {
+            // echo "<script>console.log(" . json_encode($attributes) . ");</script>";
+            throw new Exception("Non sono presenti tutti gli elementi necessari per fare la chiave esterna.");
+        }
+    }
+
+    // // Aggiungi gli attributi rimossi in precedenza
+    // foreach ($temp as $value => $key) {
+    //     $attributes[] = $key;
+    // }
+
+
+    return $attributes;
 }

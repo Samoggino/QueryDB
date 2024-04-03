@@ -16,10 +16,13 @@ while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
 
 $attributi = array();
 foreach ($tabelle as $tabella) {
-    $query = "SHOW COLUMNS FROM $tabella";
-    $stmt = $db->query($query);
+    $sql = "CALL GetCampiTabella(:tabella)";
+    $stmt = $db->prepare($sql);
+    $stmt->bindParam(':tabella', $tabella);
+    $stmt->execute();
+
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $attributi[$tabella][] = $row['Field'];
+        $attributi[$tabella][] = $row['NOME_COLONNA'];
     }
 }
 
