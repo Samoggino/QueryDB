@@ -16,13 +16,13 @@ while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
 
 $attributi = array();
 foreach ($tabelle as $tabella) {
-    $sql = "CALL GetCampiTabella(:tabella)";
+    $sql = "CALL GetPrimaryKey(:tabella)";
     $stmt = $db->prepare($sql);
     $stmt->bindParam(':tabella', $tabella);
     $stmt->execute();
 
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $attributi[$tabella][] = $row['NOME_COLONNA'];
+        $attributi[$tabella][] = $row['NOME_ATTRIBUTO'];
     }
 }
 
@@ -89,7 +89,7 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
                 var tabellaVincolataSelect = document.getElementById("tabella_vincolata_" + i);
                 <?php
                 $db = connectToDatabaseMYSQL();
-                $query = "SELECT nome_tabella FROM TABELLA_DELLE_TABELLE";
+                $query = "CALL GetTabelleCreate()";
                 $stmt = $db->query($query);
                 while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
                     echo 'var option = document.createElement("option");';

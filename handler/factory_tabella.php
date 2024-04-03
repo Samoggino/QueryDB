@@ -12,7 +12,7 @@ try {
 
     $input_data = array(
         'nome_tabella' => 'PRASSI',
-        'numero_attributi' => 4,
+        'numero_attributi' => 5,
         'attributi' => array(
             array(
                 'nome' => 'matricola',
@@ -29,7 +29,11 @@ try {
             array(
                 'nome' => 'eta_prassi',
                 'tipo' => 'INT'
-            )
+            ),
+            array(
+                'nome' => 'tab1',
+                'tipo' => 'INT'
+            ),
         ),
         'primary_keys' => array(0),
         'foreign_keys' => array(
@@ -47,7 +51,12 @@ try {
                 'attributo' => 'eta_prassi',
                 'tabella_riferimento' => 'tabella_di_esempio',
                 'attributo_riferimento' => 'eta'
-            )
+            ),
+            array(
+                'attributo' => 'tab1',
+                'tabella_riferimento' => 'Tabella1',
+                'attributo_riferimento' => 'id'
+            ),
         )
     );
 

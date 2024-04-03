@@ -1730,15 +1730,12 @@ ORDER BY
 
 END $$ DELIMITER;
 
--- stored procedure 
+-- get tabelle delle tabelle
 DELIMITER $$
-CREATE PROCEDURE IF NOT EXISTS `GetCampiTabella` (IN p_table_name VARCHAR(100)) BEGIN
+CREATE PROCEDURE IF NOT EXISTS `GetTabelleCreate` () BEGIN
 SELECT
-    COLUMN_NAME AS NOME_COLONNA
+    *
 FROM
-    INFORMATION_SCHEMA.COLUMNS
-WHERE
-    TABLE_NAME = p_table_name
-    AND `COLUMN_KEY` = 'PRI';
+    TABELLA_DELLE_TABELLE;
 
-END $$ DELIMITER;
+END $$
