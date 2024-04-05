@@ -79,12 +79,27 @@ function tendinaTest()
 <head>
     <title>Messaggi</title>
     <link rel="icon" href="../images/favicon/favicon.ico" type="image/x-icon">
+    <a href="../pages/professore/professore.php">Pagina del professore</a>
 
     <style>
+        * {
+            font-family: Arial, sans-serif;
+            max-width: 95dvw;
+        }
+
+        body {
+            display: grid;
+            place-items: center;
+            margin-top: 2em;
+        }
+
         table {
-            max-width: 80%;
             border-collapse: collapse;
-            width: 100%;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            margin-left: 1em;
+            margin-right: 1em;
+            max-width: 1000px;
         }
 
         th,
@@ -95,38 +110,81 @@ function tendinaTest()
         }
 
         th {
-            background-color: #f2f2f2;
+            color: black;
+            font-weight: bold;
+            text-align: center;
         }
 
         tr:nth-child(even) {
             background-color: #f2f2f2;
         }
+
+        td:hover {
+            background-color: #ddd;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            max-width: fit-content;
+            margin: 0 auto;
+        }
+
+        form .testo {
+            min-width: 250px;
+            height: 100px;
+            display: grid;
+            place-items: center;
+        }
+
+        form .titolo {
+            font-size: larger;
+            font-weight: bold;
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-top: 30px;
+        }
+
+        div.invia-messaggio {
+            max-width: min-content;
+        }
     </style>
 </head>
 
 <body>
-    <?php if ($_SESSION['ruolo'] == 'STUDENTE') {  ?>
 
-        <h1>Invia un messaggio al prof!</h1>
-        <form id='uploadForm' style="display: flex; flex-direction:column; max-width:fit-content; gap:10px" method='post' action=''> <input for='titolo_messaggio' name='titolo_messaggio' placeholder='Titolo' type='text' required>
-            <input for='testo_messaggio' name='testo_messaggio' placeholder='Testo' type='text' required>
-            <?php
-            tendinaProfessori();
-            tendinaTest()
-            ?>
-            </div>
-        </form>
+
+    <?php if ($_SESSION['ruolo'] == 'STUDENTE') {  ?>
+        <div class="invia-messaggio">
+            <h1>Invia un messaggio al prof!</h1>
+            <form id='uploadForm' method='post' action=''> <input for='titolo_messaggio' name='titolo_messaggio' placeholder='Titolo' type='text' required>
+                <input for='testo_messaggio' name='testo_messaggio' placeholder='Testo' type='text' required>
+                <?php
+                tendinaProfessori();
+                tendinaTest()
+                ?>
+            </form>
+        </div>
     <?php visualizzaMessaggi();
     } elseif ($_SESSION['ruolo'] == 'PROFESSORE') { ?>
 
-        <h1>Invia un messaggio agli studenti!</h1>
+        <div class="invia-messaggio">
+            <h1>Invia un messaggio agli studenti!</h1>
 
-        <form id='uploadForm' style="display: flex; flex-direction:column; max-width:fit-content; gap:10px" method='post' action=''>
-            <input for='titolo_messaggio' name='titolo_messaggio' placeholder='Titolo' type='text' required>
-            <input for='testo_messaggio' name='testo_messaggio' placeholder='Testo' type='text' required>
-            <?php tendinaTest() ?>
-            <input type='submit' value='Invia'>
-        </form>
+            <form id='uploadForm' method='post' action=''>
+                <input for='titolo_messaggio' class="titolo" name='titolo_messaggio' placeholder='Titolo' type='text' required>
+                <input for='testo_messaggio' class="testo" name='testo_messaggio' placeholder='Testo' type='text' required>
+                <?php tendinaTest() ?>
+                <input type='submit' value='Invia'>
+            </form>
+        </div>
     <?php visualizzaMessaggi();
     } ?>
 

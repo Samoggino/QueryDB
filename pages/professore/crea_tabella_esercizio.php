@@ -32,11 +32,10 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
 
 
 <!DOCTYPE html>
-<html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="../../styles/creaTabella.css">
     <title>Inserimento Dati Tabella</title>
 </head>
 
@@ -56,50 +55,65 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
 
 
     <script>
+        // se attributi_container è vuoto non mostrarlo
+        var container = document.getElementById("attributi_container");
+        container.style.display = "none";
+
         document.getElementById("numero_attributi").addEventListener("change", function() {
             var numeroAttributi = parseInt(this.value);
             var container = document.getElementById("attributi_container");
+            container.style.display = "block";
             container.innerHTML = '';
 
             for (var i = 0; i < numeroAttributi; i++) {
                 var div = document.createElement("div");
-                div.innerHTML = '<label for="nome_attributo_' + i + '">Nome Attributo ' + (i + 1) + ':</label>' +
-                    '<input type="text" id="nome_attributo_' + i + '" name="nome_attributo[]" required>' +
-                    '<label for="tipo_attributo_' + i + '">Tipo Attributo ' + (i + 1) + ':</label>' +
-                    '<select id="tipo_attributo_' + i + '" name="tipo_attributo[]" required>' +
-                    '<option value="INT">INT</option>' +
-                    '<option value="VARCHAR">VARCHAR</option>' +
-                    '<option value="DATE">DATE</option>' +
-                    '</select>' +
-                    '<input type="checkbox" id="primary_key_' + i + '" name="primary_key[]" value="' + i + '">' +
-                    '<label for="primary_key_' + i + '">Primary Key</label>' +
-                    '<input type="checkbox" id="foreign_key_' + i + '" name="foreign_key[]" onchange="foreingKeyChecked(' + i + ')" value="' + i + '">' +
-                    '<label for="foreign_key_' + i + '">Foreign Key</label>' +
-                    '<div id="foreign_key_options_' + i + '" style="display: none;">' +
-                    '<label for="tabella_vincolata_' + i + '">Tabella Vincolata:</label>' +
-                    '<select id="tabella_vincolata_' + i + '" name="tabella_vincolata[]" onchange="populateAttributi(' + i + ')">' +
-                    '</select><br><br>' +
-                    '<label for="attributo_vincolato_' + i + '">Attributo Vincolato:</label>' +
-                    '<select id="attributo_vincolato_' + i + '" name="attributo_vincolato[]"></select><br><br>' +
-                    '</div>' +
-                    '<br><br>';
-                container.appendChild(div);
-
-                // Popola le opzioni per la tabella vincolata
-                var tabellaVincolataSelect = document.getElementById("tabella_vincolata_" + i);
-                <?php
-                $db = connectToDatabaseMYSQL();
-                $query = "CALL GetTabelleCreate()";
-                $stmt = $db->query($query);
-                while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
-                    echo 'var option = document.createElement("option");';
-                    echo 'option.value = "' . $row[0] . '";';
-                    echo 'option.textContent = "' . $row[0] . '";';
-                    echo 'tabellaVincolataSelect.appendChild(option);';
-                }
-                ?>
+                creaAttributoContainer(i, container, div);
             }
         });
+
+
+
+        function creaAttributoContainer(i, container, div) {
+
+            div.className = "attributo-container";
+            div.innerHTML = '<label for="nome_attributo_' + i + '">Nome Attributo ' + (i + 1) + ':</label>' +
+                '<input type="text" id="nome_attributo_' + i + '" name="nome_attributo[]" required>' +
+                '<label for="tipo_attributo_' + i + '">Tipo Attributo ' + (i + 1) + ':</label>' +
+                '<select id="tipo_attributo_' + i + '" name="tipo_attributo[]" required>' +
+                '<option value="INT">INT</option>' +
+                '<option value="VARCHAR">VARCHAR</option>' +
+                '<option value="DATE">DATE</option>' +
+                '</select>' +
+                '<div class="checkbox-container">' +
+                '<input type="checkbox" id="primary_key_' + i + '" name="primary_key[]" value="' + i + '">' +
+                '<label for="primary_key_' + i + '">Primary Key</label>' +
+                '<input type="checkbox" id="foreign_key_' + i + '" name="foreign_key[]" onchange="foreingKeyChecked(' + i + ')" value="' + i + '">' +
+                '<label for="foreign_key_' + i + '">Foreign Key</label>' +
+                '</div>' +
+                '<div id="foreign_key_options_' + i + '" style="display: none;">' +
+                '<label for="tabella_vincolata_' + i + '">Tabella Vincolata:</label>' +
+                '<select id="tabella_vincolata_' + i + '" name="tabella_vincolata[]" onchange="populateAttributi(' + i + ')">' +
+                '</select><br><br>' +
+                '<label for="attributo_vincolato_' + i + '">Attributo Vincolato:</label>' +
+                '<select id="attributo_vincolato_' + i + '" name="attributo_vincolato[]"></select><br><br>' +
+                '</div>' +
+                '<br><br>';
+            container.appendChild(div);
+
+            // Popola le opzioni per la tabella vincolata
+            var tabellaVincolataSelect = document.getElementById("tabella_vincolata_" + i);
+            <?php
+            $db = connectToDatabaseMYSQL();
+            $query = "CALL GetTabelleCreate()";
+            $stmt = $db->query($query);
+            while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
+                echo 'var option = document.createElement("option");';
+                echo 'option.value = "' . $row[0] . '";';
+                echo 'option.textContent = "' . $row[0] . '";';
+                echo 'tabellaVincolataSelect.appendChild(option);';
+            }
+            ?>
+        }
 
         // Mostra gli attributi corrispondenti alla tabella selezionata per la foreign key
         function populateAttributi(index) {

@@ -1,0 +1,108 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+h2 {
+    color: #333;
+    display: flex;
+    justify-content: center;
+}
+
+/* Stili per il form */
+form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+input[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+input[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+/* Stili per il container degli attributi */
+#attributi_container {
+    border: 5px solid #ccc;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+/* Stili per le checkbox e i relativi label */
+.checkbox-container {
+    margin-bottom: 10px;
+}
+
+.checkbox-container label {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+/* Stili per il container delle opzioni di chiave esterna */
+.foreign-key-options {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.foreign-key-options label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Stili per il display delle opzioni di chiave esterna */
+.foreign-key-options select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* Stili per nascondere il container delle opzioni di chiave esterna */
+.foreign-key-options.hidden {
+    display: none;
+}
+
+.checkbox-container label {
+    display: inline-block;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.attributo-container {
+    margin-bottom: 20px;
+    /* Aggiunge spazio tra i container degli attributi */
+    border: 1px solid #ccc;
+    /* Aggiunge un bordo intorno al container */
+    padding: 10px;
+    /* Aggiunge spazio interno al container */
+    border-radius: 5px;
+    /* Aggiunge bordi arrotondati al container */
+}
