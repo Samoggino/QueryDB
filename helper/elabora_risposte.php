@@ -16,6 +16,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         try {
             $db = connectToDatabaseMYSQL();
 
+            // TODO: modificare come sono fatte le sottorisposte, 
+            // perchè non avranno più tutti i riferimenti di test, questito e utente, ma semplicemente,
+            // il riferimento alla risposta padre ovvero un ID auto_increment 
+
             // Ciclare attraverso i dati inviati dal form per elaborare le risposte
             foreach ($_POST as $campo => $scelta) {
                 // Verifica se il campo è una risposta a un quesito (i campi iniziano con "quesito")

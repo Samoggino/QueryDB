@@ -450,6 +450,7 @@ CREATE TABLE IF NOT EXISTS
 
 CREATE TABLE IF NOT EXISTS
     RISPOSTA (
+        id_risposta INT AUTO_INCREMENT UNIQUE NOT NULL                  ,
         test_associato VARCHAR(100) NOT NULL                            ,
         numero_quesito INT NOT NULL                                     ,
         email_studente VARCHAR(100) NOT NULL                            ,
@@ -457,6 +458,7 @@ CREATE TABLE IF NOT EXISTS
         tipo_risposta ENUM('APERTA', 'CHIUSA') DEFAULT 'APERTA' NOT NULL,
         esito ENUM('GIUSTA', 'SBAGLIATA') DEFAULT 'SBAGLIATA' NOT NULL  ,
         PRIMARY KEY (
+            id_risposta   ,
             test_associato,
             numero_quesito,
             TIMESTAMP     ,
@@ -689,9 +691,11 @@ END $$ DELIMITER;
 -- crea tabella delle TABELLE create dai PROFESSORI
 CREATE TABLE IF NOT EXISTS
     TABELLA_DELLE_TABELLE (
-        nome_tabella VARCHAR(20) PRIMARY KEY          ,
-        data_creazione DATETIME DEFAULT NOW() NOT NULL,
-        num_righe INT DEFAULT 0 NOT NULL
+        nome_tabella VARCHAR(20) PRIMARY KEY                                            ,
+        data_creazione DATETIME DEFAULT NOW() NOT NULL                                  ,
+        num_righe INT DEFAULT 0 NOT NULL                                                ,
+        creatore VARCHAR(100) NOT NULL                                                  ,
+        FOREIGN KEY (creatore) REFERENCES PROFESSORE (email_professore) ON DELETE CASCADE
     );
 
 -- -- crea tabella degli ATTRIBUTI delle TABELLE create dai PROFESSORI

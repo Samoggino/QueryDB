@@ -160,6 +160,9 @@ function tendinaTest()
 
 <body>
 
+    <!-- TODO: i broadcast non devono avere un destinatario, 
+    perchè è una ridondanza considerando che tutti gli studenti 
+    ricevono quel messaggio, in questo modo risparmio spazio ed è più efficiente  -->
 
     <?php if ($_SESSION['ruolo'] == 'STUDENTE') {  ?>
         <div class="invia-messaggio">
