@@ -66,7 +66,7 @@ foreach ($tests as $key => $test) {
             $stmt->execute();
             $scelta = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
-            echo "<td>" . $scelta['scelta'] . "</td>";
+            echo "<td>" . $scelta['opzione_scelta'] . "</td>";
 
             $sql = "CALL GetOpzioniCorrette(:test_associato, :numero_quesito)";
             $stmt = $db->prepare($sql);
@@ -135,10 +135,10 @@ foreach ($tests as $key => $test) {
 <body>
     <p>
         <?php
-        $sql = "SELECT * FROM RISPOSTA WHERE test_associato = :test_associato AND email_studente = :email_studente;";
+        $sql = "CALL GetAllRisposteDellUtente(:email_studente, :test_associato);";
         $stmt = $db->prepare($sql);
-        $stmt->bindParam(':test_associato', $_GET['test_associato']);
         $stmt->bindParam(':email_studente', $_SESSION['email']);
+        $stmt->bindParam(':test_associato', $_GET['test_associato']);
         $stmt->execute();
         $risposte = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
