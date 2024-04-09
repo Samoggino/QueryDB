@@ -41,7 +41,7 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
 
 <body>
     <h2>Inserimento Dati Tabella</h2>
-    <form id="crea_tabella_form" action="../handler/factory_tabella.php" method="POST">
+    <form id="crea_tabella_form" action="../../handler/factory_tabella.php" method="POST">
         <label for="nome_tabella">Nome Tabella:</label>
         <input type="text" id="nome_tabella" name="nome_tabella" required><br><br>
 

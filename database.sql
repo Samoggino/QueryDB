@@ -625,15 +625,6 @@ CREATE TABLE IF NOT EXISTS
         FOREIGN KEY (tabella_vincolata, attributo_vincolato) REFERENCES TAB_ATT (nome_tabella, nome_attributo) ON DELETE CASCADE
     );
 
-INSERT INTO
-    TABELLA_DELLE_TABELLE (nome_tabella, creatore)
-VALUES
-    ('Tabella1', "professore@unibo.it")          ,
-    ('Tabella2', "professore@unibo.it")          ,
-    ('Tabella3', "professore@unibo.it")          ,
-    ('Tabella4', "professore@unibo.it")          ,
-    ('tabella_di_esempio', "professore@unibo.it");
-
 -- Creazione della tabella Tabella1
 CREATE TABLE IF NOT EXISTS
     Tabella1 (
@@ -682,14 +673,6 @@ CREATE TABLE IF NOT EXISTS
         PRIMARY KEY (nome, cognome)
     );
 
--- CREATE TABLE IF NOT EXISTS
---     PRASSI (
---         matricola INT                                                                                           ,
---         cognome_prassi VARCHAR(100)                                                                             ,
---         nome_prassi VARCHAR(100)                                                                                ,
---         PRIMARY KEY (matricola)                                                                                 ,
---         FOREIGN KEY (cognome_prassi, nome_prassi) REFERENCES tabella_di_esempio (nome, cognome) ON DELETE CASCADE
---     );
 INSERT INTO
     TEST (titolo, email_professore)
 VALUES
@@ -934,7 +917,7 @@ SELECT
 FROM
     RISPOSTA_QUESITO_APERTO as ra
 WHERE
-    id_risposta = (
+    id_risposta IN (
         SELECT
             RISPOSTA.ID
         FROM
@@ -963,7 +946,7 @@ SELECT
 FROM
     RISPOSTA_QUESITO_CHIUSO
 WHERE
-    id_risposta = (
+    id_risposta IN (
         SELECT
             RISPOSTA.ID
         FROM
@@ -1576,15 +1559,14 @@ END $$ DELIMITER;
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS GetPrimaryKey (IN p_table_name VARCHAR(100)) BEGIN
 SELECT
-    COLUMN_NAME  AS NOME_ATTRIBUTO,
-    SEQ_IN_INDEX AS INDICE
+    ID           as INDICE       ,
+    pezzo_chiave as NOME_ATTRIBUTO
 FROM
-    INFORMATION_SCHEMA.STATISTICS
+    CHIAVI
 WHERE
-    TABLE_NAME = p_table_name
-    AND INDEX_NAME = 'PRIMARY'
+    nome_tabella = p_table_name
 ORDER BY
-    SEQ_IN_INDEX;
+    ID ASC;
 
 END $$ DELIMITER;
 
@@ -1634,3 +1616,110 @@ HAVING
     MAX(TIMESTAMP);
 
 END $$ DELIMITER;
+
+-- insert into TAB_ATT
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS InserisciAttributo (
+    IN p_nome_tabella VARCHAR(20)   ,
+    IN p_nome_attributo VARCHAR(100),
+    IN p_tipo_attributo VARCHAR(15)
+) BEGIN
+INSERT INTO
+    TAB_ATT (nome_tabella, nome_attributo, tipo_attributo)
+VALUES
+    (
+        p_nome_tabella  ,
+        p_nome_attributo,
+        p_tipo_attributo
+    );
+
+END $$ DELIMITER;
+
+-- insert into TABELLA_DELLE_TABELLE
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS InserisciTabellaDiEsercizio (
+    IN p_nome_tabella VARCHAR(20),
+    IN p_creatore VARCHAR(100)
+) BEGIN
+INSERT INTO
+    TABELLA_DELLE_TABELLE (nome_tabella, creatore)
+VALUES
+    (p_nome_tabella, p_creatore);
+
+END $$ DELIMITER;
+
+-- insert into CHIAVI_ESTERNE_DELLE_TABELLE
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS InserisciChiaveEsterna (
+    IN p_nome_tabella VARCHAR(20)       ,
+    IN p_nome_attributo VARCHAR(100)    ,
+    IN p_tabella_vincolata VARCHAR(20)  ,
+    IN p_attributo_vincolato VARCHAR(100)
+) BEGIN
+-- Inserisce la chiave esterna nella tabella CHIAVI_ESTERNE_DELLE_TABELLE
+INSERT INTO
+    CHIAVI_ESTERNE_DELLE_TABELLE (
+        nome_tabella      ,
+        nome_attributo    ,
+        tabella_vincolata ,
+        attributo_vincolato
+    )
+VALUES
+    (
+        p_nome_tabella      ,
+        p_nome_attributo    ,
+        p_tabella_vincolata ,
+        p_attributo_vincolato
+    );
+
+END $$ DELIMITER;
+
+-- tabella delle chiavi
+CREATE TABLE IF NOT EXISTS
+    CHIAVI (
+        ID INT AUTO_INCREMENT                                                                                      ,
+        nome_tabella VARCHAR(20) NOT NULL                                                                          ,
+        pezzo_chiave VARCHAR(100) NOT NULL                                                                         ,
+        PRIMARY KEY (ID)                                                                                           ,
+        CONSTRAINT UNIQUE_tab_chiave UNIQUE (nome_tabella, pezzo_chiave)                                           ,
+        FOREIGN KEY (nome_tabella, pezzo_chiave) REFERENCES TAB_ATT (nome_tabella, nome_attributo) ON DELETE CASCADE
+    );
+
+-- aggiungi chiave
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS AggiungiChiavePrimaria (
+    IN p_nome_tabella VARCHAR(20),
+    IN p_pezzo_chiave VARCHAR(100)
+) BEGIN
+INSERT INTO
+    CHIAVI (nome_tabella, pezzo_chiave)
+VALUES
+    (p_nome_tabella, p_pezzo_chiave);
+
+END $$ DELIMITER;
+
+INSERT INTO
+    TABELLA_DELLE_TABELLE (nome_tabella, creatore)
+VALUES
+    ('Tabella1', "professore@unibo.it")          ,
+    ('Tabella2', "professore@unibo.it")          ,
+    ('Tabella3', "professore@unibo.it")          ,
+    ('Tabella4', "professore@unibo.it")          ,
+    ('tabella_di_esempio', "professore@unibo.it");
+
+INSERT INTO
+    `TAB_ATT` (
+        `nome_tabella`  ,
+        `nome_attributo`,
+        `tipo_attributo`
+    )
+VALUES
+    ('tabella_di_esempio', 'nome', 'VARCHAR')   ,
+    ('tabella_di_esempio', 'cognome', 'VARCHAR'),
+    ('tabella_di_esempio', 'eta', 'INT');
+
+INSERT INTO
+    CHIAVI (nome_tabella, pezzo_chiave)
+VALUES
+    ('tabella_di_esempio', 'nome')   ,
+    ('tabella_di_esempio', 'cognome');
