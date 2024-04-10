@@ -4,8 +4,6 @@ require_once '../../helper/connessione_mysql.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// FIXME: non funziona se non si seleziona una chiave esterna
-
 
 // Query per recuperare gli attributi di tutte le tabelle
 $db = connectToDatabaseMYSQL();
