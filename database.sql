@@ -601,10 +601,12 @@ CREATE TABLE IF NOT EXISTS
 -- -- crea tabella degli ATTRIBUTI delle TABELLE create dai PROFESSORI
 CREATE TABLE IF NOT EXISTS
     TAB_ATT (
+        ID INT AUTO_INCREMENT                                                                      ,
         nome_tabella VARCHAR(20) NOT NULL                                                          ,
         nome_attributo VARCHAR(100) NOT NULL                                                       ,
         tipo_attributo VARCHAR(15) NOT NULL                                                        ,
-        PRIMARY KEY (nome_tabella, nome_attributo)                                                 ,
+        PRIMARY KEY (ID)                                                                           ,
+        CONSTRAINT UNIQUE_TAB_ATT UNIQUE (nome_tabella, nome_attributo)                            ,
         FOREIGN KEY (nome_tabella) REFERENCES TABELLA_DELLE_TABELLE (nome_tabella) ON DELETE CASCADE
     );
 
@@ -1723,3 +1725,38 @@ INSERT INTO
 VALUES
     ('tabella_di_esempio', 'nome')   ,
     ('tabella_di_esempio', 'cognome');
+
+-- get attributi tabella
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS GetAttributiTabella (IN p_nome_tabella VARCHAR(20)) BEGIN
+SELECT
+    nome_attributo,
+    IFNULL(
+        (
+            SELECT
+                1
+            FROM
+                CHIAVI
+            WHERE
+                nome_tabella = p_nome_tabella
+                AND pezzo_chiave = nome_attributo
+            LIMIT
+                1
+        ),
+        0
+    ) AS is_key
+FROM
+    TAB_ATT
+WHERE
+    nome_tabella = p_nome_tabella
+ORDER BY
+    TAB_ATT.ID;
+
+END $$ DELIMITER;
+
+INSERT INTO
+    `tabella_di_esempio` (`nome`, `cognome`, `eta`)
+VALUES
+    ('Mario', 'Rossi', 30)   ,
+    ('Luigi', 'Bianchi', 25) ,
+    ('Giovanna', 'Verdi', 40);
