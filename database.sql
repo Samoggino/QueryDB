@@ -33,6 +33,16 @@ CREATE TABLE IF NOT EXISTS
         FOREIGN KEY (email_professore) REFERENCES UTENTE (email) ON DELETE CASCADE
     );
 
+-- crea tabella delle TABELLE create dai PROFESSORI
+CREATE TABLE IF NOT EXISTS
+    TABELLA_DELLE_TABELLE (
+        nome_tabella VARCHAR(20) PRIMARY KEY                                            ,
+        data_creazione DATETIME DEFAULT NOW() NOT NULL                                  ,
+        num_righe INT DEFAULT 0 NOT NULL                                                ,
+        creatore VARCHAR(100) NOT NULL                                                  ,
+        FOREIGN KEY (creatore) REFERENCES PROFESSORE (email_professore) ON DELETE CASCADE
+    );
+
 -- Inserimento dati nella tabella UTENTE
 INSERT INTO
     UTENTE (
@@ -286,31 +296,6 @@ SELECT
 END IF;
 
 END $$ DELIMITER;
-
--- procedura per creare una nuova tabella di esercizio
--- trigger per aggiornare il numero di righe
--- CREATE TRIGGER update_num_righe
--- AFTER
--- INSERT ON esercizio_attributi FOR EACH ROW
--- UPDATE esercizio
--- SET num_righe = num_righe + 1
--- WHERE nome = NEW.esercizio;
--- trigger per aggiungere la data all'aggiunta di una riga nella tabella di esercizio
--- DELIMITER $$
--- CREATE TRIGGER IF NOT EXISTS update_tabella_di_esercizio BEFORE
--- INSERT
---     ON tabella_di_esercizio FOR EACH ROW BEGIN
--- SET
---     NEW.data_creazione = NOW();
--- SET
---     NEW.num_righe = (
---         SELECT
---             COUNT(*)
---         FROM
---             tabella_di_esercizio
---     );
--- END $$ DELIMITER
-;
 
 -- crea tabella dei TEST
 CREATE TABLE IF NOT EXISTS
@@ -587,16 +572,6 @@ VALUES
 COMMIT;
 
 END $$ DELIMITER;
-
--- crea tabella delle TABELLE create dai PROFESSORI
-CREATE TABLE IF NOT EXISTS
-    TABELLA_DELLE_TABELLE (
-        nome_tabella VARCHAR(20) PRIMARY KEY                                            ,
-        data_creazione DATETIME DEFAULT NOW() NOT NULL                                  ,
-        num_righe INT DEFAULT 0 NOT NULL                                                ,
-        creatore VARCHAR(100) NOT NULL                                                  ,
-        FOREIGN KEY (creatore) REFERENCES PROFESSORE (email_professore) ON DELETE CASCADE
-    );
 
 -- -- crea tabella degli ATTRIBUTI delle TABELLE create dai PROFESSORI
 CREATE TABLE IF NOT EXISTS
@@ -1707,7 +1682,8 @@ VALUES
     ('Tabella2', "professore@unibo.it")          ,
     ('Tabella3', "professore@unibo.it")          ,
     ('Tabella4', "professore@unibo.it")          ,
-    ('tabella_di_esempio', "professore@unibo.it");
+    ('tabella_di_esempio', "professore@unibo.it"),
+    ('provolone', "professore@unibo.it");
 
 INSERT INTO
     `TAB_ATT` (
@@ -1718,13 +1694,10 @@ INSERT INTO
 VALUES
     ('tabella_di_esempio', 'nome', 'VARCHAR')   ,
     ('tabella_di_esempio', 'cognome', 'VARCHAR'),
-    ('tabella_di_esempio', 'eta', 'INT');
-
-INSERT INTO
-    CHIAVI (nome_tabella, pezzo_chiave)
-VALUES
-    ('tabella_di_esempio', 'nome')   ,
-    ('tabella_di_esempio', 'cognome');
+    ('tabella_di_esempio', 'eta', 'INT')        ,
+    ('provolone', 'NomeR', 'VARCHAR')           ,
+    ('provolone', 'CognomeR', 'VARCHAR')        ,
+    ('provolone', 'das', 'INT');
 
 -- get attributi tabella
 DELIMITER $$
@@ -1754,9 +1727,92 @@ ORDER BY
 
 END $$ DELIMITER;
 
+-- get chiavi esterne
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS GetChiaviEsterne (IN p_nome_tabella VARCHAR(20)) BEGIN
+SELECT
+    *
+FROM
+    CHIAVI_ESTERNE_DELLE_TABELLE
+WHERE
+    nome_tabella = p_nome_tabella;
+
+END $$ DELIMITER;
+
+CREATE TABLE IF NOT EXISTS
+    provolone (
+        NomeR VARCHAR(100) NOT NULL                                                                 ,
+        CognomeR VARCHAR(100) NOT NULL                                                              ,
+        das INT NOT NULL                                                                            ,
+        PRIMARY KEY (NomeR, CognomeR)                                                               ,
+        FOREIGN KEY (NomeR, CognomeR) REFERENCES tabella_di_esempio (nome, cognome) ON DELETE CASCADE
+    );
+
 INSERT INTO
-    `tabella_di_esempio` (`nome`, `cognome`, `eta`)
+    CHIAVI (nome_tabella, pezzo_chiave)
+VALUES
+    ('tabella_di_esempio', 'nome')   ,
+    ('tabella_di_esempio', 'cognome');
+
+INSERT INTO
+    tabella_di_esempio (nome, cognome, eta)
 VALUES
     ('Mario', 'Rossi', 30)   ,
     ('Luigi', 'Bianchi', 25) ,
     ('Giovanna', 'Verdi', 40);
+
+INSERT INTO
+    provolone (CognomeR, NomeR, das)
+VALUES
+    ('Verdi', 'Giovanna', 5000),
+    ('Bianchi', 'Luigi', 255)  ,
+    ('Rossi', 'Mario', 100);
+
+INSERT INTO
+    CHIAVI (nome_tabella, pezzo_chiave)
+VALUES
+    ('provolone', 'NomeR')   ,
+    ('provolone', 'CognomeR');
+
+INSERT INTO
+    CHIAVI_ESTERNE_DELLE_TABELLE (
+        nome_tabella      ,
+        nome_attributo    ,
+        tabella_vincolata ,
+        attributo_vincolato
+    )
+VALUES
+    (
+        'provolone'         ,
+        'NomeR'             ,
+        'tabella_di_esempio',
+        'nome'
+    ),
+    (
+        'provolone'         ,
+        'CognomeR'          ,
+        'tabella_di_esempio',
+        'cognome'
+    );
+
+-- crea tabella dei quesiti-tabella
+CREATE TABLE IF NOT EXISTS
+    QUESITI_TABELLA (
+        ID INT AUTO_INCREMENT                                                                       ,
+        id_quesito INT NOT NULL                                                                     ,
+        nome_tabella VARCHAR(20) NOT NULL                                                           ,
+        PRIMARY KEY (ID)                                                                            ,
+        FOREIGN KEY (id_quesito) REFERENCES QUESITO (ID) ON DELETE CASCADE                          ,
+        FOREIGN KEY (nome_tabella) REFERENCES TABELLA_DELLE_TABELLE (nome_tabella) ON DELETE CASCADE,
+        CONSTRAINT UNIQUE_quesito_tabella UNIQUE (id_quesito, nome_tabella)
+    );
+
+INSERT INTO
+    QUESITI_TABELLA (id_quesito, nome_tabella)
+VALUES
+    (1, 'tabella_di_esempio'),
+    (2, 'tabella_di_esempio'),
+    (3, 'tabella_di_esempio'),
+    (4, 'tabella_di_esempio'),
+    (5, 'tabella_di_esempio'),
+    (6, 'tabella_di_esempio');

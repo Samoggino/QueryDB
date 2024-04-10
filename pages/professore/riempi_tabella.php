@@ -85,6 +85,75 @@ if (isset($_GET['nome_tabella'])) {
         </table>
         <input type='submit' value='Aggiungi riga'>
 
+
+        <!-- mostra anche le tabelle a cui la tabella in get fa reference se ne ha-->
+        <?php
+        try {
+            $db = connectToDatabaseMYSQL();
+            $stmt = $db->prepare("CALL GetChiaviEsterne(:nome_tabella)");
+            $stmt->bindParam(':nome_tabella', $nome_tabella, PDO::PARAM_STR);
+            $stmt->execute();
+            $tabelle_riferite = $stmt->fetchAll();
+            $stmt->closeCursor();
+        } catch (\Throwable $th) {
+            echo "PROBLEM TABELLE RIFERITE <br>" . $th->getMessage();
+        }
+
+        if ($tabelle_riferite != null) {
+        ?>
+
+            <h2>Vincoli di integrità</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tabella</th>
+                        <th>Attributo in <?php echo $nome_tabella ?></th>
+                        <th>Attributo riferito</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($tabelle_riferite as $tabella) { ?>
+                        <tr>
+                            <td><?php echo $tabella['tabella_vincolata']; ?></td>
+                            <td><?php echo $tabella['nome_attributo']; ?></td>
+                            <td><?php echo $tabella['attributo_vincolato']; ?></td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+
+            <h2>Righe tabella vincolata</h2>
+            <?php
+            try {
+                $db = connectToDatabaseMYSQL();
+                $stmt = $db->prepare("SELECT * FROM " . $tabella['tabella_vincolata']);
+                $stmt->execute();
+                $righe_tabella_vincolata = $stmt->fetchAll();
+                $stmt->closeCursor();
+            } catch (\Throwable $th) {
+                echo "PROBLEM RIGHE TABELLA VINCOLATA <br>" . $th->getMessage();
+            }
+            ?>
+            <table>
+                <thead>
+                    <tr>
+                        <?php foreach ($righe_tabella_vincolata[0] as $key => $value) { ?>
+                            <th><?php echo $key; ?></th>
+                        <?php } ?>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($righe_tabella_vincolata as $riga) { ?>
+                        <tr>
+                            <?php foreach ($riga as $key => $value) { ?>
+                                <td><?php echo $value; ?></td>
+                            <?php } ?>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+
+        <?php } ?>
 </body>
 
 </html>

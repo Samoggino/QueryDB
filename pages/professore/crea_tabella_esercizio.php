@@ -4,14 +4,13 @@ require_once '../../helper/connessione_mysql.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-
 // Query per recuperare gli attributi di tutte le tabelle
 $db = connectToDatabaseMYSQL();
 $query = "SHOW TABLES";
 $stmt = $db->query($query);
-
 $tabelle = array();
 while ($column = $stmt->fetch(PDO::FETCH_NUM)) {
+    // echo "<script>console.log('" . json_encode($column[0]) . "')</script>";
     $tabelle[] = $column[0];
 }
 
@@ -24,6 +23,7 @@ foreach ($tabelle as $tabella) {
 
     while ($column = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $attributi[$tabella][] = $column['NOME_ATTRIBUTO'];
+        echo "<script>console.log('" . json_encode($column) . "')</script>";
     }
 }
 
