@@ -151,7 +151,9 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
 
         $query_corrente = primary_key($query_corrente, $primary_keys, $nome_attributo);
 
-        $query_corrente = foreign_key($foreign_keys, $query_corrente);
+        if (isset($foreign_keys) && count($foreign_keys) > 0) {
+            $query_corrente = foreign_key($foreign_keys, $query_corrente);
+        }
 
         $query_corrente .= ");";
 
@@ -168,6 +170,9 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
         $stmt = $db->prepare($query_corrente);
         $stmt->execute();
         $db = null;
+
+        header("Location: /pages/professore/riempi_tabella.php?nome_tabella=$nome_tabella");
+        exit();
     } catch (\Throwable $th) {
         echo $th->getMessage();
     }
@@ -283,29 +288,31 @@ function foreign_key($foreign_keys_raw, $query_corrente)
     try {
         // prendi gli indici delle chiavi esterne
 
+        echo "<script>console.log(" . json_encode($foreign_keys_raw) . ");</script>";
 
         $json = convertToJSONFormat($foreign_keys_raw); // Converto l'array in formato JSON per facilitare la manipolazione
         $decodedJson = json_decode($json, true);
 
-        echo "<script>console.log(" . json_encode($decodedJson) . ");</script>";
+        // echo "<script>console.log(" . json_encode($decodedJson) . ");</script>";
 
         // Esempio di utilizzo
-        foreach ($decodedJson['foreign_keys'] as $tableName => $attributes) {
+        if ($decodedJson['foreign_keys'] > 0)
+            foreach ($decodedJson['foreign_keys'] as $tableName => $attributes) {
 
-            $db = connectToDatabaseMYSQL();
-            $sql = "CALL GetPrimaryKey(:tableName)";
-            $stmt = $db->prepare($sql);
-            $stmt->bindParam(':tableName', $tableName);
-            $stmt->execute();
-            $attributi_ordinati = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $stmt = null;
+                $db = connectToDatabaseMYSQL();
+                $sql = "CALL GetPrimaryKey(:tableName)";
+                $stmt = $db->prepare($sql);
+                $stmt->bindParam(':tableName', $tableName);
+                $stmt->execute();
+                $attributi_ordinati = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt = null;
 
-            $attributes = verificaOrdine($attributi_ordinati, $attributes);
+                $attributes = verificaOrdine($attributi_ordinati, $attributes);
 
-            $query_corrente .= ", FOREIGN KEY ("
-                . implode(", ", array_column($attributes, 'attributo')) . ") REFERENCES $tableName("
-                . implode(", ", array_column($attributes, 'attributo_riferimento')) . ") ON DELETE CASCADE ";
-        }
+                $query_corrente .= ", FOREIGN KEY ("
+                    . implode(", ", array_column($attributes, 'attributo')) . ") REFERENCES $tableName("
+                    . implode(", ", array_column($attributes, 'attributo_riferimento')) . ") ON DELETE CASCADE ";
+            }
     } catch (\Throwable $th) {
         echo "FOREIGN KEY PROBLEM <br>" . $th->getMessage();
     }

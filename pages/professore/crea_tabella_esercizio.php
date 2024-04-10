@@ -4,14 +4,17 @@ require_once '../../helper/connessione_mysql.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+// FIXME: non funziona se non si seleziona una chiave esterna
+
+
 // Query per recuperare gli attributi di tutte le tabelle
 $db = connectToDatabaseMYSQL();
 $query = "SHOW TABLES";
 $stmt = $db->query($query);
 
 $tabelle = array();
-while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
-    $tabelle[] = $row[0];
+while ($column = $stmt->fetch(PDO::FETCH_NUM)) {
+    $tabelle[] = $column[0];
 }
 
 $attributi = array();
@@ -21,8 +24,8 @@ foreach ($tabelle as $tabella) {
     $stmt->bindParam(':tabella', $tabella);
     $stmt->execute();
 
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $attributi[$tabella][] = $row['NOME_ATTRIBUTO'];
+    while ($column = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $attributi[$tabella][] = $column['NOME_ATTRIBUTO'];
     }
 }
 
@@ -106,10 +109,10 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
             $db = connectToDatabaseMYSQL();
             $query = "CALL GetTabelleCreate()";
             $stmt = $db->query($query);
-            while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
+            while ($column = $stmt->fetch(PDO::FETCH_NUM)) {
                 echo 'var option = document.createElement("option");';
-                echo 'option.value = "' . $row[0] . '";';
-                echo 'option.textContent = "' . $row[0] . '";';
+                echo 'option.value = "' . $column[0] . '";';
+                echo 'option.textContent = "' . $column[0] . '";';
                 echo 'tabellaVincolataSelect.appendChild(option);';
             }
             ?>

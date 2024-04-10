@@ -33,13 +33,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $stmt->bindParam(':numero_quesito', $n_quesito);
                     $stmt->bindParam(':test_associato', $test_associato);
                     $stmt->execute();
-                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $column = $stmt->fetch(PDO::FETCH_ASSOC);
 
                     // stampa numero quesito
                     echo "<script>console.log('Numero quesito '  + $n_quesito)</script>";
 
                     $stmt->closeCursor();
-                    $tipo_quesito = $row['tipo_quesito'];
+                    $tipo_quesito = $column['tipo_quesito'];
 
                     // Inserisci la risposta nel database in base al tipo di quesito
                     if ($tipo_quesito == 'APERTO') {

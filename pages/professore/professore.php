@@ -130,6 +130,28 @@ if (isset($_POST['test_associato'])) {
 
         <h2>Vai a creazione tabella </h2>
         <a href="/pages/professore/crea_tabella_esercizio.php">Crea tabella</a>
+
+        <!-- scegli la tabella in cui inserire nuovi valori -->
+        <h2>Inserisci valori in tabella</h2>
+        <form id="inserisci-valori-form" method="post">
+            <select name="nome_tabella" id="nome_tabella" onchange="this.form.action='/pages/professore/riempi_tabella.php?nome_tabella=' + this.value">
+                <?php
+                $sql = "CALL GetTabelleCreate();";
+                $stmt = $db->prepare($sql);
+                // $stmt->bindParam(':creatore', $_SESSION['email']);
+                try {
+                    $stmt->execute();
+                    $tabelle = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($tabelle as $tabella) {
+                        echo "<option value='" . $tabella['nome_tabella'] . "'>" . $tabella['nome_tabella'] . "</option>";
+                    }
+                } catch (\Throwable $th) {
+                    echo "<script>console.log('Errore: " . $th . "');</script>";
+                }
+                $stmt->closeCursor();
+                ?>
+            </select>
+            <input type="submit" value="Inserisci valori">
     </div>
 </body>
 
