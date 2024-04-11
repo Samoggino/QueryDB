@@ -680,8 +680,21 @@ CREATE PROCEDURE IF NOT EXISTS InserisciRispostaQuesitoChiuso (
     IN p_esito ENUM('GIUSTA', 'SBAGLIATA')
 ) BEGIN DECLARE id_risposta INT;
 
+DECLARE test_closed INT;
+
 START TRANSACTION;
 
+-- Controlla se il test è già concluso
+SELECT
+    COUNT(*) INTO test_closed
+FROM
+    SVOLGIMENTO_TEST
+WHERE
+    titolo_test = p_test_associato
+    AND email_studente = p_email_studente
+    AND stato = 'CONCLUSO';
+
+IF test_closed < 1 THEN
 -- inserisce la risposta nella tabella Risposta
 INSERT INTO
     RISPOSTA (
@@ -710,6 +723,8 @@ INSERT INTO
 VALUES
     (id_risposta, p_opzione_scelta);
 
+END IF;
+
 -- Esegue il commit della transazione
 COMMIT;
 
@@ -724,8 +739,21 @@ CREATE PROCEDURE IF NOT EXISTS InserisciRispostaQuesitoAperto (
     IN p_esito ENUM('GIUSTA', 'SBAGLIATA')
 ) BEGIN DECLARE id_risposta INT;
 
+DECLARE test_closed INT;
+
 START TRANSACTION;
 
+-- Controlla se il test è già concluso
+SELECT
+    COUNT(*) INTO test_closed
+FROM
+    SVOLGIMENTO_TEST
+WHERE
+    titolo_test = p_test_associato
+    AND email_studente = p_email_studente
+    AND stato = 'CONCLUSO';
+
+IF test_closed < 1 THEN
 -- inserisce la risposta nella tabella Risposta
 INSERT INTO
     RISPOSTA (
@@ -753,6 +781,8 @@ INSERT INTO
     RISPOSTA_QUESITO_APERTO (id_risposta, risposta)
 VALUES
     (id_risposta, p_risposta);
+
+END IF;
 
 COMMIT;
 

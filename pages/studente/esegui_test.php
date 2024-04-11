@@ -13,7 +13,7 @@ if (isset($_GET['test_associato'])) {
 
     try {
         $db = connectToDatabaseMYSQL();
-        test_gia_svolto($tests, $db);
+        // test_gia_svolto($tests, $db);
 
         // Prepara la query per selezionare i quesiti associati al test
         $sql = "CALL GetQuesitiTest(:test_associato);";
@@ -68,7 +68,6 @@ function q_chiuso($quesito, $test, $db)
     echo "<div class='chiusi'>";
     echo "<h3>" . $quesito["numero_quesito"] . ". " . $quesito['descrizione'] . "</h3>";
 
-    // Seleziona le opzioni per questo quesito chiuso
     $sql_opzioni = "CALL GetOpzioniQuesitoChiuso(:test_associato, :numero_quesito);";
     $statement_opzioni = $db->prepare($sql_opzioni);
     $statement_opzioni->bindParam(':numero_quesito', $quesito['numero_quesito']);
