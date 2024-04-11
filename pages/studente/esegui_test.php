@@ -13,7 +13,7 @@ if (isset($_GET['test_associato'])) {
 
     try {
         $db = connectToDatabaseMYSQL();
-        // test_gia_svolto($tests, $db);
+        test_gia_svolto($tests, $db);
 
         // Prepara la query per selezionare i quesiti associati al test
         $sql = "CALL GetQuesitiTest(:test_associato);";
@@ -94,16 +94,20 @@ function q_aperto($quesito)
 
 function test_gia_svolto($test, $db)
 {
-    $sql = "SELECT * FROM SVOLGIMENTO_TEST WHERE titolo_test = :test_associato AND email_studente = :email_studente";
-    $stmt = $db->prepare($sql);
-    $stmt->bindParam(':email_studente', $_SESSION['email']);
-    $stmt->bindParam(':test_associato', $test);
+    $db = connectToDatabaseMYSQL();
+    // $sql = "CALL  VerificaTestConcluso (:email_studente, :test_associato, @test_closed);";
+    // Preparazione e esecuzione della stored procedure
+    $stmt = $db->prepare("CALL VerificaTestConcluso(?, ?, @is_closed)");
+    $stmt->bindParam(1, $_SESSION['email'], PDO::PARAM_STR);
+    $stmt->bindParam(2, $test, PDO::PARAM_STR);
     $stmt->execute();
-    $risultato = $stmt->fetch(PDO::FETCH_ASSOC);
-    $stmt->closeCursor();
 
-    // se il test è già stato svolto, reindirizza alla pagina dei risultati
-    if ($risultato['stato'] == 'CONCLUSO') {
+    // Recupero del valore del parametro di output
+    $stmt = $db->query("SELECT @is_closed AS is_closed");
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $is_closed = $result['is_closed'];
+
+    if ($is_closed == 1) {
         header("Location: ../../pages/studente/risultati_test.php?test_associato=" . $test);
         exit();
     }

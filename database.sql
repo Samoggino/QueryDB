@@ -670,6 +670,37 @@ LIMIT
 END $$ DELIMITER;
 
 -- riparti da qui
+-- CREA tabella SVOLGIMENTO TEST
+CREATE TABLE IF NOT EXISTS
+    SVOLGIMENTO_TEST (
+        titolo_test VARCHAR(100) NOT NULL                                                 ,
+        email_studente VARCHAR(100) NOT NULL                                              ,
+        data_inzio TIMESTAMP                                                              ,
+        data_fine TIMESTAMP                                                               ,
+        stato ENUM('APERTO', 'IN_COMPLETAMENTO', 'CONCLUSO') DEFAULT 'APERTO' NOT NULL    ,
+        PRIMARY KEY (titolo_test, email_studente)                                         ,
+        FOREIGN KEY (titolo_test) REFERENCES TEST (titolo) ON DELETE CASCADE              ,
+        FOREIGN KEY (email_studente) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE
+    );
+
+-- crea procedure che verifica se lo studente ha già concluso quel test
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS VerificaTestConcluso (
+    IN p_email_studente VARCHAR(100),
+    IN p_titolo_test VARCHAR(100)   ,
+    OUT is_closed INT
+) BEGIN
+SELECT
+    COUNT(*) INTO is_closed
+FROM
+    SVOLGIMENTO_TEST
+WHERE
+    email_studente = p_email_studente
+    AND titolo_test = p_titolo_test
+    AND stato = 'CONCLUSO';
+
+END $$ DELIMITER;
+
 -- inserisci risposta a quesito chiuso 
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS InserisciRispostaQuesitoChiuso (
@@ -685,14 +716,7 @@ DECLARE test_closed INT;
 START TRANSACTION;
 
 -- Controlla se il test è già concluso
-SELECT
-    COUNT(*) INTO test_closed
-FROM
-    SVOLGIMENTO_TEST
-WHERE
-    titolo_test = p_test_associato
-    AND email_studente = p_email_studente
-    AND stato = 'CONCLUSO';
+CALL VerificaTestConcluso (p_email_studente, p_test_associato, test_closed);
 
 IF test_closed < 1 THEN
 -- inserisce la risposta nella tabella Risposta
@@ -743,15 +767,7 @@ DECLARE test_closed INT;
 
 START TRANSACTION;
 
--- Controlla se il test è già concluso
-SELECT
-    COUNT(*) INTO test_closed
-FROM
-    SVOLGIMENTO_TEST
-WHERE
-    titolo_test = p_test_associato
-    AND email_studente = p_email_studente
-    AND stato = 'CONCLUSO';
+CALL VerificaTestConcluso (p_email_studente, p_test_associato, test_closed);
 
 IF test_closed < 1 THEN
 -- inserisce la risposta nella tabella Risposta
@@ -967,19 +983,6 @@ WHERE
     );
 
 END $$ DELIMITER;
-
--- CREA tabella SVOLGIMENTO TEST
-CREATE TABLE IF NOT EXISTS
-    SVOLGIMENTO_TEST (
-        titolo_test VARCHAR(100) NOT NULL                                                 ,
-        email_studente VARCHAR(100) NOT NULL                                              ,
-        data_inzio TIMESTAMP                                                              ,
-        data_fine TIMESTAMP                                                               ,
-        stato ENUM('APERTO', 'IN_COMPLETAMENTO', 'CONCLUSO') DEFAULT 'APERTO' NOT NULL    ,
-        PRIMARY KEY (titolo_test, email_studente)                                         ,
-        FOREIGN KEY (titolo_test) REFERENCES TEST (titolo) ON DELETE CASCADE              ,
-        FOREIGN KEY (email_studente) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE
-    );
 
 -- CREA PROCEDURA per inserire un nuovo SVOLGIMENTO TEST
 DELIMITER $$
