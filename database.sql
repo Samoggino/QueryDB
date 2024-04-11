@@ -473,38 +473,26 @@ CREATE TABLE IF NOT EXISTS
 -- crea la stored procedure per inserire una nuova opzione per un quesito chiuso
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS InserisciNuovaOpzioneQuesitoChiuso (
-    IN p_id_quesito INT                  ,
     IN p_numero_opzione INT              ,
+    IN p_num_quesito INT                 ,
+    IN p_test_associato VARCHAR(100)     ,
     IN p_testo TEXT                      ,
     IN p_is_corretta ENUM('TRUE', 'FALSE')
-) BEGIN DECLARE EXIT
-HANDLER FOR SQLEXCEPTION BEGIN
-ROLLBACK;
+) BEGIN DECLARE ID_tmp INT;
 
-RESIGNAL;
-
-END;
-
-DECLARE EXIT
-HANDLER FOR SQLWARNING BEGIN
-ROLLBACK;
-
-RESIGNAL;
-
-END;
-
-START TRANSACTION;
+SELECT
+    ID INTO ID_tmp
+FROM
+    `QUESITO`
+WHERE
+    numero_quesito = p_num_quesito
+    AND test_associato = p_test_associato;
 
 -- Inserisce l'opzione nella tabella QUESITO_CHIUSO_OPZIONE
 INSERT INTO
     QUESITO_CHIUSO_OPZIONE (id_quesito, numero_opzione, testo, is_corretta)
 VALUES
-    (
-        p_id_quesito    ,
-        p_numero_opzione,
-        p_testo         ,
-        p_is_corretta
-    );
+    (ID_tmp, p_numero_opzione, p_testo, p_is_corretta);
 
 COMMIT;
 
@@ -525,16 +513,26 @@ WHERE
 -- crea la stored procedure per inserire una nuova soluzione per un quesito aperto
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS InserisciNuovaSoluzioneQuesitoAperto (
-    IN p_id_quesito INT          ,
+    IN p_num_quesito INT            ,
+    IN p_test_associato VARCHAR(100),
     IN p_soluzione_professore TEXT
-) BEGIN
+) BEGIN DECLARE ID_tmp INT;
+
 START TRANSACTION;
+
+SELECT
+    ID INTO ID_tmp
+FROM
+    `QUESITO`
+WHERE
+    numero_quesito = p_num_quesito
+    AND test_associato = p_test_associato;
 
 -- Inserisce la soluzione nella tabella Quesito_aperto
 INSERT INTO
     QUESITO_APERTO_SOLUZIONE (id_quesito, soluzione_professore)
 VALUES
-    (p_id_quesito, p_soluzione_professore);
+    (ID_tmp, p_soluzione_professore);
 
 COMMIT;
 
@@ -1748,6 +1746,32 @@ CREATE TABLE IF NOT EXISTS
         FOREIGN KEY (NomeR, CognomeR) REFERENCES tabella_di_esempio (nome, cognome) ON DELETE CASCADE
     );
 
+DELIMITER $$
+CREATE TRIGGER IF NOT EXISTS after_insert_provolone AFTER
+INSERT
+    ON provolone FOR EACH ROW BEGIN
+    -- Incrementa il numero di righe nella tabella
+UPDATE TABELLA_DELLE_TABELLE
+SET
+    num_righe = num_righe + 1
+WHERE
+    nome_tabella = 'provolone';
+
+END $$ DELIMITER;
+
+DELIMITER $$
+CREATE TRIGGER IF NOT EXISTS after_insert_tabella_di_esempio AFTER
+INSERT
+    ON tabella_di_esempio FOR EACH ROW BEGIN
+    -- Incrementa il numero di righe nella tabella
+UPDATE TABELLA_DELLE_TABELLE
+SET
+    num_righe = num_righe + 1
+WHERE
+    nome_tabella = 'tabella_di_esempio';
+
+END $$ DELIMITER;
+
 INSERT INTO
     CHIAVI (nome_tabella, pezzo_chiave)
 VALUES
@@ -1816,3 +1840,32 @@ VALUES
     (4, 'tabella_di_esempio'),
     (5, 'tabella_di_esempio'),
     (6, 'tabella_di_esempio');
+
+-- get ID quesito
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS GetIDQuesitoTest (
+    IN p_test_associato VARCHAR(100),
+    IN p_numero_quesito INT
+) BEGIN
+SELECT
+    ID
+FROM
+    QUESITO
+WHERE
+    test_associato = p_test_associato
+    AND numero_quesito = p_numero_quesito;
+
+END $$ DELIMITER;
+
+-- inserisci quesito-tabella
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS InserisciQuesitoTabella (
+    IN p_id_quesito INT         ,
+    IN p_nome_tabella VARCHAR(20)
+) BEGIN
+INSERT INTO
+    QUESITI_TABELLA (id_quesito, nome_tabella)
+VALUES
+    (p_id_quesito, p_nome_tabella);
+
+END $$

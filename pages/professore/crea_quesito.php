@@ -15,7 +15,8 @@ try {
     echo "<h1>Titolo test: " . $test_associato . "</h1>";
     echo "<script>console.log('Numero quesito: " . $n_quesito . "');</script>";
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
+        echo "<script>console.log('Ciao');</script>";
+        echo "<script>console.log('VALORI INVIATI: " . json_encode($_POST) . "');</script>";
         $descrizione = $_POST['descrizione'];
         $livello_difficolta = $_POST['difficolta'];
         $tipo_quesito = $_POST['tipo_quesito'];
@@ -29,6 +30,7 @@ try {
             $stmt->bindParam(':livello_difficolta', $livello_difficolta, PDO::PARAM_STR);
             $stmt->bindParam(':tipo_quesito', $tipo_quesito, PDO::PARAM_STR);
             $stmt->execute();
+            $stmt->closeCursor();
         } catch (\Throwable $th) {
             echo  "Errore nel creare il quesito: <br> ";
             echo  "<br> SQL: " . $sql . "<br>" . $th->getMessage();
@@ -45,6 +47,7 @@ try {
                     $stmt->bindParam(':test_associato', $test_associato, PDO::PARAM_STR);
                     $stmt->bindParam(':soluzione', $soluzioni[$i], PDO::PARAM_STR);
                     $stmt->execute();
+                    $stmt->closeCursor();
                 }
             } catch (\Throwable $th) {
                 echo  "Errore nel creare il quesito aperto: <br> ";
@@ -69,9 +72,38 @@ try {
                     $stmt->bindParam(':opzioni_vera', $opzioni_vera[$i], PDO::PARAM_STR);
                     $stmt->execute();
                     $n_opzione++;
+                    $stmt->closeCursor();
                 }
             } catch (\Throwable $th) {
                 echo  "Errore nel creare il quesito chiuso: <br> ";
+                echo  "<br> SQL: " . $sql . "<br>" . $th->getMessage();
+            }
+        }
+
+        $tabelle = $_POST['tabelle'];
+        echo "<script>console.log('Tabelle: " . json_encode($tabelle) . "');</script>";
+        if ($tabelle != null) {
+            try {
+                $sql =  "CALL GetIDQuesitoTest(:test_associato, :numero_quesito);";
+                $stmt = $db->prepare($sql);
+                $stmt->bindParam(':test_associato', $test_associato, PDO::PARAM_STR);
+                $stmt->bindParam(':numero_quesito', $n_quesito, PDO::PARAM_INT);
+                $stmt->execute();
+                $id_quesito = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                echo "<script>console.log('ID QUESITO: " . json_encode($id_quesito[0]['ID']) . "');</script>";
+
+
+                foreach ($tabelle as $tabella) {
+                    $sql = "CALL InserisciQuesitoTabella(:id_quesito, :tabella_riferimento)";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindParam(':id_quesito', $id_quesito[0]['ID'], PDO::PARAM_INT);
+                    $stmt->bindParam(':tabella_riferimento', $tabella, PDO::PARAM_STR);
+                    $stmt->execute();
+                    $stmt->closeCursor();
+                }
+            } catch (\Throwable $th) {
+                echo  "Errore nel creare il riferimento: <br> ";
                 echo  "<br> SQL: " . $sql . "<br>" . $th->getMessage();
             }
         }
@@ -128,9 +160,19 @@ try {
                     </div>
                 </div>
             </div>
-
-
         </div>
+        <!-- seleziona le tabelle di esercizio a cui fare riferimento -->
+        <select id="tabelleRiferimento" name="tabelle[]" multiple>
+            <?php
+            $sql = "CALL GetTabelleCreate()";
+            $stmt = $db->prepare($sql);
+            $stmt->execute();
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($result as $row) {
+                echo "<option value='" . $row['nome_tabella'] . "'>" . $row['nome_tabella'] . "</option>";
+            }
+            ?>
+        </select>
 
         <input type="hidden" for="tipo_quesito" name="tipo_quesito" id="tipo_quesito" value="">
         <button type="submit" value="crea il test">Crea il test</button>
