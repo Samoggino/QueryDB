@@ -648,6 +648,86 @@ CREATE TABLE IF NOT EXISTS
         PRIMARY KEY (nome, cognome)
     );
 
+-- CREA tabella SVOLGIMENTO TEST
+CREATE TABLE IF NOT EXISTS
+    SVOLGIMENTO_TEST (
+        titolo_test VARCHAR(100) NOT NULL                                                 ,
+        email_studente VARCHAR(100) NOT NULL                                              ,
+        data_inzio TIMESTAMP                                                              ,
+        data_fine TIMESTAMP                                                               ,
+        stato ENUM('APERTO', 'IN_COMPLETAMENTO', 'CONCLUSO') DEFAULT 'APERTO' NOT NULL    ,
+        PRIMARY KEY (titolo_test, email_studente)                                         ,
+        FOREIGN KEY (titolo_test) REFERENCES TEST (titolo) ON DELETE CASCADE              ,
+        FOREIGN KEY (email_studente) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE
+    );
+
+-- tabella dei messaggi
+CREATE TABLE IF NOT EXISTS
+    MESSAGGIO (
+        id INT AUTO_INCREMENT                                                 ,
+        titolo VARCHAR(100) NOT NULL                                          ,
+        testo TEXT NOT NULL                                                   ,
+        data_inserimento DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL          ,
+        test_associato VARCHAR(100) NOT NULL                                  ,
+        PRIMARY KEY (id)                                                      ,
+        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE
+    );
+
+-- messaggio che invia uno studente al professore
+CREATE TABLE IF NOT EXISTS
+    MESSAGGIO_PRIVATO (
+        id_messaggio INT NOT NULL                                                           ,
+        mittente VARCHAR(100) NOT NULL                                                      ,
+        destinatario VARCHAR(100) NOT NULL                                                  ,
+        PRIMARY KEY (id_messaggio)                                                          ,
+        FOREIGN KEY (id_messaggio) REFERENCES MESSAGGIO (id) ON DELETE CASCADE              ,
+        FOREIGN KEY (mittente) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE       ,
+        FOREIGN KEY (destinatario) REFERENCES PROFESSORE (email_professore) ON DELETE CASCADE
+    );
+
+-- messaggio che invia un professore a tutti gli studenti
+CREATE TABLE IF NOT EXISTS
+    BROADCAST (
+        id_messaggio INT NOT NULL                                                        ,
+        mittente VARCHAR(100) NOT NULL                                                   ,
+        destinatario VARCHAR(100) NOT NULL                                               ,
+        PRIMARY KEY (id_messaggio, destinatario)                                         ,
+        FOREIGN KEY (id_messaggio) REFERENCES MESSAGGIO (id) ON DELETE CASCADE           ,
+        FOREIGN KEY (mittente) REFERENCES PROFESSORE (email_professore) ON DELETE CASCADE,
+        FOREIGN KEY (destinatario) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE
+    );
+
+CREATE TABLE IF NOT EXISTS
+    CHIAVI (
+        ID INT AUTO_INCREMENT                                                                                      ,
+        nome_tabella VARCHAR(20) NOT NULL                                                                          ,
+        pezzo_chiave VARCHAR(100) NOT NULL                                                                         ,
+        PRIMARY KEY (ID)                                                                                           ,
+        CONSTRAINT UNIQUE_tab_chiave UNIQUE (nome_tabella, pezzo_chiave)                                           ,
+        FOREIGN KEY (nome_tabella, pezzo_chiave) REFERENCES TAB_ATT (nome_tabella, nome_attributo) ON DELETE CASCADE
+    );
+
+CREATE TABLE IF NOT EXISTS
+    provolone (
+        NomeR VARCHAR(100) NOT NULL                                                                 ,
+        CognomeR VARCHAR(100) NOT NULL                                                              ,
+        das INT NOT NULL                                                                            ,
+        PRIMARY KEY (NomeR, CognomeR)                                                               ,
+        FOREIGN KEY (NomeR, CognomeR) REFERENCES tabella_di_esempio (nome, cognome) ON DELETE CASCADE
+    );
+
+-- crea tabella dei quesiti-tabella
+CREATE TABLE IF NOT EXISTS
+    QUESITI_TABELLA (
+        ID INT AUTO_INCREMENT                                                                       ,
+        id_quesito INT NOT NULL                                                                     ,
+        nome_tabella VARCHAR(20) NOT NULL                                                           ,
+        PRIMARY KEY (ID)                                                                            ,
+        FOREIGN KEY (id_quesito) REFERENCES QUESITO (ID) ON DELETE CASCADE                          ,
+        FOREIGN KEY (nome_tabella) REFERENCES TABELLA_DELLE_TABELLE (nome_tabella) ON DELETE CASCADE,
+        CONSTRAINT UNIQUE_quesito_tabella UNIQUE (id_quesito, nome_tabella)
+    );
+
 INSERT INTO
     TEST (titolo, email_professore)
 VALUES
@@ -670,19 +750,6 @@ LIMIT
 END $$ DELIMITER;
 
 -- riparti da qui
--- CREA tabella SVOLGIMENTO TEST
-CREATE TABLE IF NOT EXISTS
-    SVOLGIMENTO_TEST (
-        titolo_test VARCHAR(100) NOT NULL                                                 ,
-        email_studente VARCHAR(100) NOT NULL                                              ,
-        data_inzio TIMESTAMP                                                              ,
-        data_fine TIMESTAMP                                                               ,
-        stato ENUM('APERTO', 'IN_COMPLETAMENTO', 'CONCLUSO') DEFAULT 'APERTO' NOT NULL    ,
-        PRIMARY KEY (titolo_test, email_studente)                                         ,
-        FOREIGN KEY (titolo_test) REFERENCES TEST (titolo) ON DELETE CASCADE              ,
-        FOREIGN KEY (email_studente) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE
-    );
-
 -- crea procedure che verifica se lo studente ha già concluso quel test
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS VerificaTestConcluso (
@@ -1228,42 +1295,6 @@ VALUES
     (1, "2")                ,
     (3, "George Washington");
 
--- tabella dei messaggi
-CREATE TABLE IF NOT EXISTS
-    MESSAGGIO (
-        id INT AUTO_INCREMENT                                                 ,
-        titolo VARCHAR(100) NOT NULL                                          ,
-        testo TEXT NOT NULL                                                   ,
-        data_inserimento DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL          ,
-        test_associato VARCHAR(100) NOT NULL                                  ,
-        PRIMARY KEY (id)                                                      ,
-        FOREIGN KEY (test_associato) REFERENCES TEST (titolo) ON DELETE CASCADE
-    );
-
--- messaggio che invia uno studente al professore
-CREATE TABLE IF NOT EXISTS
-    MESSAGGIO_PRIVATO (
-        id_messaggio INT NOT NULL                                                           ,
-        mittente VARCHAR(100) NOT NULL                                                      ,
-        destinatario VARCHAR(100) NOT NULL                                                  ,
-        PRIMARY KEY (id_messaggio)                                                          ,
-        FOREIGN KEY (id_messaggio) REFERENCES MESSAGGIO (id) ON DELETE CASCADE              ,
-        FOREIGN KEY (mittente) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE       ,
-        FOREIGN KEY (destinatario) REFERENCES PROFESSORE (email_professore) ON DELETE CASCADE
-    );
-
--- messaggio che invia un professore a tutti gli studenti
-CREATE TABLE IF NOT EXISTS
-    BROADCAST (
-        id_messaggio INT NOT NULL                                                        ,
-        mittente VARCHAR(100) NOT NULL                                                   ,
-        destinatario VARCHAR(100) NOT NULL                                               ,
-        PRIMARY KEY (id_messaggio, destinatario)                                         ,
-        FOREIGN KEY (id_messaggio) REFERENCES MESSAGGIO (id) ON DELETE CASCADE           ,
-        FOREIGN KEY (mittente) REFERENCES PROFESSORE (email_professore) ON DELETE CASCADE,
-        FOREIGN KEY (destinatario) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE
-    );
-
 -- studente invia messaggio
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS InviaMessaggioDaStudente (
@@ -1683,16 +1714,6 @@ VALUES
 END $$ DELIMITER;
 
 -- tabella delle chiavi
-CREATE TABLE IF NOT EXISTS
-    CHIAVI (
-        ID INT AUTO_INCREMENT                                                                                      ,
-        nome_tabella VARCHAR(20) NOT NULL                                                                          ,
-        pezzo_chiave VARCHAR(100) NOT NULL                                                                         ,
-        PRIMARY KEY (ID)                                                                                           ,
-        CONSTRAINT UNIQUE_tab_chiave UNIQUE (nome_tabella, pezzo_chiave)                                           ,
-        FOREIGN KEY (nome_tabella, pezzo_chiave) REFERENCES TAB_ATT (nome_tabella, nome_attributo) ON DELETE CASCADE
-    );
-
 -- aggiungi chiave
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS AggiungiChiavePrimaria (
@@ -1748,7 +1769,8 @@ SELECT
                 1
         ),
         0
-    ) AS is_key
+    ) AS is_key  ,
+    tipo_attributo
 FROM
     TAB_ATT
 WHERE
@@ -1769,15 +1791,6 @@ WHERE
     nome_tabella = p_nome_tabella;
 
 END $$ DELIMITER;
-
-CREATE TABLE IF NOT EXISTS
-    provolone (
-        NomeR VARCHAR(100) NOT NULL                                                                 ,
-        CognomeR VARCHAR(100) NOT NULL                                                              ,
-        das INT NOT NULL                                                                            ,
-        PRIMARY KEY (NomeR, CognomeR)                                                               ,
-        FOREIGN KEY (NomeR, CognomeR) REFERENCES tabella_di_esempio (nome, cognome) ON DELETE CASCADE
-    );
 
 DELIMITER $$
 CREATE TRIGGER IF NOT EXISTS after_insert_provolone AFTER
@@ -1852,28 +1865,6 @@ VALUES
         'cognome'
     );
 
--- crea tabella dei quesiti-tabella
-CREATE TABLE IF NOT EXISTS
-    QUESITI_TABELLA (
-        ID INT AUTO_INCREMENT                                                                       ,
-        id_quesito INT NOT NULL                                                                     ,
-        nome_tabella VARCHAR(20) NOT NULL                                                           ,
-        PRIMARY KEY (ID)                                                                            ,
-        FOREIGN KEY (id_quesito) REFERENCES QUESITO (ID) ON DELETE CASCADE                          ,
-        FOREIGN KEY (nome_tabella) REFERENCES TABELLA_DELLE_TABELLE (nome_tabella) ON DELETE CASCADE,
-        CONSTRAINT UNIQUE_quesito_tabella UNIQUE (id_quesito, nome_tabella)
-    );
-
-INSERT INTO
-    QUESITI_TABELLA (id_quesito, nome_tabella)
-VALUES
-    (1, 'tabella_di_esempio'),
-    (2, 'tabella_di_esempio'),
-    (3, 'tabella_di_esempio'),
-    (4, 'tabella_di_esempio'),
-    (5, 'tabella_di_esempio'),
-    (6, 'tabella_di_esempio');
-
 -- get ID quesito
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS GetIDQuesitoTest (
@@ -1901,4 +1892,31 @@ INSERT INTO
 VALUES
     (p_id_quesito, p_nome_tabella);
 
-END $$
+END $$ DELIMITER;
+
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS GetTabelleQuesito (
+    IN p_numero_quesito INT        ,
+    IN p_test_associato VARCHAR(100)
+) BEGIN
+SELECT DISTINCT
+    (nome_tabella) ,
+    id_quesito AS ID
+FROM
+    QUESITO
+    JOIN `QUESITI_TABELLA` ON QUESITO.ID = `QUESITI_TABELLA`.id_quesito
+WHERE
+    QUESITO.test_associato = p_test_associato;
+
+END $$ DELIMITER;
+
+-- INSERT INTO
+--     QUESITI_TABELLA (id_quesito, nome_tabella)
+-- VALUES
+--     (1, 'tabella_di_esempio'),
+--     (1, 'provolone')         ,
+--     (2, 'tabella_di_esempio'),
+--     (3, 'tabella_di_esempio'),
+--     (4, 'tabella_di_esempio'),
+--     (5, 'tabella_di_esempio'),
+--     (6, 'tabella_di_esempio');

@@ -38,6 +38,7 @@ if (isset($_GET['test_associato'])) {
                 build_view_quesito($quesito, $tests, $db);
             }
 
+
             echo "<input type='submit' value='Invia risposte'>";
             echo "</form>";
         }
@@ -124,6 +125,33 @@ function test_gia_svolto($test, $db)
 </head>
 
 <body>
+
+    <?php
+    include '../../helper/print_table.php';
+    // mostra le tabelle a cui fa riferimento questo quesito
+    $test = $_GET['test_associato'];
+
+    $db = connectToDatabaseMYSQL();
+    $sql = "CALL GetTabelleQuesito(:numero_quesito, :test_associato);";
+    $stmt = $db->prepare($sql);
+    $stmt->bindParam(':numero_quesito', $quesito['numero_quesito']);
+    $stmt->bindParam(':test_associato', $test);
+    $stmt->execute();
+    $tabelle = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt->closeCursor();
+
+    foreach ($tabelle as $tabella) {
+        generateTable($tabella['nome_tabella']);
+        echo "<br>";
+    }
+    ?>
+    <h2>Vincoli di integrità</h2>
+    <?php
+    include '../../helper/print_vincoli.php';
+    foreach ($tabelle as $tabella) {
+        stampaVincoli($tabella['nome_tabella']);
+    }
+    ?>
 
 </body>
 

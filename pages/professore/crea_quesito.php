@@ -5,7 +5,7 @@ require_once "../../helper/numero_nuovo_quesito.php";
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-
+// TODO: sposta tutta la parte logica in crea_quesito_fisico.php
 try {
 
     $db = connectToDatabaseMYSQL();
@@ -81,8 +81,10 @@ try {
         }
 
         $tabelle = $_POST['tabelle'];
-        echo "<script>console.log('Tabelle: " . json_encode($tabelle) . "');</script>";
+        // echo "<script>console.log('Tabelle: " . json_encode($tabelle) . "');</script>";
         if ($tabelle != null) {
+            //FIXME: ho rotto qualcosa su questa stored procedure perchè la uso sia qua che in esegui_test.php
+            echo "<script>console.log('Tabelle: " . json_encode($tabelle) . "');</script>";
             try {
                 $sql =  "CALL GetIDQuesitoTest(:test_associato, :numero_quesito);";
                 $stmt = $db->prepare($sql);
@@ -91,15 +93,15 @@ try {
                 $stmt->execute();
                 $id_quesito = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                echo "<script>console.log('ID QUESITO: " . json_encode($id_quesito[0]['ID']) . "');</script>";
+                echo "<script>console.log('ID QUESITO: " . json_encode($id_quesito) . "');</script>";
 
 
                 foreach ($tabelle as $tabella) {
                     $sql = "CALL InserisciQuesitoTabella(:id_quesito, :tabella_riferimento)";
                     $stmt = $db->prepare($sql);
-                    $stmt->bindParam(':id_quesito', $id_quesito[0]['ID'], PDO::PARAM_INT);
+                    $stmt->bindParam(':id_quesito', $id_quesito['ID'], PDO::PARAM_INT);
                     $stmt->bindParam(':tabella_riferimento', $tabella, PDO::PARAM_STR);
-                    $stmt->execute();
+                    // $stmt->execute();
                     $stmt->closeCursor();
                 }
             } catch (\Throwable $th) {
@@ -176,7 +178,7 @@ try {
 
         <input type="hidden" for="tipo_quesito" name="tipo_quesito" id="tipo_quesito" value="">
         <button type="submit" value="crea il test">Crea il test</button>
-    </form>
+
 </body>
 
 <script>

@@ -106,16 +106,16 @@ if (isset($_GET['nome_tabella'])) {
             <table>
                 <thead>
                     <tr>
-                        <th>Tabella</th>
+                        <th>Tabella padre</th>
                         <th>Attributo in <?php echo $nome_tabella ?></th>
-                        <th>Attributo riferito</th>
+                        <th>Reference </th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($tabelle_riferite as $tabella) { ?>
                         <tr>
                             <td><?php echo $tabella['tabella_vincolata']; ?></td>
-                            <td><?php echo $tabella['nome_attributo']; ?></td>
+                            <td><?php echo $tabella['nome_attributo'] . " -> "; ?></td>
                             <td><?php echo $tabella['attributo_vincolato']; ?></td>
                         </tr>
                     <?php } ?>
@@ -124,34 +124,10 @@ if (isset($_GET['nome_tabella'])) {
 
             <h2>Righe tabella vincolata</h2>
             <?php
-            try {
-                $db = connectToDatabaseMYSQL();
-                $stmt = $db->prepare("SELECT * FROM " . $tabella['tabella_vincolata']);
-                $stmt->execute();
-                $righe_tabella_vincolata = $stmt->fetchAll();
-                $stmt->closeCursor();
-            } catch (\Throwable $th) {
-                echo "PROBLEM RIGHE TABELLA VINCOLATA <br>" . $th->getMessage();
-            }
+            include '../../helper/print_table.php';
+            generateTable($tabelle_riferite[0]['tabella_vincolata']);
             ?>
-            <table>
-                <thead>
-                    <tr>
-                        <?php foreach ($righe_tabella_vincolata[0] as $key => $value) { ?>
-                            <th><?php echo $key; ?></th>
-                        <?php } ?>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($righe_tabella_vincolata as $riga) { ?>
-                        <tr>
-                            <?php foreach ($riga as $key => $value) { ?>
-                                <td><?php echo $value; ?></td>
-                            <?php } ?>
-                        </tr>
-                    <?php } ?>
-                </tbody>
-            </table>
+
 
         <?php } ?>
 </body>
