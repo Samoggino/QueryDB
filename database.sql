@@ -600,52 +600,21 @@ CREATE TABLE IF NOT EXISTS
         FOREIGN KEY (tabella_vincolata, attributo_vincolato) REFERENCES TAB_ATT (nome_tabella, nome_attributo) ON DELETE CASCADE
     );
 
--- Creazione della tabella Tabella1
-CREATE TABLE IF NOT EXISTS
-    Tabella1 (
-        id INT AUTO_INCREMENT PRIMARY KEY                        ,
-        nome VARCHAR(50) NOT NULL                                ,
-        descrizione TEXT                                         ,
-        data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
-
--- Creazione della tabella Tabella2
-CREATE TABLE IF NOT EXISTS
-    Tabella2 (
-        id INT AUTO_INCREMENT PRIMARY KEY                        ,
-        titolo VARCHAR(100) NOT NULL                             ,
-        autore VARCHAR(100)                                      ,
-        anno_pubblicazione INT                                   ,
-        data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
-
--- Creazione della tabella Tabella3
-CREATE TABLE IF NOT EXISTS
-    Tabella3 (
-        id INT AUTO_INCREMENT PRIMARY KEY                        ,
-        nome VARCHAR(50) NOT NULL                                ,
-        cognome VARCHAR(50) NOT NULL                             ,
-        email VARCHAR(100) NOT NULL                              ,
-        data_nascita DATE                                        ,
-        data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
-
--- Creazione della tabella Tabella4
-CREATE TABLE IF NOT EXISTS
-    Tabella4 (
-        id INT AUTO_INCREMENT PRIMARY KEY                        ,
-        nome_prodotto VARCHAR(100) NOT NULL                      ,
-        prezzo DECIMAL(10, 2) NOT NULL                           ,
-        descrizione TEXT                                         ,
-        data_creazione DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
-
 CREATE TABLE IF NOT EXISTS
     tabella_di_esempio (
         nome VARCHAR(100) NOT NULL   ,
         cognome VARCHAR(100) NOT NULL,
         eta INT NOT NULL             ,
         PRIMARY KEY (nome, cognome)
+    );
+
+CREATE TABLE IF NOT EXISTS
+    provolone (
+        NomeR VARCHAR(100) NOT NULL                                                                 ,
+        CognomeR VARCHAR(100) NOT NULL                                                              ,
+        numero INT NOT NULL                                                                         ,
+        PRIMARY KEY (NomeR, CognomeR)                                                               ,
+        FOREIGN KEY (NomeR, CognomeR) REFERENCES tabella_di_esempio (nome, cognome) ON DELETE CASCADE
     );
 
 -- CREA tabella SVOLGIMENTO TEST
@@ -705,15 +674,6 @@ CREATE TABLE IF NOT EXISTS
         PRIMARY KEY (ID)                                                                                           ,
         CONSTRAINT UNIQUE_tab_chiave UNIQUE (nome_tabella, pezzo_chiave)                                           ,
         FOREIGN KEY (nome_tabella, pezzo_chiave) REFERENCES TAB_ATT (nome_tabella, nome_attributo) ON DELETE CASCADE
-    );
-
-CREATE TABLE IF NOT EXISTS
-    provolone (
-        NomeR VARCHAR(100) NOT NULL                                                                 ,
-        CognomeR VARCHAR(100) NOT NULL                                                              ,
-        das INT NOT NULL                                                                            ,
-        PRIMARY KEY (NomeR, CognomeR)                                                               ,
-        FOREIGN KEY (NomeR, CognomeR) REFERENCES tabella_di_esempio (nome, cognome) ON DELETE CASCADE
     );
 
 -- crea tabella dei quesiti-tabella
@@ -1198,18 +1158,11 @@ END $$ DELIMITER;
 
 -- Inserimento valori di esempio per la tabella TEST
 INSERT INTO
-    TEST (titolo, dataCreazione, email_professore)
+    TEST (titolo, email_professore)
 VALUES
-    (
-        "Test di Matematica" ,
-        "2024-03-19 12:00:00",
-        "professore@unibo.it"
-    ),
-    (
-        "Test di Storia"     ,
-        "2024-03-18 10:30:00",
-        "professore@unibo.it"
-    );
+    ("Test di Matematica", "professore@unibo.it") ,
+    ("Test di Storia", "professore@unibo.it")     ,
+    ("Test di Informatica", "professore@unibo.it");
 
 -- Inserimento valori di esempio per la tabella QUESITO
 INSERT INTO
@@ -1269,6 +1222,14 @@ VALUES
         "ALTO"                                        ,
         0                                             ,
         "CHIUSO"
+    ),
+    (
+        1                                                                    ,
+        "Test di Informatica"                                                ,
+        "Mostra in quest'ordinde NOME, COGNOME ed ETA del signor Mario Rossi",
+        "BASSO"                                                              ,
+        0                                                                    ,
+        "APERTO"
     );
 
 -- Inserimento valori di esempio per la tabella QUESITO_CHIUSO_OPZIONE
@@ -1289,11 +1250,25 @@ VALUES
     (3, 6, "1945", "FALSE");
 
 -- Inserimento valori di esempio per la tabella QUESITO_APERTO_SOLUZIONE
-INSERT INTO
-    QUESITO_APERTO_SOLUZIONE (id_quesito, soluzione_professore)
-VALUES
-    (1, "2")                ,
-    (3, "George Washington");
+insert into
+    `QUESITO_APERTO_SOLUZIONE` (
+        `id_quesito`         ,
+        `id_soluzione`       ,
+        `soluzione_professore`
+    )
+values
+    (1, 1, '2')                ,
+    (3, 2, 'George Washington'),
+    (
+        7                                                                                 ,
+        3                                                                                 ,
+        'SELECT eta FROM tabella_di_esempio WHERE nome = \'Rossi\' AND cognome = \'Mario\''
+    ),
+    (
+        7                                                                                             ,
+        4                                                                                             ,
+        'SELECT nome,cognome,eta FROM tabella_di_esempio WHERE cognome = \'Neri\' AND nome = \'Mario\''
+    );
 
 -- studente invia messaggio
 DELIMITER $$
@@ -1730,10 +1705,6 @@ END $$ DELIMITER;
 INSERT INTO
     TABELLA_DELLE_TABELLE (nome_tabella, creatore)
 VALUES
-    ('Tabella1', "professore@unibo.it")          ,
-    ('Tabella2', "professore@unibo.it")          ,
-    ('Tabella3', "professore@unibo.it")          ,
-    ('Tabella4', "professore@unibo.it")          ,
     ('tabella_di_esempio', "professore@unibo.it"),
     ('provolone', "professore@unibo.it");
 
@@ -1749,7 +1720,7 @@ VALUES
     ('tabella_di_esempio', 'eta', 'INT')        ,
     ('provolone', 'NomeR', 'VARCHAR')           ,
     ('provolone', 'CognomeR', 'VARCHAR')        ,
-    ('provolone', 'das', 'INT');
+    ('provolone', 'numero', 'INT');
 
 -- get attributi tabella
 DELIMITER $$
@@ -1818,30 +1789,52 @@ WHERE
 
 END $$ DELIMITER;
 
+-- Insert into tabella_di_esempio
+INSERT INTO
+    tabella_di_esempio (nome, cognome, eta)
+VALUES
+    ('Mario', 'Rossi', 30)     ,
+    ('Luigi', 'Verdi', 25)     ,
+    ('Giovanna', 'Bianchi', 35),
+    ('Paola', 'Neri', 40)      ,
+    ('Marco', 'Gialli', 28)    ,
+    ('Alessandra', 'Rosa', 33) ,
+    ('Giacomo', 'Viola', 45)   ,
+    ('Elena', 'Blu', 27)       ,
+    ('Stefano', 'Arancio', 32) ,
+    ('Federica', 'Marrone', 38),
+    ('Roberto', 'Grigio', 29)  ,
+    ('Simona', 'Rosa', 36)     ,
+    ('Andrea', 'Azzurro', 31)  ,
+    ('Laura', 'Celeste', 42)   ,
+    ('Davide', 'Indaco', 34);
+
+-- Insert into provolone
+INSERT INTO
+    provolone (NomeR, CognomeR, numero)
+VALUES
+    ('Mario', 'Rossi', 123)      ,
+    ('Luigi', 'Verdi', 456)      ,
+    ('Giovanna', 'Bianchi', 789) ,
+    ('Paola', 'Neri', 1011)      ,
+    ('Marco', 'Gialli', 1213)    ,
+    ('Alessandra', 'Rosa', 1415) ,
+    ('Giacomo', 'Viola', 1617)   ,
+    ('Elena', 'Blu', 1819)       ,
+    ('Stefano', 'Arancio', 2021) ,
+    ('Federica', 'Marrone', 2223),
+    ('Roberto', 'Grigio', 2425)  ,
+    ('Simona', 'Rosa', 2627)     ,
+    ('Andrea', 'Azzurro', 2829)  ,
+    ('Laura', 'Celeste', 3031)   ,
+    ('Davide', 'Indaco', 3233);
+
 INSERT INTO
     CHIAVI (nome_tabella, pezzo_chiave)
 VALUES
     ('tabella_di_esempio', 'nome')   ,
-    ('tabella_di_esempio', 'cognome');
-
-INSERT INTO
-    tabella_di_esempio (nome, cognome, eta)
-VALUES
-    ('Mario', 'Rossi', 30)   ,
-    ('Luigi', 'Bianchi', 25) ,
-    ('Giovanna', 'Verdi', 40);
-
-INSERT INTO
-    provolone (CognomeR, NomeR, das)
-VALUES
-    ('Verdi', 'Giovanna', 5000),
-    ('Bianchi', 'Luigi', 255)  ,
-    ('Rossi', 'Mario', 100);
-
-INSERT INTO
-    CHIAVI (nome_tabella, pezzo_chiave)
-VALUES
-    ('provolone', 'NomeR')   ,
+    ('tabella_di_esempio', 'cognome'),
+    ('provolone', 'NomeR')           ,
     ('provolone', 'CognomeR');
 
 INSERT INTO
@@ -1915,4 +1908,5 @@ VALUES
     (3, 'tabella_di_esempio'),
     (4, 'tabella_di_esempio'),
     (5, 'tabella_di_esempio'),
-    (6, 'tabella_di_esempio');
+    (6, 'tabella_di_esempio'),
+    (7, 'tabella_di_esempio');

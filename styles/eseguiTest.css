@@ -3,11 +3,17 @@ h1 {
     margin-top: 20px;
 }
 
+body {
+    display: flex;
+    flex-direction: column;
+}
+
 .container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-gap: 20px;
+    display: flex;
+    flex-direction: row;
+    grid-gap: 280px;
     justify-items: center;
+    justify-content: center;
 }
 
 /* Contenitore dei quesiti */

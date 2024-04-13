@@ -36,7 +36,7 @@ function generateTable($tabella)
             background-color: #f2f2f2;
         }
 
-        img {
+        table img {
             max-width: 250px;
             max-height: 250px;
         }

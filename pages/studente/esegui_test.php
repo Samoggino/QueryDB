@@ -126,7 +126,7 @@ function test_gia_svolto($test, $db)
             } else {
             ?>
                 <form method='post' action='../../helper/elabora_risposte.php'>
-                    <input type='hidden' name='test_associato' value='" . $tests . "'>
+                    <input type='hidden' name='test_associato' value='<?php echo $_GET['test_associato'] ?>'>
                     <?php
                     // Mostra i quesiti nel form
                     foreach ($quesiti as $quesito) {
