@@ -10,7 +10,7 @@ function stampaVincoli($nome_tabella)
     $stmt->closeCursor();
 
     foreach ($chiavi_est as $chiave) {
-        echo strtoupper($chiave['nome_tabella']) . "." . $chiave['nome_attributo'] . " -> " .
-            strtoupper($chiave['tabella_vincolata']) . "." . $chiave['attributo_vincolato'] . "<br>";
+        echo strtoupper($chiave['nome_tabella']) . ". <span style='text-decoration:underline'>" . $chiave['nome_attributo'] . "</span> -> " .
+            strtoupper($chiave['tabella_vincolata']) . ". <span style='text-decoration:underline'>" . $chiave['attributo_vincolato'] . "</span><br>";
     }
 }

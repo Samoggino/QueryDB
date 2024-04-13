@@ -1,0 +1,60 @@
+h1 {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 20px;
+    justify-items: center;
+}
+
+/* Contenitore dei quesiti */
+#quesiti {
+    border: 1px solid #ccc;
+    padding: 20px;
+}
+
+/* Contenitore delle tabelle e dei vincoli */
+#tabelle-esterne {
+    border: 1px solid #ccc;
+    padding: 20px;
+}
+
+/* Stile dei quesiti e delle tabelle */
+.chiusi,
+.aperti {
+    margin-bottom: 20px;
+}
+
+/* Stile delle opzioni dei quesiti chiusi */
+input[type='radio'] {
+    margin-right: 10px;
+}
+
+table {
+    min-width: max-content;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th,
+td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+/* Stile dei vincoli */
+#vincoli {
+    margin-bottom: 20px;
+}
+
+#vincoli h2 {
+    margin-top: 0;
+}

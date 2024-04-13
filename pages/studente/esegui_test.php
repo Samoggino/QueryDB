@@ -24,24 +24,6 @@ if (isset($_GET['test_associato'])) {
         $quesiti = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
 
-        echo "<h1>" . strtoupper($tests) . "</h1>";
-
-        // Se non ci sono quesiti per questo test, mostra un messaggio
-        if (count($quesiti) == 0) {
-            echo "<div class='vuoto'><h1>Non ci sono quesiti per questo test</h1></div>";
-        } else {
-            // Mostra i quesiti nel form
-            echo "<form method='post' action='../../helper/elabora_risposte.php'>";
-            echo "<input type='hidden' name='test_associato' value='" . $tests . "'>";
-
-            foreach ($quesiti as $quesito) {
-                build_view_quesito($quesito, $tests, $db);
-            }
-
-
-            echo "<input type='submit' value='Invia risposte'>";
-            echo "</form>";
-        }
 
         // Chiudi la connessione al database
         $db = null;
@@ -78,7 +60,7 @@ function q_chiuso($quesito, $test, $db)
     $statement_opzioni->closeCursor();
 
     foreach ($opzioni as $opzione) {
-        echo "<input type='radio' name='quesito" . $quesito['numero_quesito'] . "' value='" . $opzione['numero_opzione'] . "'>" . $opzione['numero_opzione'] . " " . $opzione['testo'] . "<br>";
+        echo "<input type='radio' name='quesito" . $quesito['numero_quesito'] . "' value='" . $opzione['numero_opzione'] . "'>" . " " . $opzione['testo'] . "<br>";
     }
 
     echo "</div>";
@@ -122,36 +104,81 @@ function test_gia_svolto($test, $db)
 <head>
     <title>Test - <?php echo $_GET['test_associato']; ?></title>
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="../../styles/eseguiTest.css">
+    <link rel="stylesheet" href="../../styles/global.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Acme&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+    </style>
 </head>
 
 <body>
+    <h1>Esegui: <span style="color: red;"><?php echo strtoupper($_GET['test_associato']); ?></span></h1>
 
-    <?php
-    include '../../helper/print_table.php';
-    // mostra le tabelle a cui fa riferimento questo quesito
-    $test = $_GET['test_associato'];
+    <div class="container">
 
-    $db = connectToDatabaseMYSQL();
-    $sql = "CALL GetTabelleQuesito(:numero_quesito, :test_associato);";
-    $stmt = $db->prepare($sql);
-    $stmt->bindParam(':numero_quesito', $quesito['numero_quesito']);
-    $stmt->bindParam(':test_associato', $test);
-    $stmt->execute();
-    $tabelle = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $stmt->closeCursor();
+        <div id="quesiti">
+            <?php
+            $db = connectToDatabaseMYSQL();
 
-    foreach ($tabelle as $tabella) {
-        generateTable($tabella['nome_tabella']);
-        echo "<br>";
-    }
-    ?>
-    <h2>Vincoli di integrità</h2>
-    <?php
-    include '../../helper/print_vincoli.php';
-    foreach ($tabelle as $tabella) {
-        stampaVincoli($tabella['nome_tabella']);
-    }
-    ?>
+            // Se non ci sono quesiti per questo test, mostra un messaggio
+            if (count($quesiti) == 0) {
+                echo "<div class='vuoto'><h1>Non ci sono quesiti per questo test</h1></div>";
+            } else {
+            ?>
+                <form method='post' action='../../helper/elabora_risposte.php'>
+                    <input type='hidden' name='test_associato' value='" . $tests . "'>
+                    <?php
+                    // Mostra i quesiti nel form
+                    foreach ($quesiti as $quesito) {
+                        build_view_quesito($quesito, $tests, $db);
+                    }
+                    ?>
+                    <input type='submit' value='Invia risposte'>
+                </form>
+            <?php
+            }
+            $db = null;
+            ?>
+        </div>
+
+        <?php
+        include '../../helper/print_table.php';
+        // mostra le tabelle a cui fa riferimento questo quesito
+        $test = $_GET['test_associato'];
+
+        $db = connectToDatabaseMYSQL();
+        $sql = "CALL GetTabelleQuesito(:test_associato);";
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':test_associato', $test);
+        $stmt->execute();
+        $tabelle = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        ?>
+
+        <div id="tabelle-esterne">
+
+            <div id="vincoli">
+                <?php
+                include '../../helper/print_vincoli.php';
+                if (count($tabelle) > 0 && $tabelle != null) {
+                ?>
+                    <h2>Vincoli di integrità</h2>
+                <?php }
+                foreach ($tabelle as $tabella) {
+                    stampaVincoli($tabella['nome_tabella']);
+                }
+                ?>
+            </div>
+            <div id="tables">
+                <?php
+                foreach ($tabelle as $tabella) {
+                    generateTable($tabella['nome_tabella']);
+                    echo "<br>";
+                }
+                ?>
+            </div>
+        </div>
+    </div>
 
 </body>
 

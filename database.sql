@@ -1895,28 +1895,24 @@ VALUES
 END $$ DELIMITER;
 
 DELIMITER $$
-CREATE PROCEDURE IF NOT EXISTS GetTabelleQuesito (
-    IN p_numero_quesito INT        ,
-    IN p_test_associato VARCHAR(100)
-) BEGIN
+CREATE PROCEDURE IF NOT EXISTS GetTabelleQuesito (IN p_test_associato VARCHAR(100)) BEGIN
 SELECT DISTINCT
-    (nome_tabella) ,
-    id_quesito AS ID
+    (nome_tabella)
 FROM
-    QUESITO
-    JOIN `QUESITI_TABELLA` ON QUESITO.ID = `QUESITI_TABELLA`.id_quesito
+    QUESITI_TABELLA as QT
+    JOIN QUESITO as Q ON QT.id_quesito = Q.ID
 WHERE
-    QUESITO.test_associato = p_test_associato;
+    Q.test_associato = p_test_associato;
 
 END $$ DELIMITER;
 
--- INSERT INTO
---     QUESITI_TABELLA (id_quesito, nome_tabella)
--- VALUES
---     (1, 'tabella_di_esempio'),
---     (1, 'provolone')         ,
---     (2, 'tabella_di_esempio'),
---     (3, 'tabella_di_esempio'),
---     (4, 'tabella_di_esempio'),
---     (5, 'tabella_di_esempio'),
---     (6, 'tabella_di_esempio');
+INSERT INTO
+    QUESITI_TABELLA (id_quesito, nome_tabella)
+VALUES
+    (1, 'tabella_di_esempio'),
+    (1, 'provolone')         ,
+    (2, 'tabella_di_esempio'),
+    (3, 'tabella_di_esempio'),
+    (4, 'tabella_di_esempio'),
+    (5, 'tabella_di_esempio'),
+    (6, 'tabella_di_esempio');

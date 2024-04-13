@@ -42,7 +42,7 @@ function generateTable($tabella)
         }
     </style>
 
-    <h3><?php echo "Tabella: " . $tabella; ?></h3>
+    <h3><?php echo "Tabella: " . strtoupper($tabella); ?></h3>
     <table>
         <thead>
             <tr>
