@@ -4,6 +4,10 @@ require_once '../../helper/connessione_mysql.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+
+if ($_SESSION['ruolo'] != 'PROFESSORE') {
+    echo "<script>alert('Non hai i permessi per accedere a questa pagina!') window.location.replace('/pages/login.php')</script>";
+}
 if (isset($_POST['test_associato'])) {
     $test_associato = $_POST['test_associato'];
     header("Location: crea_quesito.php?test_associato=" . $test_associato);
@@ -87,15 +91,17 @@ if (isset($_POST['test_associato'])) {
         <h2>Crea un test</h2>
         <form id="uploadForm" method="post" action="crea_test.php" enctype="multipart/form-data">
             <input for="titolo_test_creato" name="titolo_test_creato" placeholder="Titolo" type="text" required>
-            <input type="file" name="file_immagine" accept="image/*"><br>
-            <label for="file_immagine">Seleziona un'immagine:</label><br>
+            <div>
+                <label for="file_immagine" name="file_immagine">Seleziona un'immagine:</label><br>
+                <input type="file" name="file_immagine" accept="image/*"><br>
+            </div>
             <input type="submit" value="Crea">
         </form>
 
         <h2>Aggiungi quesito</h2>
         <h3>Scegli un test</h3>
-        <form id="aggiungi-quesito-form" method="post" action="">
-            <select name="test_associato" for="test_associato">
+        <form id="aggiungi-quesito-form" method="post">
+            <select name=" test_associato" for="test_associato" onchange="updateActionAggiungiQuesito(this)">
                 <?php
                 require_once "./tendina_test.php";
                 tendinaTest();
@@ -134,11 +140,10 @@ if (isset($_POST['test_associato'])) {
         <!-- scegli la tabella in cui inserire nuovi valori -->
         <h2>Inserisci valori in tabella</h2>
         <form id="inserisci-valori-form" method="post">
-            <select name="nome_tabella" id="nome_tabella" onchange="this.form.action='/pages/professore/riempi_tabella.php?nome_tabella=' + this.value">
+            <select name="nome_tabella" id="nome_tabella" onchange="updateActionRiempiTabella(this)">
                 <?php
                 $sql = "CALL GetTabelleCreate();";
                 $stmt = $db->prepare($sql);
-                // $stmt->bindParam(':creatore', $_SESSION['email']);
                 try {
                     $stmt->execute();
                     $tabelle = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -152,6 +157,7 @@ if (isset($_POST['test_associato'])) {
                 ?>
             </select>
             <input type="submit" value="Inserisci valori">
+        </form>
     </div>
 </body>
 
@@ -165,6 +171,28 @@ if (isset($_POST['test_associato'])) {
     window.addEventListener('load', function() {
         document.getElementById('uploadForm').reset();
     });
+
+    // Funzione per aggiornare l'URL dell'azione del form
+    function updateActionRiempiTabella() {
+        var select = document.getElementById("nome_tabella");
+        var selectedValue = select.value;
+        var form = document.getElementById("inserisci-valori-form");
+        form.action = "/pages/professore/riempi_tabella.php?nome_tabella=" + selectedValue;
+    }
+
+    // Chiamata iniziale per generare l'URL quando la pagina viene caricata
+    updateActionRiempiTabella();
+
+    // Funzione per aggiornare l'URL dell'azione del form
+    function updateActionAggiungiQuesito() {
+        var select = document.getElementById("test_associato");
+        var selectedValue = select.value;
+        var form = document.getElementById("aggiungi-quesito-form");
+        form.action = "/pages/professore/crea_quesito.php?test_associato=" + selectedValue;
+    }
+
+    // Chiamata iniziale per generare l'URL quando la pagina viene caricata
+    // updateActionAggiungiQuesito();
 </script>
 
 </html>

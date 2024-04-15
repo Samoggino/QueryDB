@@ -398,7 +398,7 @@ END $$ DELIMITER;
 -- crea tabella dei QUESITI
 CREATE TABLE IF NOT EXISTS
     QUESITO (
-        ID INT AUTO_INCREMENT                                                     ,
+        ID INT AUTO_INCREMENT NOT NULL                                            ,
         numero_quesito INT NOT NULL                                               ,
         test_associato VARCHAR(100) NOT NULL                                      ,
         descrizione TEXT NOT NULL                                                 ,
@@ -413,8 +413,8 @@ CREATE TABLE IF NOT EXISTS
 -- OPZIONE QUESITO CHIUSO
 CREATE TABLE IF NOT EXISTS
     QUESITO_CHIUSO_OPZIONE (
-        numero_opzione INT, -- opzione a, opzione b ... opzione z  
-        id_quesito INT NOT NULL                                          ,
+        id_quesito INT NOT NULL                                            ,
+        numero_opzione INT NOT NULL, -- opzione a, opzione b ... opzione z  
         testo TEXT NOT NULL                                              ,
         is_corretta ENUM('TRUE', 'FALSE') DEFAULT 'FALSE' NOT NULL       ,
         PRIMARY KEY (numero_opzione, id_quesito)                         ,
@@ -424,8 +424,8 @@ CREATE TABLE IF NOT EXISTS
 -- crea tabella quesito aperto
 CREATE TABLE IF NOT EXISTS
     QUESITO_APERTO_SOLUZIONE (
-        id_quesito INT NOT NULL                                                    ,
-        id_soluzione INT AUTO_INCREMENT, -- soluzione 1, soluzione 2 ... soluzione n
+        id_quesito INT NOT NULL                                                             ,
+        id_soluzione INT AUTO_INCREMENT NOT NULL, -- soluzione 1, soluzione 2 ... soluzione n
         soluzione_professore TEXT NOT NULL                               ,
         PRIMARY KEY (id_soluzione, id_quesito)                           ,
         FOREIGN KEY (id_quesito) REFERENCES QUESITO (ID) ON DELETE CASCADE
@@ -658,13 +658,10 @@ CREATE TABLE IF NOT EXISTS
 -- messaggio che invia un professore a tutti gli studenti
 CREATE TABLE IF NOT EXISTS
     BROADCAST (
-        id_messaggio INT NOT NULL                                                        ,
-        mittente VARCHAR(100) NOT NULL                                                   ,
-        destinatario VARCHAR(100) NOT NULL                                               ,
-        PRIMARY KEY (id_messaggio, destinatario)                                         ,
-        FOREIGN KEY (id_messaggio) REFERENCES MESSAGGIO (id) ON DELETE CASCADE           ,
-        FOREIGN KEY (mittente) REFERENCES PROFESSORE (email_professore) ON DELETE CASCADE,
-        FOREIGN KEY (destinatario) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE
+        id_messaggio INT NOT NULL                                            ,
+        mittente VARCHAR(100) NOT NULL                                       ,
+        PRIMARY KEY (id_messaggio)                                           ,
+        FOREIGN KEY (id_messaggio) REFERENCES MESSAGGIO (id) ON DELETE CASCADE
     );
 
 -- crea tabella dei quesiti-tabella
@@ -1312,20 +1309,29 @@ CREATE PROCEDURE InviaMessaggioDaDocente (
     IN p_test_associato VARCHAR(100)
 ) BEGIN DECLARE last_id INT;
 
--- Inserisce il messaggio nella tabella MESSAGGIO
+-- Dichiarazione del gestore degli errori
+DECLARE CONTINUE
+HANDLER FOR SQLEXCEPTION BEGIN
+ROLLBACK;
+
+END;
+
+START TRANSACTION;
+
 INSERT INTO
     MESSAGGIO (titolo, testo, test_associato)
 VALUES
     (p_titolo, p_testo, p_test_associato);
 
-INSERT INTO
-    BROADCAST (id_messaggio, mittente, destinatario)
 SELECT
-    LAST_INSERT_ID() AS id_messaggio,
-    p_mittente                      ,
-    email_studente
-FROM
-    STUDENTE;
+    LAST_INSERT_ID() INTO last_id;
+
+INSERT INTO
+    BROADCAST (id_messaggio, mittente)
+VALUES
+    (last_id, p_mittente);
+
+COMMIT;
 
 END $$ DELIMITER;
 
@@ -1340,11 +1346,8 @@ SELECT
     m.test_associato  ,
     b.mittente
 FROM
-    MESSAGGIO as m,
-    BROADCAST as b
-WHERE
-    m.id = b.id_messaggio
-    AND b.destinatario = p_email_studente;
+    MESSAGGIO as m
+    JOIN BROADCAST as b on b.id_messaggio = m.id;
 
 END $$ DELIMITER;
 
@@ -1433,13 +1436,9 @@ VALUES
     );
 
 INSERT INTO
-    BROADCAST (id_messaggio, mittente, destinatario)
+    BROADCAST (id_messaggio, mittente)
 VALUES
-    (
-        LAST_INSERT_ID()     ,
-        'professore@unibo.it',
-        'studente@unibo.it'
-    );
+    (LAST_INSERT_ID(), 'professore@unibo.it');
 
 INSERT INTO
     MESSAGGIO (titolo, testo, test_associato)
@@ -1451,13 +1450,9 @@ VALUES
     );
 
 INSERT INTO
-    BROADCAST (id_messaggio, mittente, destinatario)
+    BROADCAST (id_messaggio, mittente)
 VALUES
-    (
-        LAST_INSERT_ID()     ,
-        'professore@unibo.it',
-        'studente@unibo.it'
-    );
+    (LAST_INSERT_ID(), 'professore@unibo.it');
 
 -- classifica test conclusi dagli studenti
 CREATE VIEW

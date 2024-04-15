@@ -4,6 +4,9 @@ require_once '../../helper/connessione_mysql.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+if ($_SESSION['ruolo'] != 'PROFESSORE') {
+    echo "<script>alert('Non hai i permessi per accedere a questa pagina!') window.location.replace('/pages/login.php')</script>";
+}
 // Query per recuperare gli attributi di tutte le tabelle
 $db = connectToDatabaseMYSQL();
 $query = "SHOW TABLES";

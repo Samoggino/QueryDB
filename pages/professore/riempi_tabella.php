@@ -4,9 +4,10 @@ require_once '../../helper/connessione_mysql.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// prende in GET il nome della tabella e la stampa permettendo l'inserimento dei dati
 
-// $nome_tabella = $_GET['nome_tabella'];
+if ($_SESSION['ruolo'] != 'PROFESSORE') {
+    echo "<script>alert('Non hai i permessi per accedere a questa pagina!') window.location.replace('/pages/login.php')</script>";
+}
 
 if (isset($_GET['nome_tabella'])) {
     $nome_tabella = $_GET['nome_tabella'];
@@ -56,7 +57,6 @@ if (isset($_GET['nome_tabella'])) {
         require_once '../../helper/print_table.php';
         generateTable($nome_tabella);
         ?>
-
         <tbody>
             <tr>
                 <?php foreach ($attributi as $attributo) { ?>

@@ -6,6 +6,9 @@ error_reporting(E_ALL);
 // Verifica se il modulo è stato inviato
 
 
+if ($_SESSION['ruolo'] != 'PROFESSORE') {
+    echo "<script>alert('Non hai i permessi per accedere a questa pagina!') window.location.replace('/pages/login.php')</script>";
+}
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $db = connectToDatabaseMYSQL();

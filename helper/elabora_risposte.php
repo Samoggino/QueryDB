@@ -16,10 +16,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         try {
             $db = connectToDatabaseMYSQL();
 
-            // TODO: modificare come sono fatte le sottorisposte, 
-            // perchè non avranno più tutti i riferimenti di test, questito e utente, ma semplicemente,
-            // il riferimento alla risposta padre ovvero un ID auto_increment 
-
             // Ciclare attraverso i dati inviati dal form per elaborare le risposte
             foreach ($_POST as $campo => $scelta) {
                 // Verifica se il campo è una risposta a un quesito (i campi iniziano con "quesito")
@@ -35,18 +31,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $stmt->execute();
                     $column = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                    // stampa numero quesito
-                    // echo "<script>console.log('Numero quesito '  + $n_quesito)</script>";
-
                     $stmt->closeCursor();
                     $tipo_quesito = $column['tipo_quesito'];
 
                     // Inserisci la risposta nel database in base al tipo di quesito
                     if ($tipo_quesito == 'APERTO') {
                         try {
-                            // TODO: dovrebbe essere tutto a posto per la risposta aperta, però controlla bene le virgolette
-                            // perchè nelle query dello studente possono esserci apici e virgolette, e questo potrebbe
-                            // rompere tutto nel parsing della query
 
                             $sql = "CALL GetSoluzioneQuesitoAperto(:test_associato, :numero_quesito);";
                             $stmt = $db->prepare($sql);
@@ -58,8 +48,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             $esito_aperta = "SBAGLIATA";
 
-                            foreach ($soluzioni as $soluzione) {
+                            $scelta = str_replace('"', "'", $scelta);
+                            echo '<script>console.log("Risposta: ' . $scelta . '")</script>';
 
+                            foreach ($soluzioni as $soluzione) {
                                 $stmt = $db->prepare($soluzione['soluzione_professore']);
                                 $stmt->execute();
                                 $sol = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -67,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 $stmt = $db->prepare($scelta);
                                 $stmt->execute();
-                                $sce = $stmt->fetch(PDO::FETCH_ASSOC);
+                                $sce = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 $stmt->closeCursor();
 
                                 if ($sol == $sce) {
@@ -91,7 +83,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             $statement_aperto->bindParam(':email_studente', $email_studente); // Assumi che l'email dello studente sia già disponibile nella sessione
                             $statement_aperto->bindParam(':risposta', $scelta);
                             $statement_aperto->bindParam(':esito', $esito_aperta);
-                            $statement_aperto->execute();
+                            // $statement_aperto->execute();
                         } catch (\Throwable $th) {
                             echo "Errore nella risposta aperta <br>"  . $th->getMessage();
                         }

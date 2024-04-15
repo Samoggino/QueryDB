@@ -5,7 +5,10 @@ require_once "../../helper/numero_nuovo_quesito.php";
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// TODO: sposta tutta la parte logica in crea_quesito_fisico.php
+
+if ($_SESSION['ruolo'] != 'PROFESSORE') {
+    echo "<script>alert('Non hai i permessi per accedere a questa pagina!') window.location.replace('/pages/login.php')</script>";
+}
 try {
 
     $db = connectToDatabaseMYSQL();
@@ -37,10 +40,10 @@ try {
         }
 
         if ($tipo_quesito == "APERTO") {
-
             try {
                 $soluzioni = $_POST['soluzione'];
                 for ($i = 0; $i < count($soluzioni); $i++) {
+                    $soluzioni[$i] = str_replace('"', "'", $soluzioni[$i]);
                     $sql = "CALL InserisciNuovaSoluzioneQuesitoAperto(:numero_quesito, :test_associato, :soluzione)";
                     $stmt = $db->prepare($sql);
                     $stmt->bindParam(':numero_quesito', $n_quesito, PDO::PARAM_INT);
@@ -80,9 +83,9 @@ try {
             }
         }
 
-        $tabelle = $_POST['tabelle'];
-        // echo "<script>console.log('Tabelle: " . json_encode($tabelle) . "');</script>";
-        if ($tabelle != null) {
+
+        if (isset($_POST['tabelle'])) {
+            $tabelle = $_POST['tabelle'];
             //FIXME: ho rotto qualcosa su questa stored procedure perchè la uso sia qua che in esegui_test.php
             echo "<script>console.log('Tabelle: " . json_encode($tabelle) . "');</script>";
             try {

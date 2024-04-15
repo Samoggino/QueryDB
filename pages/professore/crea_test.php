@@ -5,6 +5,9 @@ error_reporting(E_ALL);
 require "../../helper/connessione_mysql.php";
 
 
+if ($_SESSION['ruolo'] != 'PROFESSORE') {
+    echo "<script>alert('Non hai i permessi per accedere a questa pagina!') window.location.replace('/pages/login.php')</script>";
+}
 
 try {
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
