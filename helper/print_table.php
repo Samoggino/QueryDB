@@ -47,18 +47,23 @@ function generateTable($tabella)
         <thead>
             <tr>
                 <?php foreach ($attributi as $attributo) { ?>
-                    <th><?php echo $attributo['nome_attributo'] . ": "  . $attributo['tipo_attributo']; ?></th>
+                    <th style="color:<?php if ($attributo['is_key'] == "TRUE") {
+                                            echo "red";
+                                        } else {
+                                            echo "black";
+                                        }; ?>">
+                        <?php echo $attributo['nome_attributo']; ?>
+                    </th>
                 <?php } ?>
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($valori_tabella_fisica as $riga) { ?>
+            <?php foreach ($valori_tabella_fisica as $valore) { ?>
                 <tr>
-                    <?php foreach ($riga as $key => $value) { ?>
-                        <td><?php echo $value; ?></td>
+                    <?php foreach ($attributi as $attributo) { ?>
+                        <td><?php echo $valore[$attributo['nome_attributo']]; ?></td>
                     <?php } ?>
                 </tr>
             <?php } ?>
         </tbody>
-    </table>
-<?php } ?>
+    <?php } ?>

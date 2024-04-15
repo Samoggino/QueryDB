@@ -144,23 +144,6 @@ function verificaOrdine($attributi_ordinati, $attributes)
     return $attributes;
 }
 
-function inserisciPrimaryKey($nome_tabella, $primary_keys, $nome_attributo)
-{
-    try {
-        $db = connectToDatabaseMYSQL();
-        foreach ($primary_keys as $key) {
-            $sql = "CALL AggiungiChiavePrimaria(:nome_tabella, :nome_attributo);";
-            $stmt = $db->prepare($sql);
-            $stmt->bindParam(':nome_tabella', $nome_tabella);
-            $stmt->bindParam(':nome_attributo', $nome_attributo[$key]);
-            $stmt->execute();
-            $stmt->closeCursor();
-        }
-        $db = null;
-    } catch (\Throwable $th) {
-        echo "PRIMARY KEY INSERT PROBLEM <br>" . $th->getMessage();
-    }
-}
 
 function inserisciTriggerNumeroRighe($query_corrente, $nome_tabella)
 {

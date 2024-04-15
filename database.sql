@@ -578,6 +578,7 @@ CREATE TABLE IF NOT EXISTS
         nome_tabella VARCHAR(20) NOT NULL                                                          ,
         nome_attributo VARCHAR(100) NOT NULL                                                       ,
         tipo_attributo VARCHAR(15) NOT NULL                                                        ,
+        key_part ENUM('TRUE', 'FALSE') DEFAULT 'FALSE' NOT NULL                                    ,
         PRIMARY KEY (ID)                                                                           ,
         CONSTRAINT UNIQUE_TAB_ATT UNIQUE (nome_tabella, nome_attributo)                            ,
         FOREIGN KEY (nome_tabella) REFERENCES TABELLA_DELLE_TABELLE (nome_tabella) ON DELETE CASCADE
@@ -664,16 +665,6 @@ CREATE TABLE IF NOT EXISTS
         FOREIGN KEY (id_messaggio) REFERENCES MESSAGGIO (id) ON DELETE CASCADE           ,
         FOREIGN KEY (mittente) REFERENCES PROFESSORE (email_professore) ON DELETE CASCADE,
         FOREIGN KEY (destinatario) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE
-    );
-
-CREATE TABLE IF NOT EXISTS
-    CHIAVI (
-        ID INT AUTO_INCREMENT                                                                                      ,
-        nome_tabella VARCHAR(20) NOT NULL                                                                          ,
-        pezzo_chiave VARCHAR(100) NOT NULL                                                                         ,
-        PRIMARY KEY (ID)                                                                                           ,
-        CONSTRAINT UNIQUE_tab_chiave UNIQUE (nome_tabella, pezzo_chiave)                                           ,
-        FOREIGN KEY (nome_tabella, pezzo_chiave) REFERENCES TAB_ATT (nome_tabella, nome_attributo) ON DELETE CASCADE
     );
 
 -- crea tabella dei quesiti-tabella
@@ -1573,12 +1564,13 @@ END $$ DELIMITER;
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS GetPrimaryKey (IN p_table_name VARCHAR(100)) BEGIN
 SELECT
-    ID           as INDICE       ,
-    pezzo_chiave as NOME_ATTRIBUTO
+    ID             AS INDICE       ,
+    nome_attributo AS NOME_ATTRIBUTO
 FROM
-    CHIAVI
+    TAB_ATT AS TA
 WHERE
-    nome_tabella = p_table_name
+    TA.nome_tabella = p_table_name
+    AND TA.key_part = "TRUE"
 ORDER BY
     ID ASC;
 
@@ -1688,17 +1680,18 @@ VALUES
 
 END $$ DELIMITER;
 
--- tabella delle chiavi
 -- aggiungi chiave
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS AggiungiChiavePrimaria (
     IN p_nome_tabella VARCHAR(20),
     IN p_pezzo_chiave VARCHAR(100)
 ) BEGIN
-INSERT INTO
-    CHIAVI (nome_tabella, pezzo_chiave)
-VALUES
-    (p_nome_tabella, p_pezzo_chiave);
+UPDATE TAB_ATT
+SET
+    key_part = "TRUE"
+WHERE
+    nome_tabella = p_nome_tabella
+    AND nome_attributo = p_pezzo_chiave;
 
 END $$ DELIMITER;
 
@@ -1712,35 +1705,28 @@ INSERT INTO
     `TAB_ATT` (
         `nome_tabella`  ,
         `nome_attributo`,
-        `tipo_attributo`
+        `tipo_attributo`,
+        `key_part`
     )
 VALUES
-    ('tabella_di_esempio', 'nome', 'VARCHAR')   ,
-    ('tabella_di_esempio', 'cognome', 'VARCHAR'),
-    ('tabella_di_esempio', 'eta', 'INT')        ,
-    ('provolone', 'NomeR', 'VARCHAR')           ,
-    ('provolone', 'CognomeR', 'VARCHAR')        ,
-    ('provolone', 'numero', 'INT');
+    ('tabella_di_esempio', 'nome', 'VARCHAR', "TRUE"),
+    (
+        'tabella_di_esempio',
+        'cognome'           ,
+        'VARCHAR'           ,
+        "TRUE"
+    )                                            ,
+    ('tabella_di_esempio', 'eta', 'INT', "FALSE"),
+    ('provolone', 'NomeR', 'VARCHAR', "TRUE")    ,
+    ('provolone', 'CognomeR', 'VARCHAR', "TRUE") ,
+    ('provolone', 'numero', 'INT', "FALSE");
 
 -- get attributi tabella
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS GetAttributiTabella (IN p_nome_tabella VARCHAR(20)) BEGIN
 SELECT
-    nome_attributo,
-    IFNULL(
-        (
-            SELECT
-                1
-            FROM
-                CHIAVI
-            WHERE
-                nome_tabella = p_nome_tabella
-                AND pezzo_chiave = nome_attributo
-            LIMIT
-                1
-        ),
-        0
-    ) AS is_key  ,
+    nome_attributo            ,
+    TAB_ATT.key_part AS is_key,
     tipo_attributo
 FROM
     TAB_ATT
@@ -1828,14 +1814,6 @@ VALUES
     ('Andrea', 'Azzurro', 2829)  ,
     ('Laura', 'Celeste', 3031)   ,
     ('Davide', 'Indaco', 3233);
-
-INSERT INTO
-    CHIAVI (nome_tabella, pezzo_chiave)
-VALUES
-    ('tabella_di_esempio', 'nome')   ,
-    ('tabella_di_esempio', 'cognome'),
-    ('provolone', 'NomeR')           ,
-    ('provolone', 'CognomeR');
 
 INSERT INTO
     CHIAVI_ESTERNE_DELLE_TABELLE (

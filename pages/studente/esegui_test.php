@@ -173,6 +173,7 @@ function test_gia_svolto($test, $db)
                 <?php
                 foreach ($tabelle as $tabella) {
                     generateTable($tabella['nome_tabella']);
+                    echo "</table>";
                     echo "<br>";
                 }
                 ?>

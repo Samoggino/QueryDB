@@ -9,7 +9,21 @@ function crea_tabella_fisica($numero_attributi, $nome_attributo, $tipo_attributo
     inserisciInAttributi($numero_attributi, $nome_attributo, $tipo_attributo, $nome_tabella);
     inserisciForeignKey($nome_tabella, $foreign_keys);
     inserisciPrimaryKey($nome_tabella, $primary_keys, $nome_attributo);
+}
 
+function inserisciInTabellaDelleTabelle($nome_tabella)
+{
+    try {
+        $db = connectToDatabaseMYSQL();
+        $stmt = $db->prepare("CALL InserisciTabellaDiEsercizio(:nome_tabella, :creatore)");
+        $stmt->bindParam(':nome_tabella', $nome_tabella);
+        $stmt->bindParam(':creatore', $_SESSION['email']);
+        $stmt->execute();
+        $stmt->closeCursor();
+        $db = null;
+    } catch (\Throwable $th) {
+        echo "TABLE^2 PROBLEM <br>" . $th->getMessage();
+    }
 }
 function inserisciInAttributi($numero_attributi, $nome_attributo, $tipo_attributo, $nome_tabella)
 {
@@ -26,22 +40,6 @@ function inserisciInAttributi($numero_attributi, $nome_attributo, $tipo_attribut
         $db = null;
     } catch (\Throwable $th) {
         echo "TAB_ATT PROBLEM <br>" . $th->getMessage();
-    }
-}
-
-
-function inserisciInTabellaDelleTabelle($nome_tabella)
-{
-    try {
-        $db = connectToDatabaseMYSQL();
-        $stmt = $db->prepare("CALL InserisciTabellaDiEsercizio(:nome_tabella, :creatore)");
-        $stmt->bindParam(':nome_tabella', $nome_tabella);
-        $stmt->bindParam(':creatore', $_SESSION['email']);
-        $stmt->execute();
-        $stmt->closeCursor();
-        $db = null;
-    } catch (\Throwable $th) {
-        echo "TABLE^2 PROBLEM <br>" . $th->getMessage();
     }
 }
 
@@ -63,5 +61,20 @@ function inserisciForeignKey($nome_tabella, $foreign_keys)
         echo "FOREIGN INSERT PROBLEM <br>" . $th->getMessage();
     }
 }
-
-
+function inserisciPrimaryKey($nome_tabella, $primary_keys, $nome_attributo)
+{
+    try {
+        $db = connectToDatabaseMYSQL();
+        foreach ($primary_keys as $key) {
+            $sql = "CALL AggiungiChiavePrimaria(:nome_tabella, :nome_attributo);";
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':nome_tabella', $nome_tabella);
+            $stmt->bindParam(':nome_attributo', $nome_attributo[$key]);
+            $stmt->execute();
+            $stmt->closeCursor();
+        }
+        $db = null;
+    } catch (\Throwable $th) {
+        echo "PRIMARY KEY INSERT PROBLEM <br>" . $th->getMessage();
+    }
+}

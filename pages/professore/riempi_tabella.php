@@ -51,37 +51,19 @@ if (isset($_GET['nome_tabella'])) {
 
     <h1>Inserisci i valori all'interno della tabella</h1>
     <form id="insert_values" method='post' action='/pages/professore/riempi_tabella_handler.php?nome_tabella=<?php echo $nome_tabella; ?>'>
-        <table>
-            <thead>
-                <tr>
-                    <?php foreach ($attributi as $attributo) { ?>
-                        <th style="color:<?php if ($attributo['is_key'] == 1) {
-                                                echo "red";
-                                            } else {
-                                                echo "black";
-                                            }; ?>">
-                            <?php echo $attributo['nome_attributo']; ?>
-                        </th>
-                    <?php } ?>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($valori as $valore) { ?>
-                    <tr>
-                        <?php foreach ($attributi as $attributo) { ?>
-                            <td><?php echo $valore[$attributo['nome_attributo']]; ?></td>
-                        <?php } ?>
-                    </tr>
-                <?php } ?>
-            </tbody>
 
-            <tbody>
-                <tr>
-                    <?php foreach ($attributi as $attributo) { ?>
-                        <td><input type="text" name="<?php echo $attributo['nome_attributo']; ?>"></td>
-                    <?php } ?>
-                </tr>
-            </tbody>
+        <?php
+        require_once '../../helper/print_table.php';
+        generateTable($nome_tabella);
+        ?>
+
+        <tbody>
+            <tr>
+                <?php foreach ($attributi as $attributo) { ?>
+                    <td><input type="text" name="<?php echo $attributo['nome_attributo']; ?>"></td>
+                <?php } ?>
+            </tr>
+        </tbody>
         </table>
         <input type='submit' value='Aggiungi riga'>
 
@@ -124,8 +106,9 @@ if (isset($_GET['nome_tabella'])) {
 
             <h2>Righe tabella vincolata</h2>
             <?php
-            include '../../helper/print_table.php';
+            require_once '../../helper/print_table.php';
             generateTable($tabelle_riferite[0]['tabella_vincolata']);
+            echo "</table>";
             ?>
 
 
