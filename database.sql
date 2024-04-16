@@ -832,18 +832,14 @@ SELECT
 FROM
     RISPOSTA AS r
 WHERE
-    r.test_associato = p_test_associato
-    AND r.email_studente = p_email_studente
-    AND (r.numero_quesito, r.TIMESTAMP) IN (
+    r.ID IN (
         SELECT
-            numero_quesito,
-            MAX(TIMESTAMP)
+            MAX(ID)
         FROM
             RISPOSTA
         WHERE
             test_associato = p_test_associato
             AND email_studente = p_email_studente
-            AND TIMESTAMP
         GROUP BY
             numero_quesito
     )
@@ -943,19 +939,24 @@ END $$ DELIMITER;
 
 -- get risposta aperta from risposta
 DELIMITER $$
+DROP PROCEDURE IF EXISTS GetRispostaQuesitoAperto $$
 CREATE PROCEDURE GetRispostaQuesitoAperto (
     IN p_test_associato VARCHAR(100),
     IN p_numero_quesito INT         ,
     IN p_email_studente VARCHAR(100)
 ) BEGIN
 SELECT
-    *
+    id_risposta,
+    risposta   ,
+    esito      ,
+    TIMESTAMP
 FROM
     RISPOSTA_QUESITO_APERTO as ra
+    JOIN RISPOSTA as r on ra.id_risposta = r.ID
 WHERE
-    id_risposta IN (
+    id_risposta = (
         SELECT
-            RISPOSTA.ID
+            ID
         FROM
             RISPOSTA
         WHERE
@@ -963,9 +964,11 @@ WHERE
             AND numero_quesito = p_numero_quesito
             AND email_studente = p_email_studente
         GROUP BY
-            RISPOSTA.ID
-        HAVING
-            MAX(TIMESTAMP)
+            ID
+        ORDER BY
+            ID DESC
+        LIMIT
+            1
     );
 
 END $$ DELIMITER;
@@ -978,13 +981,14 @@ CREATE PROCEDURE GetSceltaQuesitoChiuso (
     IN p_email_studente VARCHAR(100)
 ) BEGIN
 SELECT
-    opzione_scelta
+    *
 FROM
-    RISPOSTA_QUESITO_CHIUSO
+    RISPOSTA_QUESITO_CHIUSO ra
+    JOIN RISPOSTA r ON r.ID = ra.id_risposta
 WHERE
-    id_risposta IN (
+    id_risposta = (
         SELECT
-            RISPOSTA.ID
+            ID
         FROM
             RISPOSTA
         WHERE
@@ -992,9 +996,11 @@ WHERE
             AND numero_quesito = p_numero_quesito
             AND email_studente = p_email_studente
         GROUP BY
-            RISPOSTA.ID
-        HAVING
-            MAX(TIMESTAMP)
+            ID
+        ORDER BY
+            ID DESC
+        LIMIT
+            1
     );
 
 END $$ DELIMITER;
@@ -1245,17 +1251,17 @@ insert into
         `soluzione_professore`
     )
 values
-    (1, 1, '2')                ,
-    (3, 2, 'George Washington'),
+    (1, 1, "SELECT * FROM provolone"),
+    (3, 2, 'George Washington')      ,
     (
-        7                                                                                 ,
-        3                                                                                 ,
-        'SELECT eta FROM tabella_di_esempio WHERE nome = \'Rossi\' AND cognome = \'Mario\''
+        7                                                                             ,
+        3                                                                             ,
+        "SELECT eta FROM tabella_di_esempio WHERE cognome = 'Rossi' AND nome = 'Mario'"
     ),
     (
-        7                                                                                             ,
-        4                                                                                             ,
-        'SELECT nome,cognome,eta FROM tabella_di_esempio WHERE cognome = \'Neri\' AND nome = \'Mario\''
+        7                                                                                          ,
+        4                                                                                          ,
+        "SELECT nome,cognome,eta FROM tabella_di_esempio WHERE cognome = 'Rossi' AND nome = 'Mario'"
     );
 
 -- studente invia messaggio
@@ -1588,7 +1594,8 @@ CREATE PROCEDURE IF NOT EXISTS GetSoluzioneQuesitoAperto (
     IN p_numero_quesito INT
 ) BEGIN
 SELECT
-    soluzione_professore
+    soluzione_professore,
+    QUESITO.ID
 FROM
     QUESITO_APERTO_SOLUZIONE
     JOIN QUESITO on QUESITO.ID = QUESITO_APERTO_SOLUZIONE.id_quesito
@@ -1600,21 +1607,15 @@ END $$ DELIMITER;
 
 -- crea GetAllRisposte
 DELIMITER $$
-CREATE PROCEDURE IF NOT EXISTS GetAllRisposteDellUtente (
-    IN p_email_studente VARCHAR(100),
-    IN p_test_associato VARCHAR(100)
-) BEGIN
+CREATE PROCEDURE IF NOT EXISTS GetAllRisposteDellUtente (IN p_email_studente VARCHAR(100)) BEGIN
 SELECT
-    *
+    COUNT(*) as num_risposte
 FROM
     RISPOSTA
 WHERE
     email_studente = p_email_studente
-    AND test_associato = p_test_associato
 GROUP BY
-    ID
-HAVING
-    MAX(TIMESTAMP);
+    ID;
 
 END $$ DELIMITER;
 

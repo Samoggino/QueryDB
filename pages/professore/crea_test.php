@@ -6,7 +6,7 @@ require "../../helper/connessione_mysql.php";
 
 
 if ($_SESSION['ruolo'] != 'PROFESSORE') {
-    echo "<script>alert('Non hai i permessi per accedere a questa pagina!') window.location.replace('/pages/login.php')</script>";
+    echo "<script>alert('Non hai i permessi per accedere a questa pagina!'); window.location.replace('/pages/login.php')</script>";
 }
 
 try {

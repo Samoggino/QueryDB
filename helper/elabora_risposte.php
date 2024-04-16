@@ -36,8 +36,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     // Inserisci la risposta nel database in base al tipo di quesito
                     if ($tipo_quesito == 'APERTO') {
-                        try {
+                        // se scelta ha meno di 6 caratteri, allora non è stata data risposta
 
+
+                        try {
                             $sql = "CALL GetSoluzioneQuesitoAperto(:test_associato, :numero_quesito);";
                             $stmt = $db->prepare($sql);
                             $stmt->bindParam(':test_associato', $test_associato);
@@ -51,26 +53,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             $scelta = str_replace('"', "'", $scelta);
                             echo '<script>console.log("Risposta: ' . $scelta . '")</script>';
 
-                            foreach ($soluzioni as $soluzione) {
-                                $stmt = $db->prepare($soluzione['soluzione_professore']);
-                                $stmt->execute();
-                                $sol = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                                $stmt->closeCursor();
+                            if (strlen($scelta) < 6) {
+                                echo "<script>console.log('Risposta non data')</script>";
+                                continue;
+                            } else
 
-                                $stmt = $db->prepare($scelta);
-                                $stmt->execute();
-                                $sce = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                                $stmt->closeCursor();
+                                foreach ($soluzioni as $soluzione) {
+                                    try {
+                                        $stmt = $db->prepare($soluzione['soluzione_professore']);
+                                        $stmt->execute();
+                                        $sol = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                        $stmt->closeCursor();
 
-                                if ($sol == $sce) {
-                                    $esito_aperta = "GIUSTA";
-                                    echo "<script>console.log('Risposta giusta')</script>";
-                                    break;
-                                } else {
-                                    echo "<script>console.log('Risposta sbagliata')</script>";
+                                        $stmt = $db->prepare($scelta);
+                                        $stmt->execute();
+                                        $sce = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                        $stmt->closeCursor();
+
+                                        if ($sol == $sce) {
+                                            $esito_aperta = "GIUSTA";
+                                            echo "<script>console.log('Risposta giusta')</script>";
+                                            break;
+                                        } else {
+                                            echo "<script>console.log('Risposta sbagliata')</script>";
+                                        }
+                                    } catch (\Throwable $th) {
+                                        echo "Errore nella risposta aperta <br>"  . $th->getMessage();
+                                    }
                                 }
-                            }
-
 
                             // Preparare la query per inserire la risposta a un quesito aperto
                             $sql_inserimento_aperto = "CALL InserisciRispostaQuesitoAperto(:test_associato, :numero_quesito, :email_studente, :risposta, :esito);";
@@ -83,7 +93,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             $statement_aperto->bindParam(':email_studente', $email_studente); // Assumi che l'email dello studente sia già disponibile nella sessione
                             $statement_aperto->bindParam(':risposta', $scelta);
                             $statement_aperto->bindParam(':esito', $esito_aperta);
-                            // $statement_aperto->execute();
+                            $statement_aperto->execute();
                         } catch (\Throwable $th) {
                             echo "Errore nella risposta aperta <br>"  . $th->getMessage();
                         }
@@ -117,7 +127,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 if ($opzione['numero_opzione'] == $scelta)
                                     $esito_chiuso = 'GIUSTA';
 
-                            // $statement_chiuso->execute();
+                            $statement_chiuso->execute();
                             $statement_chiuso->closeCursor();
                         } catch (\Throwable $th) {
                             echo "Errore nella risposta chiusa <br>" . $th->getMessage();
@@ -130,8 +140,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $db = null;
 
             // Reindirizza alla pagina dei risultati
-            // header("Location: ../pages/studente/risultati_test.php?test_associato=" . $test_associato);
-            // exit();
+            header("Location: ../pages/studente/risultati_test.php?test_associato=" . $test_associato);
+            exit();
         } catch (PDOException $e) {
             // Gestisci eventuali errori di connessione al database
             echo "Errore di connessione al database: " . $e->getMessage();

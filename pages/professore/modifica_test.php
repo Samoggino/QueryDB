@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 
 
 if ($_SESSION['ruolo'] != 'PROFESSORE') {
-    echo "<script>alert('Non hai i permessi per accedere a questa pagina!') window.location.replace('/pages/login.php')</script>";
+    echo "<script>alert('Non hai i permessi per accedere a questa pagina!'); window.location.replace('/pages/login.php')</script>";
 }
 
 if (isset($_GET['test_associato'])) {

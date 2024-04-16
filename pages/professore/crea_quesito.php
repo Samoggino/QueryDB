@@ -7,7 +7,7 @@ error_reporting(E_ALL);
 
 
 if ($_SESSION['ruolo'] != 'PROFESSORE') {
-    echo "<script>alert('Non hai i permessi per accedere a questa pagina!') window.location.replace('/pages/login.php')</script>";
+    echo "<script>alert('Non hai i permessi per accedere a questa pagina!'); window.location.replace('/pages/login.php')</script>";
 }
 try {
 
@@ -94,15 +94,15 @@ try {
                 $stmt->bindParam(':test_associato', $test_associato, PDO::PARAM_STR);
                 $stmt->bindParam(':numero_quesito', $n_quesito, PDO::PARAM_INT);
                 $stmt->execute();
-                $id_quesito = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $num_quesito = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                echo "<script>console.log('ID QUESITO: " . json_encode($id_quesito) . "');</script>";
+                echo "<script>console.log('ID QUESITO: " . json_encode($num_quesito) . "');</script>";
 
 
                 foreach ($tabelle as $tabella) {
                     $sql = "CALL InserisciQuesitoTabella(:id_quesito, :tabella_riferimento)";
                     $stmt = $db->prepare($sql);
-                    $stmt->bindParam(':id_quesito', $id_quesito['ID'], PDO::PARAM_INT);
+                    $stmt->bindParam(':id_quesito', $num_quesito['ID'], PDO::PARAM_INT);
                     $stmt->bindParam(':tabella_riferimento', $tabella, PDO::PARAM_STR);
                     // $stmt->execute();
                     $stmt->closeCursor();

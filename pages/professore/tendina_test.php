@@ -1,9 +1,13 @@
 <?php
 require_once "../../helper/connessione_mysql.php";
+session_start();
+
+if ($_SESSION['ruolo'] != 'PROFESSORE') {
+    echo "<script>alert('Non hai i permessi per accedere a questa pagina!'); window.location.replace('/pages/login.php')</script>";
+}
 
 function tendinaTest()
 {
-
     $db = connectToDatabaseMYSQL();
     $sql = "CALL GetTestDelProfessore(:email_professore);";
     $stmt = $db->prepare($sql);
@@ -18,4 +22,5 @@ function tendinaTest()
         echo "<script>console.log('Errore: " . $th . "');</script>";
     }
     $stmt->closeCursor();
+    $db = null;
 }

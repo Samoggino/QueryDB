@@ -6,7 +6,6 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 $test_associato = $_GET['test_associato'];
-echo "<script> console.log('utente: " . $test_associato . "');</script>";
 $email_studente = $_SESSION['email'];
 
 // Assicurati che la connessione al database sia stabilita correttamente
@@ -36,14 +35,9 @@ foreach ($tests as $key => $test) {
         continue;
     }
 
-    if ($test['VisualizzaRisposte'] == 0) {
-        if (isset($_POST['visualizzaRisposteHidden']) && $_POST['visualizzaRisposteHidden'] == 0)
-            continue;
-    }
-
     // Stampare il titolo del test e le risposte
     echo "<table>";
-    echo "<tr><th colspan='5'>" . $test_associato . "</th></tr>"; // Utilizzo colspan per estendere il titolo su 4 colonne
+    echo "<tr><th id='test' colspan='5'>" . $test_associato . "</th></tr>"; // Utilizzo colspan per estendere il titolo su 4 colonne
     echo "<tr>";
     echo "<th>Numero quesito</th>";
     echo "<th>Data</th>";
@@ -54,9 +48,9 @@ foreach ($tests as $key => $test) {
     foreach ($risposte as $risposta) {
         echo "<tr>";
         echo "<td>" . $risposta['numero_quesito'] . "</td>";
-        echo "<td>" . $risposta['in_data'] . "</td>";
+        echo "<td id='col-data'>" . $risposta['in_data'] . "</td>";
 
-
+        $num_quesito = $risposta['numero_quesito'];
         if ($risposta['tipo_risposta'] == 'CHIUSA') {
             $sql = "CALL GetSceltaQuesitoChiuso(:test_associato, :numero_quesito, :email_studente);";
             $stmt = $db->prepare($sql);
@@ -76,7 +70,11 @@ foreach ($tests as $key => $test) {
             $opzioni = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
 
-            echo "<td>" . $opzioni[0]['numero_opzione'] . "</td>";
+            if ($opzioni[0]['numero_opzione'] == $scelta['opzione_scelta']) {
+                echo "<td>" . $opzioni[0]['numero_opzione'] . "</td>";
+            } else {
+                echo "<td> - </td>";
+            }
         } elseif ($risposta['tipo_risposta'] == 'APERTA') {
 
             $sql = "CALL GetRispostaQuesitoAperto(:test_associato, :numero_quesito, :email_studente);";
@@ -88,17 +86,56 @@ foreach ($tests as $key => $test) {
             $scelta = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
             echo "<td>" . $scelta['risposta'] . "</td>";
-            echo "<td> - </td>";
+            echo "<td>" . mostraSoluzione($scelta['esito'], $num_quesito, $scelta['risposta'], $test_associato) . "</td>";
         }
 
-
-
-
-        echo "<td>" . $risposta['esito'] . "</td>";
+        if ($risposta['esito'] == "GIUSTA") {
+            echo "<td id = 'esito-giusta'>" . $risposta['esito'] . "</td>";
+        } else if ($risposta['esito'] == "SBAGLIATA") {
+            echo "<td id = 'esito-sbagliata'>" . $risposta['esito'] . "</td>";
+        }
         echo "</tr>";
     }
     echo "</table>";
     echo "<br>";
+}
+
+
+function mostraSoluzione($esito, $num_quesito, $risposta_studente, $test_associato)
+{
+
+    if ($esito == "GIUSTA") {
+        $db = connectToDatabaseMYSQL();
+        $sql = "CALL GetSoluzioneQuesitoAperto(:test_associato, :numero_quesito);";
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':test_associato', $test_associato);
+        $stmt->bindParam(':numero_quesito', $num_quesito);
+        $stmt->execute();
+        $soluzioni = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+
+        foreach ($soluzioni as $soluzione) {
+            try {
+                $stmt = $db->prepare($soluzione['soluzione_professore']);
+                $stmt->execute();
+                $sol = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+
+                $stmt = $db->prepare($risposta_studente);
+                $stmt->execute();
+                $sce = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+
+                if ($sol == $sce) {
+                    return $soluzione['soluzione_professore'];
+                }
+            } catch (\Throwable $th) {
+                echo "Errore nella risposta aperta <br>"  . $th->getMessage();
+            }
+        }
+    } else {
+        return "";
+    }
 }
 ?>
 
@@ -109,25 +146,35 @@ foreach ($tests as $key => $test) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="../../styles/eseguiTest.css">
 
-    <title>Esito <?php echo $_GET['test_associato'] ?></title>
+    <title>Risultati</title>
 
     <style>
         table {
-            max-width: 50%;
+            max-width: 70%;
             border-collapse: collapse;
             width: 100%;
+            min-width: auto;
         }
 
-        th,
-        td {
-            border: 1px solid black;
-            padding: 8px;
+        td#col-data {
+            min-width: 75px;
+        }
+
+        th#test {
             text-align: center;
+            font-weight: bold;
+            font-size: 1.5em;
+            color: red;
         }
 
-        th {
-            background-color: #f2f2f2;
+        #esito-giusta {
+            color: green;
+        }
+
+        #esito-sbagliata {
+            color: red;
         }
     </style>
 </head>
@@ -135,39 +182,21 @@ foreach ($tests as $key => $test) {
 <body>
     <p>
         <?php
-        $sql = "CALL GetAllRisposteDellUtente(:email_studente, :test_associato);";
+        $sql = "CALL GetAllRisposteDellUtente(:email_studente);";
         $stmt = $db->prepare($sql);
         $stmt->bindParam(':email_studente', $_SESSION['email']);
-        $stmt->bindParam(':test_associato', $_GET['test_associato']);
         $stmt->execute();
         $risposte = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
 
-        if (count($risposte) == 0) {
+        if ($risposte['num_risposte'] < 1) {
+            echo $tot_risposte;
             echo "Non hai svolto alcun test";
+            header("Location: ../../pages/studente/studente.php");
+            exit();
         } else {
         ?>
     </p>
-    <form method="post" action="risultati_test.php?test_associato=<?php echo $_GET['test_associato'] ?>">
-        <input type="hidden" id="visualizzaRisposteHidden" name="visualizzaRisposteHidden" value="1">
-        <input type="checkbox" id="visualizzaRisposteCheckbox" name="visualizzaRisposteCheckbox" onclick="toggleVisualizzaRisposte()">
-        <label for="visualizzaRisposteCheckbox">Attiva il campo visualizza_risposte</label>
-        <input type="submit" value="Aggiorna">
-    </form>
-
-    <script>
-        function toggleVisualizzaRisposte() {
-            var checkbox = document.getElementById("visualizzaRisposteCheckbox");
-            var hiddenInput = document.getElementById("visualizzaRisposteHidden");
-
-            // Inverti il valore del campo nascosto quando il checkbox viene selezionato
-            if (checkbox.checked) {
-                hiddenInput.value = "0";
-            } else {
-                hiddenInput.value = "1";
-            }
-        }
-    </script>
 <?php } ?>
 </body>
 

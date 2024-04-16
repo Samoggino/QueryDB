@@ -70,7 +70,7 @@ function q_aperto($quesito)
 {
     echo "<div class='aperti'>";
     echo "<h3>"  . $quesito["numero_quesito"] . ". " . $quesito['descrizione'] . "</h3>";
-    echo "<input type='text' name='quesito" . $quesito['numero_quesito'] . "'><br>";
+    echo "<textarea name='quesito" . $quesito['numero_quesito'] . "'> </textarea><br>";
     echo "</div>";
 }
 

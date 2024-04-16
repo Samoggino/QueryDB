@@ -4,9 +4,12 @@ require_once '../../helper/connessione_mysql.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+echo "<script>console.log('Debug: " . $_SESSION['email'] . "');</script>";
+echo "<script>console.log('Debug: " . $_SESSION['ruolo'] . "');</script>";
+
 
 if ($_SESSION['ruolo'] != 'PROFESSORE') {
-    echo "<script>alert('Non hai i permessi per accedere a questa pagina!') window.location.replace('/pages/login.php')</script>";
+    echo "<script>alert('Non hai i permessi per accedere a questa pagina!'); window.location.replace('/pages/login.php')</script>";
 }
 if (isset($_POST['test_associato'])) {
     $test_associato = $_POST['test_associato'];
