@@ -18,40 +18,59 @@ $stmt->execute();
 $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $stmt->closeCursor();
 
+// controlla se l'utente ha svolto dei test
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test per lo studente</title>
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="../../styles/global.css">
+    <link rel="stylesheet" href="../../styles/studente.css">
+    
 </head>
 
 <body>
-    <h1>Visualizza tutti i test che può sostenere lo studente</h1>
-    <?php
-    echo "Benvenuto " . $_SESSION['nome'] . " " . $_SESSION['cognome'];
-    echo "<br>";
-    echo "Email: " . $_SESSION['email'];
+    <div class="container">
+        <h1>Visualizza tutti i test che può sostenere lo studente</h1>
+        <div class="welcome">
+            <?php
+            echo "Benvenuto " . $_SESSION['nome'] . " " . $_SESSION['cognome'] . "<br>";
+            echo "Email: " . $_SESSION['email'];
+            ?>
+        </div>
 
-    // stampa tutti i test
-    foreach ($tests as $tests) {
-        echo "<h2>" . strtoupper($tests['titolo']) . "</h2>";
-        echo "<a href='/pages/studente/esegui_test.php?test_associato=" . $tests['titolo'] . "'>Svolgi il test</a>";
-    }
-    ?>
+        <div class="test-list">
+            <?php
+            require_once "../../helper/check_closed.php";
+            // stampa tutti i test
+            foreach ($tests as $test) {
+                $is_closed = check_svolgimento($test['titolo'], $_SESSION['email']);
+                echo "<div class='test-item'>";
+                echo "<h3>" . strtoupper($test['titolo']) . "</h3>";
+                if ($is_closed == 1) {
+                    echo "<p style='color: green;'>Hai già svolto questo test</p>";
+                    // manca il link per visualizzare i risultati
+                    echo "<a href='/pages/studente/risultati_test.php?test_associato=" . $test['titolo'] . "'>Visualizza i risultati</a>";
+                } else {
+                    echo "<a href='/pages/studente/esegui_test.php?test_associato=" . $test['titolo'] . "'>Svolgi il test</a>";
+                }
+                echo "</div>";
+            }
+            ?>
+        </div>
 
-    <br>
-    <h1>Vai ai messaggi</h1>
-    <a href="/pages/messaggi.php">Messaggi</a>
+        <div class="links">
+            <h1>Vai ai messaggi</h1>
+            <a href="/pages/messaggi.php">Messaggi</a>
 
-    <br>
-    <h1>Vai alle classifiche</h1>
-    <a href="../classifiche.php">Classifiche</a>
-
-
-
+            <h1>Vai alle classifiche</h1>
+            <a href="../classifiche.php">Classifiche</a>
+        </div>
+    </div>
 </body>
 
 </html>

@@ -33,7 +33,7 @@ function login()
                 $_SESSION['email'] = $email;
                 $_SESSION['nome'] = $utente['nome'];
                 $_SESSION['cognome'] = $utente['cognome'];
-
+                
                 // Close the cursor for the previous query
                 $stmt->closeCursor();
 

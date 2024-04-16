@@ -1,6 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Acme&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+
 * {
 
     font-family: "Acme", sans-serif;
-    font-weight: 400;
     font-style: normal;
+}
+
+body {
+    background-color: rgb(242, 216, 183);
 }

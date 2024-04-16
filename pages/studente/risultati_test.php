@@ -186,11 +186,10 @@ function mostraSoluzione($esito, $num_quesito, $risposta_studente, $test_associa
         $stmt = $db->prepare($sql);
         $stmt->bindParam(':email_studente', $_SESSION['email']);
         $stmt->execute();
-        $risposte = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $risposte = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
 
-        if ($risposte['num_risposte'] < 1) {
-            echo $tot_risposte;
+        if ($risposte == 0) {
             echo "Non hai svolto alcun test";
             header("Location: ../../pages/studente/studente.php");
             exit();
