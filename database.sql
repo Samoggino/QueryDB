@@ -1561,6 +1561,17 @@ FROM
 
 END $$ DELIMITER;
 
+-- get classifica test completati
+DELIMITER $$
+CREATE PROCEDURE GetClassificaTestCompletati () BEGIN
+SELECT
+    c.matricola   ,
+    c.Test_conclusi
+FROM
+    Classifica_test_completati as c;
+
+END $$ DELIMITER;
+
 -- stored procedure per avere l'ordine delle chiavi primarie di una tabella
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS GetPrimaryKey (IN p_table_name VARCHAR(100)) BEGIN
@@ -1609,13 +1620,13 @@ END $$ DELIMITER;
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS GetAllRisposteDellUtente (IN p_email_studente VARCHAR(100)) BEGIN
 SELECT
-    COUNT(*) as num_risposte
+    COUNT(*)
 FROM
     RISPOSTA
 WHERE
     email_studente = p_email_studente
 GROUP BY
-    ID;
+    email_studente;
 
 END $$ DELIMITER;
 
@@ -1884,3 +1895,42 @@ VALUES
     (5, 'tabella_di_esempio'),
     (6, 'tabella_di_esempio'),
     (7, 'tabella_di_esempio');
+
+-- get matricola
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS GetMatricola (IN p_email_studente VARCHAR(100)) BEGIN
+SELECT
+    matricola
+FROM
+    STUDENTE
+WHERE
+    email_studente = p_email_studente;
+
+END $$ DELIMITER;
+
+-- crea classifica (view) dei quesiti ordinati per numero di risposte 
+DROP VIEW IF EXISTS Classifica_quesitiPerNumeroRisposte;
+
+CREATE VIEW
+    Classifica_quesitiPerNumeroRisposte AS
+SELECT
+    ID            ,
+    test_associato,
+    numero_quesito,
+    numero_risposte
+FROM
+    QUESITO
+ORDER BY
+    numero_risposte DESC;
+
+-- get classifica quesiti
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS GetClassificaQuesitiPerNumeroRisposte () BEGIN
+SELECT
+    test_associato,
+    numero_quesito,
+    numero_risposte
+FROM
+    Classifica_quesitiPerNumeroRisposte;
+
+END $$ DELIMITER;

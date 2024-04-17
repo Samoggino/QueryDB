@@ -4,6 +4,9 @@ require '../../helper/connessione_mysql.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+if (isset($_SESSION['email']) == false) {
+    header('Location: ../index.php');
+}
 // Assicurati che il parametro test_associato sia stato passato tramite GET
 if (isset($_GET['test_associato'])) {
     $tests = $_GET['test_associato'];

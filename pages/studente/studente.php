@@ -5,9 +5,8 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 
-if (!isset($_SESSION['email'])) {
-    header('Location: /');
-    exit;
+if (isset($_SESSION['email']) == false) {
+    header('Location: ../index.php');
 }
 
 // mostra i test all'utente 
