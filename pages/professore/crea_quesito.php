@@ -14,9 +14,9 @@ try {
     $db = connectToDatabaseMYSQL();
 
     $test_associato = $_GET['test_associato'];
-    $n_quesito = getNumeroNuovoQuesito($test_associato);
+    $numero_quesito = getNumeroNuovoQuesito($test_associato);
     echo "<h1>Titolo test: " . $test_associato . "</h1>";
-    echo "<script>console.log('Numero quesito: " . $n_quesito . "');</script>";
+    echo "<script>console.log('Numero quesito: " . $numero_quesito . "');</script>";
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo "<script>console.log('Ciao');</script>";
         echo "<script>console.log('VALORI INVIATI: " . json_encode($_POST) . "');</script>";
@@ -25,15 +25,20 @@ try {
         $tipo_quesito = $_POST['tipo_quesito'];
 
         try {
-            $sql = "CALL InserisciNuovoQuesito(:numero_quesito, :test_associato, :descrizione, :livello_difficolta, :tipo_quesito)";
+            $sql = "CALL InserisciNuovoQuesito(:numero_quesito, :test_associato, :descrizione, :livello_difficolta, :tipo_quesito, @id_nuovo_quesito)";
             $stmt = $db->prepare($sql);
-            $stmt->bindParam(':numero_quesito', $n_quesito, PDO::PARAM_INT);
+            $stmt->bindParam(':numero_quesito', $numero_quesito, PDO::PARAM_INT);
             $stmt->bindParam(':test_associato', $test_associato, PDO::PARAM_STR);
             $stmt->bindParam(':descrizione', $descrizione, PDO::PARAM_STR);
             $stmt->bindParam(':livello_difficolta', $livello_difficolta, PDO::PARAM_STR);
             $stmt->bindParam(':tipo_quesito', $tipo_quesito, PDO::PARAM_STR);
             $stmt->execute();
             $stmt->closeCursor();
+
+            $stmt = $db->query("SELECT @id_nuovo_quesito AS id_quesito");
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            $id_quesito = $result['id_quesito'];
         } catch (\Throwable $th) {
             echo  "Errore nel creare il quesito: <br> ";
             echo  "<br> SQL: " . $sql . "<br>" . $th->getMessage();
@@ -44,10 +49,9 @@ try {
                 $soluzioni = $_POST['soluzione'];
                 for ($i = 0; $i < count($soluzioni); $i++) {
                     $soluzioni[$i] = str_replace('"', "'", $soluzioni[$i]);
-                    $sql = "CALL InserisciNuovaSoluzioneQuesitoAperto(:numero_quesito, :test_associato, :soluzione)";
+                    $sql = "CALL InserisciNuovaSoluzioneQuesitoAperto(:id_quesito, :soluzione)";
                     $stmt = $db->prepare($sql);
-                    $stmt->bindParam(':numero_quesito', $n_quesito, PDO::PARAM_INT);
-                    $stmt->bindParam(':test_associato', $test_associato, PDO::PARAM_STR);
+                    $stmt->bindParam(':id_quesito', $id_quesito, PDO::PARAM_STR);
                     $stmt->bindParam(':soluzione', $soluzioni[$i], PDO::PARAM_STR);
                     $stmt->execute();
                     $stmt->closeCursor();
@@ -66,11 +70,10 @@ try {
                     if ($opzioni_vera[$i] == "on") {
                         $opzioni_vera[$i] = "TRUE";
                     }
-                    $sql = "CALL InserisciNuovaOpzioneQuesitoChiuso(:numero_opzione, :numero_quesito, :test_associato, :opzioni, :opzioni_vera)";
+                    $sql = "CALL InserisciNuovaOpzioneQuesitoChiuso(:numero_opzione, :id_quesito, :opzioni, :opzioni_vera)";
                     $stmt = $db->prepare($sql);
                     $stmt->bindParam(':numero_opzione', $n_opzione, PDO::PARAM_INT);
-                    $stmt->bindParam(':numero_quesito', $n_quesito, PDO::PARAM_INT);
-                    $stmt->bindParam(':test_associato', $test_associato, PDO::PARAM_STR);
+                    $stmt->bindParam(':id_quesito', $id_quesito, PDO::PARAM_STR);
                     $stmt->bindParam(':opzioni', $opzioni[$i], PDO::PARAM_STR);
                     $stmt->bindParam(':opzioni_vera', $opzioni_vera[$i], PDO::PARAM_STR);
                     $stmt->execute();
@@ -89,20 +92,10 @@ try {
             //FIXME: ho rotto qualcosa su questa stored procedure perchè la uso sia qua che in esegui_test.php
             echo "<script>console.log('Tabelle: " . json_encode($tabelle) . "');</script>";
             try {
-                $sql =  "CALL GetIDQuesitoTest(:test_associato, :numero_quesito);";
-                $stmt = $db->prepare($sql);
-                $stmt->bindParam(':test_associato', $test_associato, PDO::PARAM_STR);
-                $stmt->bindParam(':numero_quesito', $n_quesito, PDO::PARAM_INT);
-                $stmt->execute();
-                $num_quesito = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-                echo "<script>console.log('ID QUESITO: " . json_encode($num_quesito) . "');</script>";
-
-
                 foreach ($tabelle as $tabella) {
                     $sql = "CALL InserisciQuesitoTabella(:id_quesito, :tabella_riferimento)";
                     $stmt = $db->prepare($sql);
-                    $stmt->bindParam(':id_quesito', $num_quesito['ID'], PDO::PARAM_INT);
+                    $stmt->bindParam(':id_quesito', $id_quesito, PDO::PARAM_INT);
                     $stmt->bindParam(':tabella_riferimento', $tabella, PDO::PARAM_STR);
                     // $stmt->execute();
                     $stmt->closeCursor();

@@ -12,9 +12,9 @@ $db = connectToDatabaseMYSQL();
 $query = "SHOW TABLES";
 $stmt = $db->query($query);
 $tabelle = array();
-while ($column = $stmt->fetch(PDO::FETCH_NUM)) {
+while ($quesito = $stmt->fetch(PDO::FETCH_NUM)) {
     // echo "<script>console.log('" . json_encode($column[0]) . "')</script>";
-    $tabelle[] = $column[0];
+    $tabelle[] = $quesito[0];
 }
 
 $attributi = array();
@@ -24,9 +24,9 @@ foreach ($tabelle as $tabella) {
     $stmt->bindParam(':tabella', $tabella);
     $stmt->execute();
 
-    while ($column = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $attributi[$tabella][] = $column['NOME_ATTRIBUTO'];
-        echo "<script>console.log('" . json_encode($column) . "')</script>";
+    while ($quesito = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $attributi[$tabella][] = $quesito['NOME_ATTRIBUTO'];
+        echo "<script>console.log('" . json_encode($quesito) . "')</script>";
     }
 }
 
@@ -110,10 +110,10 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
             $db = connectToDatabaseMYSQL();
             $query = "CALL GetTabelleCreate()";
             $stmt = $db->query($query);
-            while ($column = $stmt->fetch(PDO::FETCH_NUM)) {
+            while ($quesito = $stmt->fetch(PDO::FETCH_NUM)) {
                 echo 'var option = document.createElement("option");';
-                echo 'option.value = "' . $column[0] . '";';
-                echo 'option.textContent = "' . $column[0] . '";';
+                echo 'option.value = "' . $quesito[0] . '";';
+                echo 'option.textContent = "' . $quesito[0] . '";';
                 echo 'tabellaVincolataSelect.appendChild(option);';
             }
             ?>

@@ -433,22 +433,16 @@ CREATE TABLE IF NOT EXISTS
 
 CREATE TABLE IF NOT EXISTS
     RISPOSTA (
-        ID INT AUTO_INCREMENT UNIQUE                                                                                      ,
-        test_associato VARCHAR(100) NOT NULL                                                                              ,
-        numero_quesito INT NOT NULL                                                                                       ,
-        email_studente VARCHAR(100) NOT NULL                                                                              ,
-        TIMESTAMP TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL                                                            ,
-        tipo_risposta ENUM('APERTA', 'CHIUSA') DEFAULT 'APERTA' NOT NULL                                                  ,
-        esito ENUM('GIUSTA', 'SBAGLIATA') DEFAULT 'SBAGLIATA' NOT NULL                                                    ,
-        PRIMARY KEY (ID)                                                                                                  ,
-        FOREIGN KEY (test_associato, numero_quesito) REFERENCES QUESITO (test_associato, numero_quesito) ON DELETE CASCADE,
-        FOREIGN KEY (email_studente) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE                               ,
-        CONSTRAINT risposta_quesito UNIQUE (
-            test_associato,
-            numero_quesito,
-            TIMESTAMP     ,
-            email_studente
-        )
+        ID INT AUTO_INCREMENT NOT NULL                                                     ,
+        id_quesito INT NOT NULL                                                            ,
+        email_studente VARCHAR(100) NOT NULL                                               ,
+        TIMESTAMP TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL                             ,
+        tipo_risposta ENUM('APERTA', 'CHIUSA') DEFAULT 'APERTA' NOT NULL                   ,
+        esito ENUM('GIUSTA', 'SBAGLIATA') DEFAULT 'SBAGLIATA' NOT NULL                     ,
+        PRIMARY KEY (ID)                                                                   ,
+        FOREIGN KEY (id_quesito) REFERENCES QUESITO (ID) ON DELETE CASCADE                 ,
+        FOREIGN KEY (email_studente) REFERENCES STUDENTE (email_studente) ON DELETE CASCADE,
+        CONSTRAINT risposta_quesito UNIQUE (id_quesito, TIMESTAMP, email_studente)
     );
 
 -- crea tabelle delle risposte chiuse
@@ -474,25 +468,20 @@ CREATE TABLE IF NOT EXISTS
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS InserisciNuovaOpzioneQuesitoChiuso (
     IN p_numero_opzione INT              ,
-    IN p_num_quesito INT                 ,
-    IN p_test_associato VARCHAR(100)     ,
+    IN p_id_quesito INT                  ,
     IN p_testo TEXT                      ,
     IN p_is_corretta ENUM('TRUE', 'FALSE')
-) BEGIN DECLARE ID_tmp INT;
-
-SELECT
-    ID INTO ID_tmp
-FROM
-    `QUESITO`
-WHERE
-    numero_quesito = p_num_quesito
-    AND test_associato = p_test_associato;
-
+) BEGIN
 -- Inserisce l'opzione nella tabella QUESITO_CHIUSO_OPZIONE
 INSERT INTO
     QUESITO_CHIUSO_OPZIONE (id_quesito, numero_opzione, testo, is_corretta)
 VALUES
-    (ID_tmp, p_numero_opzione, p_testo, p_is_corretta);
+    (
+        p_id_quesito    ,
+        p_numero_opzione,
+        p_testo         ,
+        p_is_corretta
+    );
 
 COMMIT;
 
@@ -502,37 +491,28 @@ END $$ DELIMITER;
 DELIMITER $$
 CREATE TRIGGER IF NOT EXISTS update_numero_risposte_al_quesito AFTER
 INSERT
-    ON RISPOSTA FOR EACH ROW
+    ON RISPOSTA FOR EACH ROW BEGIN
 UPDATE QUESITO
 SET
     numero_risposte = numero_risposte + 1
 WHERE
-    test_associato = NEW.test_associato
-    AND numero_quesito = NEW.numero_quesito $$ DELIMITER;
+    QUESITO.ID = NEW.id_quesito;
+
+END $$ DELIMITER;
 
 -- crea la stored procedure per inserire una nuova soluzione per un quesito aperto
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS InserisciNuovaSoluzioneQuesitoAperto (
-    IN p_num_quesito INT            ,
-    IN p_test_associato VARCHAR(100),
+    IN p_id_quesito INT          ,
     IN p_soluzione_professore TEXT
-) BEGIN DECLARE ID_tmp INT;
-
+) BEGIN
 START TRANSACTION;
-
-SELECT
-    ID INTO ID_tmp
-FROM
-    `QUESITO`
-WHERE
-    numero_quesito = p_num_quesito
-    AND test_associato = p_test_associato;
 
 -- Inserisce la soluzione nella tabella Quesito_aperto
 INSERT INTO
     QUESITO_APERTO_SOLUZIONE (id_quesito, soluzione_professore)
 VALUES
-    (ID_tmp, p_soluzione_professore);
+    (p_id_quesito, p_soluzione_professore);
 
 COMMIT;
 
@@ -545,7 +525,8 @@ CREATE PROCEDURE IF NOT EXISTS InserisciNuovoQuesito (
     IN p_test_associato VARCHAR(100)                      ,
     IN p_descrizione TEXT                                 ,
     IN p_livello_difficolta ENUM('BASSO', 'MEDIO', 'ALTO'),
-    IN p_tipo_quesito ENUM('APERTO', 'CHIUSO')
+    IN p_tipo_quesito ENUM('APERTO', 'CHIUSO')            ,
+    OUT id_nuovo_quesito INT
 ) BEGIN
 START TRANSACTION;
 
@@ -566,6 +547,10 @@ VALUES
         p_livello_difficolta,
         p_tipo_quesito
     );
+
+-- Ottiene l'ID del quesito appena inserito
+SELECT
+    LAST_INSERT_ID() INTO id_nuovo_quesito;
 
 COMMIT;
 
@@ -719,8 +704,7 @@ END $$ DELIMITER;
 -- inserisci risposta a quesito chiuso 
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS InserisciRispostaQuesitoChiuso (
-    IN p_test_associato VARCHAR(100)     ,
-    IN p_numero_quesito INT              ,
+    IN p_id_quesito INT                  ,
     IN p_email_studente VARCHAR(100)     ,
     IN p_opzione_scelta INT              ,
     IN p_esito ENUM('GIUSTA', 'SBAGLIATA')
@@ -728,7 +712,17 @@ CREATE PROCEDURE IF NOT EXISTS InserisciRispostaQuesitoChiuso (
 
 DECLARE test_closed INT;
 
+DECLARE p_test_associato VARCHAR(100);
+
 START TRANSACTION;
+
+-- Ottiene il test associato al quesito
+SELECT
+    `QUESITO`.test_associato INTO p_test_associato
+FROM
+    QUESITO
+WHERE
+    ID = p_id_quesito;
 
 -- Controlla se il test è già concluso
 CALL VerificaTestConcluso (p_email_studente, p_test_associato, test_closed);
@@ -736,21 +730,9 @@ CALL VerificaTestConcluso (p_email_studente, p_test_associato, test_closed);
 IF test_closed < 1 THEN
 -- inserisce la risposta nella tabella Risposta
 INSERT INTO
-    RISPOSTA (
-        test_associato,
-        numero_quesito,
-        email_studente,
-        tipo_risposta ,
-        esito
-    )
+    RISPOSTA (id_quesito, email_studente, tipo_risposta, esito)
 VALUES
-    (
-        p_test_associato,
-        p_numero_quesito,
-        p_email_studente,
-        'CHIUSA'        ,
-        p_esito
-    );
+    (p_id_quesito, p_email_studente, 'CHIUSA', p_esito);
 
 -- Ottiene l'id della risposta appena inserita
 SELECT
@@ -769,10 +751,10 @@ COMMIT;
 
 END $$ DELIMITER;
 
+DELIMITER $$
 -- inserisci risposta a quesito aperto
 CREATE PROCEDURE IF NOT EXISTS InserisciRispostaQuesitoAperto (
-    IN p_test_associato VARCHAR(100)     ,
-    IN p_numero_quesito INT              ,
+    IN p_id_quesito INT                  ,
     IN p_email_studente VARCHAR(100)     ,
     IN p_risposta TEXT                   ,
     IN p_esito ENUM('GIUSTA', 'SBAGLIATA')
@@ -780,28 +762,26 @@ CREATE PROCEDURE IF NOT EXISTS InserisciRispostaQuesitoAperto (
 
 DECLARE test_closed INT;
 
+DECLARE p_test_associato VARCHAR(100);
+
 START TRANSACTION;
+
+-- Ottiene il test associato al quesito
+SELECT
+    `QUESITO`.test_associato INTO p_test_associato
+FROM
+    QUESITO
+WHERE
+    ID = p_id_quesito;
 
 CALL VerificaTestConcluso (p_email_studente, p_test_associato, test_closed);
 
 IF test_closed < 1 THEN
 -- inserisce la risposta nella tabella Risposta
 INSERT INTO
-    RISPOSTA (
-        test_associato,
-        numero_quesito,
-        email_studente,
-        tipo_risposta ,
-        esito
-    )
+    RISPOSTA (id_quesito, email_studente, tipo_risposta, esito)
 VALUES
-    (
-        p_test_associato,
-        p_numero_quesito,
-        p_email_studente,
-        'APERTA'        ,
-        p_esito
-    );
+    (p_id_quesito, p_email_studente, 'APERTA', p_esito);
 
 -- Ottiene l'id della risposta appena inserita
 SELECT
@@ -825,31 +805,36 @@ CREATE PROCEDURE GetRisposteQuesiti (
     IN p_email_studente VARCHAR(100)
 ) BEGIN
 SELECT
-    r.numero_quesito            ,
+    r.id_quesito                ,
+    q.numero_quesito            ,
     DATE(r.TIMESTAMP) AS in_data,
     r.esito                     ,
-    r.tipo_risposta
+    r.tipo_risposta             ,
+    q.ID              AS `ID_Q`
 FROM
     RISPOSTA AS r
+    JOIN QUESITO q ON r.id_quesito = q.ID
 WHERE
     r.ID IN (
         SELECT
-            MAX(ID)
+            MAX(r1.ID)
         FROM
-            RISPOSTA
+            RISPOSTA r1
+            JOIN QUESITO q1 ON r1.id_quesito = q1.ID
         WHERE
-            test_associato = p_test_associato
-            AND email_studente = p_email_studente
+            q1.test_associato = p_test_associato
+            AND r1.email_studente = p_email_studente
         GROUP BY
-            numero_quesito
+            q1.numero_quesito
     )
 GROUP BY
-    r.numero_quesito,
+    ID_Q            ,
+    q.numero_quesito,
     r.TIMESTAMP     ,
     r.esito         ,
     r.tipo_risposta
 ORDER BY
-    r.numero_quesito ASC;
+    q.numero_quesito ASC;
 
 END $$ DELIMITER;
 
@@ -892,35 +877,25 @@ END $$ DELIMITER;
 
 -- get opzioni quesito chiuso del test
 DELIMITER $$
-CREATE PROCEDURE GetOpzioniQuesitoChiuso (
-    IN p_test_associato VARCHAR(100),
-    IN p_numero_quesito INT
-) BEGIN
+CREATE PROCEDURE GetOpzioniQuesitoChiuso (IN p_id_quesito INT) BEGIN
 SELECT
     *
 FROM
     QUESITO_CHIUSO_OPZIONE
-    JOIN QUESITO on QUESITO.ID = QUESITO_CHIUSO_OPZIONE.id_quesito
 WHERE
-    test_associato = p_test_associato
-    AND numero_quesito = p_numero_quesito;
+    QUESITO_CHIUSO_OPZIONE.id_quesito = p_id_quesito;
 
 END $$ DELIMITER;
 
 -- prendi opzioni quesito chiuso vere
 DELIMITER $$
-CREATE PROCEDURE GetOpzioniCorrette (
-    IN p_test_associato VARCHAR(100),
-    IN p_numero_quesito INT
-) BEGIN
+CREATE PROCEDURE GetOpzioniCorrette (IN p_id_quesito INT) BEGIN
 SELECT
     *
 FROM
     QUESITO_CHIUSO_OPZIONE
-    JOIN QUESITO on QUESITO.ID = QUESITO_CHIUSO_OPZIONE.id_quesito
 WHERE
-    test_associato = p_test_associato
-    AND numero_quesito = p_numero_quesito
+    id_quesito = p_id_quesito
     AND is_corretta = 'TRUE';
 
 END $$ DELIMITER;
@@ -941,8 +916,7 @@ END $$ DELIMITER;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS GetRispostaQuesitoAperto $$
 CREATE PROCEDURE GetRispostaQuesitoAperto (
-    IN p_test_associato VARCHAR(100),
-    IN p_numero_quesito INT         ,
+    IN p_id_quesito INT            ,
     IN p_email_studente VARCHAR(100)
 ) BEGIN
 SELECT
@@ -960,8 +934,7 @@ WHERE
         FROM
             RISPOSTA
         WHERE
-            test_associato = p_test_associato
-            AND numero_quesito = p_numero_quesito
+            id_quesito = p_id_quesito
             AND email_studente = p_email_studente
         GROUP BY
             ID
@@ -976,8 +949,7 @@ END $$ DELIMITER;
 -- get scelta quesito chiuso from risposta
 DELIMITER $$
 CREATE PROCEDURE GetSceltaQuesitoChiuso (
-    IN p_test_associato VARCHAR(100),
-    IN p_numero_quesito INT         ,
+    IN p_id_quesito INT            ,
     IN p_email_studente VARCHAR(100)
 ) BEGIN
 SELECT
@@ -992,8 +964,7 @@ WHERE
         FROM
             RISPOSTA
         WHERE
-            test_associato = p_test_associato
-            AND numero_quesito = p_numero_quesito
+            id_quesito = p_id_quesito
             AND email_studente = p_email_studente
         GROUP BY
             ID
@@ -1059,16 +1030,29 @@ END $$ DELIMITER;
 -- TRIGGER che si aziona quando un utente inserisce una risposta
 -- la tabella svolgimento_test viene aggiornata e viene settata la data di inzio e lo stato IN_COMPLETAMENTO
 DELIMITER $$
+DROP TRIGGER IF EXISTS update_svolgimento_test;
+
 CREATE TRIGGER IF NOT EXISTS update_svolgimento_test AFTER
 INSERT
     ON RISPOSTA FOR EACH ROW BEGIN DECLARE is_prima_risposta INT;
+
+-- prendi il test associato alla risposta 
+DECLARE p_test_associato VARCHAR(100);
+
+SELECT
+    test_associato INTO p_test_associato
+FROM
+    QUESITO
+WHERE
+    ID = NEW.id_quesito;
 
 SELECT
     COUNT(*) INTO is_prima_risposta
 FROM
     RISPOSTA
+    JOIN QUESITO ON RISPOSTA.id_quesito = QUESITO.ID
 WHERE
-    test_associato = NEW.test_associato
+    QUESITO.test_associato = p_test_associato
     AND email_studente = NEW.email_studente;
 
 IF is_prima_risposta = 1 THEN
@@ -1077,7 +1061,7 @@ SET
     data_inzio = NOW()       ,
     stato = 'IN_COMPLETAMENTO'
 WHERE
-    titolo_test = NEW.test_associato
+    titolo_test = p_test_associato
     AND email_studente = NEW.email_studente;
 
 END IF;
@@ -1085,21 +1069,22 @@ END IF;
 -- Se tutte le ultime risposte inserite sono giuste, setta lo stato a CONCLUSO e la data di fine del test
 IF(
     SELECT
-        COUNT(*)
+        count(*)
     FROM
-        RISPOSTA
+        RISPOSTA r
     WHERE
-        test_associato = NEW.test_associato
-        AND email_studente = NEW.email_studente
-        AND esito = 'GIUSTA'
-        AND RISPOSTA.TIMESTAMP IN (
+        r.esito = 'GIUSTA'
+        AND r.ID in (
             SELECT
-                MAX(RISPOSTA.TIMESTAMP)
+                MAX(r1.ID)
             FROM
-                RISPOSTA
+                RISPOSTA r1
+                JOIN QUESITO q ON r1.id_quesito = q.ID
             WHERE
-                RISPOSTA.test_associato = NEW.test_associato
-                AND RISPOSTA.email_studente = NEW.email_studente
+                q.test_associato = p_test_associato
+                AND r1.email_studente = NEW.email_studente
+            GROUP BY
+                r1.id_quesito
         )
 ) = (
     SELECT
@@ -1107,14 +1092,14 @@ IF(
     FROM
         QUESITO
     WHERE
-        test_associato = NEW.test_associato
+        test_associato = p_test_associato
 ) THEN
 UPDATE SVOLGIMENTO_TEST
 SET
     stato = 'CONCLUSO'      ,
     data_fine = NEW.TIMESTAMP
 WHERE
-    titolo_test = NEW.test_associato
+    titolo_test = p_test_associato
     AND email_studente = NEW.email_studente;
 
 END IF;
@@ -1600,19 +1585,13 @@ END $$ DELIMITER;
 
 -- crea GetSoluzioneQuesitoAperto
 DELIMITER $$
-CREATE PROCEDURE IF NOT EXISTS GetSoluzioneQuesitoAperto (
-    IN p_test_associato VARCHAR(100),
-    IN p_numero_quesito INT
-) BEGIN
+CREATE PROCEDURE IF NOT EXISTS GetSoluzioneQuesitoAperto (IN p_id_quesito INT) BEGIN
 SELECT
-    soluzione_professore,
-    QUESITO.ID
+    *
 FROM
     QUESITO_APERTO_SOLUZIONE
-    JOIN QUESITO on QUESITO.ID = QUESITO_APERTO_SOLUZIONE.id_quesito
 WHERE
-    test_associato = p_test_associato
-    AND numero_quesito = p_numero_quesito;
+    QUESITO_APERTO_SOLUZIONE.id_quesito = p_id_quesito;
 
 END $$ DELIMITER;
 
@@ -1845,12 +1824,12 @@ VALUES
 
 -- get ID quesito
 DELIMITER $$
-CREATE PROCEDURE IF NOT EXISTS GetIDQuesitoTest (
+CREATE PROCEDURE IF NOT EXISTS GetQuesitoTest (
     IN p_test_associato VARCHAR(100),
     IN p_numero_quesito INT
 ) BEGIN
 SELECT
-    ID
+    *
 FROM
     QUESITO
 WHERE

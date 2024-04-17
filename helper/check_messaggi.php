@@ -18,15 +18,13 @@ function visualizzaMessaggi()
     if (count($messaggi) > 0) { ?>
         <h1>Messaggi Ricevuti</h1>
         <table>
-            <thead>
-                <tr>
-                    <th>Mittente</th>
-                    <th>Titolo</th>
-                    <th>Testo</th>
-                    <th>Data</th>
-                    <th>Test Associato</th>
-                </tr>
-            </thead>
+            <tr>
+                <th>Mittente</th>
+                <th>Titolo</th>
+                <th>Testo</th>
+                <th>Data</th>
+                <th>Test Associato</th>
+            </tr>
             <tbody>
                 <?php foreach ($messaggi as $messaggio) { ?>
                     <tr>

@@ -123,8 +123,8 @@ if (isset($_POST['test_associato'])) {
         $stmt->bindParam(':email_professore', $_SESSION['email']);
         try {
             $stmt->execute();
-            $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            foreach ($tests as $test) {
+            $test = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($test as $test) {
                 echo "<a href='modifica_test.php?test_associato=" . $test['titolo'] . "'>" . $test['titolo'] . "</a>" . "<br>";
             }
         } catch (\Throwable $th) {

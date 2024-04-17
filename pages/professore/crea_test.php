@@ -64,11 +64,11 @@ try {
             $stmt = $db->prepare($sql);
             $stmt->bindParam(':test_associato', $test_associato);
             $stmt->execute();
-            $column = $stmt->fetch(PDO::FETCH_ASSOC);
+            $quesito = $stmt->fetch(PDO::FETCH_ASSOC);
 
             // Se è stata trovata un'immagine, visualizzala
-            if ($column) {
-                $immagine = $column['foto'];
+            if ($quesito) {
+                $immagine = $quesito['foto'];
                 echo "<h2>Immagine Caricata</h2>";
                 echo "<img src='data:image/jpeg;base64," . base64_encode($immagine) . "' alt='Immagine Caricata'>";
             } else {

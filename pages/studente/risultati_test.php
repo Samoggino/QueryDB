@@ -5,7 +5,6 @@ require_once '../../helper/connessione_mysql.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-$test_associato = $_GET['test_associato'];
 $email_studente = $_SESSION['email'];
 
 // Assicurati che la connessione al database sia stabilita correttamente
@@ -46,26 +45,24 @@ foreach ($tests as $key => $test) {
     echo "<th>Esito</th>";
     echo "</tr>";
     foreach ($risposte as $risposta) {
+        $id_quesito = $risposta['id_quesito'];
         echo "<tr>";
         echo "<td>" . $risposta['numero_quesito'] . "</td>";
         echo "<td id='col-data'>" . $risposta['in_data'] . "</td>";
 
-        $num_quesito = $risposta['numero_quesito'];
         if ($risposta['tipo_risposta'] == 'CHIUSA') {
-            $sql = "CALL GetSceltaQuesitoChiuso(:test_associato, :numero_quesito, :email_studente);";
+            $sql = "CALL GetSceltaQuesitoChiuso(:id_quesito, :email_studente);";
             $stmt = $db->prepare($sql);
-            $stmt->bindParam(':test_associato', $test_associato);
-            $stmt->bindParam(':numero_quesito', $risposta['numero_quesito']);
+            $stmt->bindParam(':id_quesito', $id_quesito);
             $stmt->bindParam(':email_studente', $email_studente);
             $stmt->execute();
             $scelta = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
             echo "<td>" . $scelta['opzione_scelta'] . "</td>";
 
-            $sql = "CALL GetOpzioniCorrette(:test_associato, :numero_quesito)";
+            $sql = "CALL GetOpzioniCorrette(:id_quesito)";
             $stmt = $db->prepare($sql);
-            $stmt->bindParam(':test_associato', $test_associato);
-            $stmt->bindParam(':numero_quesito', $risposta['numero_quesito']);
+            $stmt->bindParam(':id_quesito', $id_quesito);
             $stmt->execute();
             $opzioni = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
@@ -77,16 +74,15 @@ foreach ($tests as $key => $test) {
             }
         } elseif ($risposta['tipo_risposta'] == 'APERTA') {
 
-            $sql = "CALL GetRispostaQuesitoAperto(:test_associato, :numero_quesito, :email_studente);";
+            $sql = "CALL GetRispostaQuesitoAperto(:id_quesito, :email_studente);";
             $stmt = $db->prepare($sql);
-            $stmt->bindParam(':test_associato', $test_associato);
-            $stmt->bindParam(':numero_quesito', $risposta['numero_quesito']);
+            $stmt->bindParam(':id_quesito', $id_quesito);
             $stmt->bindParam(':email_studente', $email_studente);
             $stmt->execute();
             $scelta = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
             echo "<td>" . $scelta['risposta'] . "</td>";
-            echo "<td>" . mostraSoluzione($scelta['esito'], $num_quesito, $scelta['risposta'], $test_associato) . "</td>";
+            echo "<td>" . mostraSoluzione($scelta['esito'], $scelta['risposta'], $id_quesito) . "</td>";
         }
 
         if ($risposta['esito'] == "GIUSTA") {
@@ -101,15 +97,15 @@ foreach ($tests as $key => $test) {
 }
 
 
-function mostraSoluzione($esito, $num_quesito, $risposta_studente, $test_associato)
+function mostraSoluzione($esito, $risposta_studente, $id_quesito)
 {
+
 
     if ($esito == "GIUSTA") {
         $db = connectToDatabaseMYSQL();
-        $sql = "CALL GetSoluzioneQuesitoAperto(:test_associato, :numero_quesito);";
+        $sql = "CALL GetSoluzioneQuesitoAperto(:id_quesito);";
         $stmt = $db->prepare($sql);
-        $stmt->bindParam(':test_associato', $test_associato);
-        $stmt->bindParam(':numero_quesito', $num_quesito);
+        $stmt->bindParam(':id_quesito', $id_quesito);
         $stmt->execute();
         $soluzioni = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
@@ -191,8 +187,8 @@ function mostraSoluzione($esito, $num_quesito, $risposta_studente, $test_associa
 
         if ($risposte == 0) {
             echo "Non hai svolto alcun test";
-            header("Location: ../../pages/studente/studente.php");
-            exit();
+            // header("Location: ../../pages/studente/studente.php");
+            // exit();
         } else {
         ?>
     </p>

@@ -4,25 +4,27 @@ require '../../helper/connessione_mysql.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+
 if (isset($_SESSION['email']) == false) {
     header('Location: ../index.php');
 }
+
 // Assicurati che il parametro test_associato sia stato passato tramite GET
 if (isset($_GET['test_associato'])) {
-    $tests = $_GET['test_associato'];
+    $test = $_GET['test_associato'];
 
-    echo "<script> console.log('test scelto: " . $tests . "');</script>";
+    echo "<script> console.log('test scelto: " . $test . "');</script>";
 
 
     try {
         $db = connectToDatabaseMYSQL();
-        test_gia_svolto($tests);
+        test_gia_svolto($test);
 
         // Prepara la query per selezionare i quesiti associati al test
         $sql = "CALL GetQuesitiTest(:test_associato);";
 
         $stmt = $db->prepare($sql);
-        $stmt->bindParam(':test_associato', $tests);
+        $stmt->bindParam(':test_associato', $test);
         $stmt->execute();
         $quesiti = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
@@ -40,30 +42,30 @@ if (isset($_GET['test_associato'])) {
 }
 
 
-function build_view_quesito($quesito, $test, $db)
+function build_view_quesito($quesito, $db)
 {
     if ($quesito['tipo_quesito'] == 'APERTO') {
         q_aperto($quesito);
     } elseif ($quesito['tipo_quesito'] == 'CHIUSO') {
-        q_chiuso($quesito, $test, $db);
+        q_chiuso($quesito, $db);
     }
 }
 
-function q_chiuso($quesito, $test, $db)
+function q_chiuso($quesito, $db)
 {
     echo "<div class='chiusi'>";
     echo "<h3>" . $quesito["numero_quesito"] . ". " . $quesito['descrizione'] . "</h3>";
 
-    $sql_opzioni = "CALL GetOpzioniQuesitoChiuso(:test_associato, :numero_quesito);";
+    $sql_opzioni = "CALL GetOpzioniQuesitoChiuso(:id_quesito);";
     $statement_opzioni = $db->prepare($sql_opzioni);
-    $statement_opzioni->bindParam(':numero_quesito', $quesito['numero_quesito']);
-    $statement_opzioni->bindParam(':test_associato', $test);
+    $statement_opzioni->bindParam(':id_quesito', $quesito['ID']);
     $statement_opzioni->execute();
     $opzioni = $statement_opzioni->fetchAll(PDO::FETCH_ASSOC);
     $statement_opzioni->closeCursor();
 
+    // aggiungi il default checked
     foreach ($opzioni as $opzione) {
-        echo "<input type='radio' name='quesito" . $quesito['numero_quesito'] . "' value='" . $opzione['numero_opzione'] . "'>" . " " . $opzione['testo'] . "<br>";
+        echo "<input type='radio' name='quesito" . $quesito['numero_quesito'] . "' value='" . $opzione['numero_opzione'] . "' required>" . " " . $opzione['testo'] . "<br>";
     }
 
     echo "</div>";
@@ -82,7 +84,7 @@ function test_gia_svolto($test)
 {
     require '../../helper/check_closed.php';
     if (check_svolgimento($test, $_SESSION['email']) == 1) {
-        header("Location: ../../pages/studente/risultati_test.php?test_associato=" . $test);
+        header("Location: ../../pages/studente/risultati_test.php");
         exit();
     }
 }
@@ -95,18 +97,14 @@ function test_gia_svolto($test)
 <head>
     <title>Test - <?php echo $_GET['test_associato']; ?></title>
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="../../styles/eseguiTest.css">
     <link rel="stylesheet" href="../../styles/global.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Acme&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
-    </style>
+    <link rel="stylesheet" href="../../styles/eseguiTest.css">
 </head>
 
 <body>
     <h1>Esegui: <span style="color: red;"><?php echo strtoupper($_GET['test_associato']); ?></span></h1>
 
     <div class="container">
-
         <div id="quesiti">
             <?php
             $db = connectToDatabaseMYSQL();
@@ -121,7 +119,7 @@ function test_gia_svolto($test)
                     <?php
                     // Mostra i quesiti nel form
                     foreach ($quesiti as $quesito) {
-                        build_view_quesito($quesito, $tests, $db);
+                        build_view_quesito($quesito, $db);
                     }
                     ?>
                     <input type='submit' value='Invia risposte'>
@@ -171,6 +169,56 @@ function test_gia_svolto($test)
             </div>
         </div>
     </div>
+
+
+    <script>
+        // controlla che textarea non sia vuoto e contenga almeno 6 caratteri
+        var form = document.querySelector('form');
+        form.addEventListener('submit', function(event) {
+            var textareas = document.querySelectorAll('textarea');
+            for (var i = 0; i < textareas.length; i++) {
+                if (textareas[i].value.length < 6) {
+                    alert('Risposta non data');
+                    event.preventDefault();
+                    return;
+                }
+            }
+        });
+
+        // non inviare il form se sono presenti parole pericolose come DELETE, DROP, ecc. ignorando maiuscole e minuscole
+        form.addEventListener('submit', function(event) {
+            var textareas = document.querySelectorAll('textarea');
+            for (var i = 0; i < textareas.length; i++) {
+                var risposta = textareas[i].value;
+                var rispostaOriginale = risposta; // Salva il testo originale
+                risposta = risposta.toUpperCase(); // Modifica il testo solo per il controllo
+
+                // Esegui la verifica solo sul testo modificato
+                if (risposta.includes('DELETE') || risposta.includes('DROP') || risposta.includes('TRUNCATE') || risposta.includes('ALTER') || risposta.includes('UPDATE') || risposta.includes('INSERT') || risposta.includes('DATABASE')) {
+                    alert('Non puoi modificare il database con la tua risposta!');
+                    event.preventDefault();
+                    return;
+                }
+            }
+        });
+
+        // rimuovi gli accapo da textarea
+        form.addEventListener('submit', function(event) {
+            var textareas = document.querySelectorAll('textarea');
+            for (var i = 0; i < textareas.length; i++) {
+                textareas[i].value = textareas[i].value.replace(/\n/g, ' ');
+            }
+        });
+
+
+        // le virgolette doppie vengono sostituite con quelle singole
+        form.addEventListener('submit', function(event) {
+            var textareas = document.querySelectorAll('textarea');
+            for (var i = 0; i < textareas.length; i++) {
+                textareas[i].value = textareas[i].value.replace(/"/g, "'");
+            }
+        });
+    </script>
 
 </body>
 

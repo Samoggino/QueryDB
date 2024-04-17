@@ -45,6 +45,7 @@ if (isset($_GET['nome_tabella'])) {
 <head>
     <title>Inserisci valori</title>
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="../../styles/global.css">
     <link rel="stylesheet" href="../../styles/table.css">
 </head>
 
@@ -86,13 +87,11 @@ if (isset($_GET['nome_tabella'])) {
 
             <h2>Vincoli di integrità</h2>
             <table>
-                <thead>
-                    <tr>
-                        <th>Tabella padre</th>
-                        <th>Attributo in <?php echo $nome_tabella ?></th>
-                        <th>Reference </th>
-                    </tr>
-                </thead>
+                <tr>
+                    <th>Tabella padre</th>
+                    <th>Attributo in <?php echo $nome_tabella ?></th>
+                    <th>Reference </th>
+                </tr>
                 <tbody>
                     <?php foreach ($tabelle_riferite as $tabella) { ?>
                         <tr>

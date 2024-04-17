@@ -42,21 +42,19 @@ function generateTable($tabella)
         }
     </style>
 
-    <h3><?php echo "Tabella: " . strtoupper($tabella); ?></h3>
+    <h3><?php echo "Tabella: " . $tabella ?></h3>
     <table>
-        <thead>
-            <tr>
-                <?php foreach ($attributi as $attributo) { ?>
-                    <th style="color:<?php if ($attributo['is_key'] == "TRUE") {
-                                            echo "red";
-                                        } else {
-                                            echo "black";
-                                        }; ?>">
-                        <?php echo $attributo['nome_attributo']; ?>
-                    </th>
-                <?php } ?>
-            </tr>
-        </thead>
+        <tr>
+            <?php foreach ($attributi as $attributo) { ?>
+                <th style="color:<?php if ($attributo['is_key'] == "TRUE") {
+                                        echo "red";
+                                    } else {
+                                        echo "black";
+                                    }; ?>">
+                    <?php echo $attributo['nome_attributo']; ?>
+                </th>
+            <?php } ?>
+        </tr>
         <tbody>
             <?php foreach ($valori_tabella_fisica as $valore) { ?>
                 <tr>

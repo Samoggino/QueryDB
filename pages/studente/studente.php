@@ -14,7 +14,7 @@ $db = connectToDatabaseMYSQL();
 $sql = "CALL GetAllTests();";
 $stmt = $db->prepare($sql);
 $stmt->execute();
-$tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$test = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $stmt->closeCursor();
 
 // controlla se l'utente ha svolto dei test
@@ -46,7 +46,7 @@ $stmt->closeCursor();
             <?php
             require_once "../../helper/check_closed.php";
             // stampa tutti i test
-            foreach ($tests as $test) {
+            foreach ($test as $test) {
                 $is_closed = check_svolgimento($test['titolo'], $_SESSION['email']);
                 echo "<div class='test-item'>";
                 echo "<h3>" . strtoupper($test['titolo']) . "</h3>";
