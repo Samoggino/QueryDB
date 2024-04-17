@@ -17,7 +17,7 @@ function visualizzaMessaggi()
 
     if (count($messaggi) > 0) { ?>
         <h1>Messaggi Ricevuti</h1>
-        <table>
+        <table class="messaggi">
             <tr>
                 <th>Mittente</th>
                 <th>Titolo</th>

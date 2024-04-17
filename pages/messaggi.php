@@ -79,50 +79,10 @@ function tendinaTest()
 <head>
     <title>Messaggi</title>
     <link rel="icon" href="../images/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="../styles/global.css">
     <a href="../pages/professore/professore.php">Pagina del professore</a>
 
     <style>
-        * {
-            font-family: Arial, sans-serif;
-            max-width: 95dvw;
-        }
-
-        body {
-            display: grid;
-            place-items: center;
-            margin-top: 2em;
-        }
-
-        table {
-            border-collapse: collapse;
-            margin-top: 20px;
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-            margin-left: 1em;
-            margin-right: 1em;
-            max-width: 1000px;
-        }
-
-        th,
-        td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: center;
-        }
-
-        th {
-            color: black;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        td:hover {
-            background-color: #ddd;
-        }
-
         form {
             display: flex;
             flex-direction: column;
@@ -159,10 +119,6 @@ function tendinaTest()
 </head>
 
 <body>
-
-    <!-- TODO: i broadcast non devono avere un destinatario, 
-    perchè è una ridondanza considerando che tutti gli studenti 
-    ricevono quel messaggio, in questo modo risparmio spazio ed è più efficiente  -->
 
     <?php if ($_SESSION['ruolo'] == 'STUDENTE') {  ?>
         <div class="invia-messaggio">

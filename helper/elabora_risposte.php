@@ -41,11 +41,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $tipo_quesito = $quesito['tipo_quesito'];
                     $scelta = str_replace('"', "'", $scelta);
 
-                    // // rimuovi gli accapo da scelta
-                    // $scelta = str_replace("\n", "", $scelta);
-
-
-                    echo '<script>console.log("Risposta: ' . $scelta . '")</script>';
                     // Inserisci la risposta nel database in base al tipo di quesito
                     if ($tipo_quesito == 'APERTO') {
                         // se scelta ha meno di 6 caratteri, allora non è stata data risposta
@@ -80,13 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                         if ($sol === $sce) {
                                             $esito_aperta = "GIUSTA";
-                                            echo "<script>console.log('Risposta giusta')</script>";
-                                            echo "Risposta giusta <br>";
-                                            echo  json_encode($sol, JSON_PRETTY_PRINT) . "<br>";
-                                            echo json_encode($sce, JSON_PRETTY_PRINT);
                                             break;
-                                        } else {
-                                            echo "<script>console.log('Risposta sbagliata')</script>";
                                         }
                                     } catch (\Throwable $th) {
                                         continue;
@@ -151,8 +140,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $db = null;
 
             // Reindirizza alla pagina dei risultati
-            // header("Location: ../pages/studente/risultati_test.php");
-            // exit();
+            header("Location: ../pages/studente/risultati_test.php");
+            exit();
             // echo "<button onclick='window.location.href = \"../pages/studente/risultati_test.php?test_associato=" . $test_associato . "\";'>Visualizza Risultati</button>";
         } catch (PDOException $e) {
             // Gestisci eventuali errori di connessione al database

@@ -12,7 +12,7 @@ body {
 
 
 table {
-    min-width: max-content;
+    /* min-width: max-content; */
     border-collapse: collapse;
     width: 100%;
     border-radius: 1rem;
@@ -27,4 +27,27 @@ td {
 
 th {
     background-color: #f2f2f2;
+}
+
+/**
+ * Tabelle create dal professore
+ */
+table.printed {
+    max-width: 50%;
+}
+
+.printed th,
+td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center;
+}
+
+.printed th {
+    background-color: #f2f2f2;
+}
+
+.printed table img {
+    max-width: 250px;
+    max-height: 250px;
 }

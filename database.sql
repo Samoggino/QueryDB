@@ -448,11 +448,11 @@ CREATE TABLE IF NOT EXISTS
 -- crea tabelle delle risposte chiuse
 CREATE TABLE IF NOT EXISTS
     RISPOSTA_QUESITO_CHIUSO (
-        id_risposta INT NOT NULL                                                      ,
-        opzione_scelta INT NOT NULL                                                   ,
-        PRIMARY KEY (id_risposta)                                                     ,
-        FOREIGN KEY (id_risposta) REFERENCES RISPOSTA (ID) ON DELETE CASCADE          ,
-        FOREIGN KEY (opzione_scelta) REFERENCES QUESITO_CHIUSO_OPZIONE (numero_opzione)
+        id_risposta INT NOT NULL                                                                        ,
+        opzione_scelta INT NOT NULL                                                                     ,
+        PRIMARY KEY (id_risposta)                                                                       ,
+        FOREIGN KEY (id_risposta) REFERENCES RISPOSTA (ID) ON DELETE CASCADE                            ,
+        FOREIGN KEY (opzione_scelta) REFERENCES QUESITO_CHIUSO_OPZIONE (numero_opzione) ON DELETE CASCADE
     );
 
 -- crea tabella delle risposte aperte

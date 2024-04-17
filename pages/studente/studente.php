@@ -14,7 +14,7 @@ $db = connectToDatabaseMYSQL();
 $sql = "CALL GetAllTests();";
 $stmt = $db->prepare($sql);
 $stmt->execute();
-$test = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $stmt->closeCursor();
 
 // controlla se l'utente ha svolto dei test
@@ -29,12 +29,12 @@ $stmt->closeCursor();
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../../styles/global.css">
     <link rel="stylesheet" href="../../styles/studente.css">
-    
+
 </head>
 
 <body>
     <div class="container">
-        <h1>Visualizza tutti i test che può sostenere lo studente</h1>
+        <h1>Ciao</h1>
         <div class="welcome">
             <?php
             echo "Benvenuto " . $_SESSION['nome'] . " " . $_SESSION['cognome'] . "<br>";
@@ -46,7 +46,7 @@ $stmt->closeCursor();
             <?php
             require_once "../../helper/check_closed.php";
             // stampa tutti i test
-            foreach ($test as $test) {
+            foreach ($tests as $test) {
                 $is_closed = check_svolgimento($test['titolo'], $_SESSION['email']);
                 echo "<div class='test-item'>";
                 echo "<h3>" . strtoupper($test['titolo']) . "</h3>";

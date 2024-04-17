@@ -142,37 +142,11 @@ function mostraSoluzione($esito, $risposta_studente, $id_quesito)
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="../../styles/eseguiTest.css">
+    <link rel="stylesheet" href="../../styles/global.css">
+    <link rel="stylesheet" href="../../styles/risultatiTest.css">
 
     <title>Risultati</title>
 
-    <style>
-        table {
-            max-width: 70%;
-            border-collapse: collapse;
-            width: 100%;
-            min-width: auto;
-        }
-
-        td#col-data {
-            min-width: 75px;
-        }
-
-        th#test {
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.5em;
-            color: red;
-        }
-
-        #esito-giusta {
-            color: green;
-        }
-
-        #esito-sbagliata {
-            color: red;
-        }
-    </style>
 </head>
 
 <body>

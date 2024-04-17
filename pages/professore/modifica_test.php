@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <title>Modifica test</title>
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="../../styles/table.css">
+    <link rel="stylesheet" href="../../styles/global.css">
     <style>
         img {
             max-width: 250px;

@@ -194,7 +194,7 @@ function test_gia_svolto($test)
                 risposta = risposta.toUpperCase(); // Modifica il testo solo per il controllo
 
                 // Esegui la verifica solo sul testo modificato
-                if (risposta.includes('DELETE') || risposta.includes('DROP') || risposta.includes('TRUNCATE') || risposta.includes('ALTER') || risposta.includes('UPDATE') || risposta.includes('INSERT') || risposta.includes('DATABASE')) {
+                if (risposta.includes('DELETE') || risposta.includes('DROP') || risposta.includes('TRUNCATE') || risposta.includes('ALTER') || risposta.includes('UPDATE') || risposta.includes('INSERT') || risposta.includes('DATABASE') || risposta.includes('PROCEDURE')) {
                     alert('Non puoi modificare il database con la tua risposta!');
                     event.preventDefault();
                     return;

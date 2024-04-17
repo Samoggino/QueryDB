@@ -18,32 +18,10 @@ function generateTable($tabella)
         echo "PROBLEM RIGHE TABELLA VINCOLATA <br>" . $th->getMessage();
     }
 ?>
-    <style>
-        table {
-            max-width: 50%;
-            border-collapse: collapse;
-            width: 100%;
-        }
 
-        th,
-        td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: center;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-
-        table img {
-            max-width: 250px;
-            max-height: 250px;
-        }
-    </style>
 
     <h3><?php echo "Tabella: " . $tabella ?></h3>
-    <table>
+    <table class="printed">
         <tr>
             <?php foreach ($attributi as $attributo) { ?>
                 <th style="color:<?php if ($attributo['is_key'] == "TRUE") {

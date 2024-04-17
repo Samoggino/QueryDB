@@ -46,7 +46,6 @@ if (isset($_GET['nome_tabella'])) {
     <title>Inserisci valori</title>
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../../styles/global.css">
-    <link rel="stylesheet" href="../../styles/table.css">
 </head>
 
 <body>
