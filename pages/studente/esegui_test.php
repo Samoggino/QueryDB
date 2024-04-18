@@ -118,8 +118,8 @@ function test_gia_svolto($test)
                     <input type='hidden' name='test_associato' value='<?php echo $_GET['test_associato'] ?>'>
                     <?php
                     // Mostra i quesiti nel form
-                    foreach ($quesiti as $quesito) {
-                        build_view_quesito($quesito, $db);
+                    foreach ($quesiti as $tabelle_di_esercizio) {
+                        build_view_quesito($tabelle_di_esercizio, $db);
                     }
                     ?>
                     <input type='submit' value='Invia risposte'>

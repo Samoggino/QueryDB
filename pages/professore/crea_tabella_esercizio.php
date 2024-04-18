@@ -9,12 +9,12 @@ if ($_SESSION['ruolo'] != 'PROFESSORE') {
 }
 // Query per recuperare gli attributi di tutte le tabelle
 $db = connectToDatabaseMYSQL();
-$query = "SHOW TABLES";
+$query = "CALL GetTabelleCreate()";
 $stmt = $db->query($query);
 $tabelle = array();
-while ($quesito = $stmt->fetch(PDO::FETCH_NUM)) {
-    // echo "<script>console.log('" . json_encode($column[0]) . "')</script>";
-    $tabelle[] = $quesito[0];
+while ($tabelle_di_esercizio = $stmt->fetch(PDO::FETCH_NUM)) {
+    echo "<script>console.log('" . json_encode($tabelle_di_esercizio[0]) . "')</script>";
+    $tabelle[] = $tabelle_di_esercizio[0];
 }
 
 $attributi = array();
@@ -24,14 +24,27 @@ foreach ($tabelle as $tabella) {
     $stmt->bindParam(':tabella', $tabella);
     $stmt->execute();
 
-    while ($quesito = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $attributi[$tabella][] = $quesito['NOME_ATTRIBUTO'];
-        echo "<script>console.log('" . json_encode($quesito) . "')</script>";
+    while ($tabelle_di_esercizio = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        // Creazione di un array associativo con il nome e il tipo dell'attributo
+        $attributo = [
+            'tabella' => $tabella, // 'tabella' => 'NOME_TABELLA
+            'nome' => $tabelle_di_esercizio['NOME_ATTRIBUTO'],
+            'tipo' => $tabelle_di_esercizio['TIPO_ATTRIBUTO']
+        ];
+
+        // Aggiunta dell'array associativo all'array $attributi
+        $attributi[$tabella][] = $attributo;
+
+        echo "<script>console.log('" . json_encode($attributo) . "')</script>";
     }
 }
 
+
+
 // Includi l'array di attributi come parte del codice JavaScript
 echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script>";
+echo "<script>console.log(attributiPerTabella)</script>";
+
 ?>
 
 
@@ -57,7 +70,6 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
         <input type="submit" value="Crea">
     </form>
 
-
     <script>
         // se attributi_container è vuoto non mostrarlo
         var container = document.getElementById("attributi_container");
@@ -78,15 +90,18 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
 
 
         function creaAttributoContainer(i, container, div) {
-
             div.className = "attributo-container";
             div.innerHTML = '<label for="nome_attributo_' + i + '">Nome Attributo ' + (i + 1) + ':</label>' +
                 '<input type="text" id="nome_attributo_' + i + '" name="nome_attributo[]" required>' +
                 '<label for="tipo_attributo_' + i + '">Tipo Attributo ' + (i + 1) + ':</label>' +
-                '<select id="tipo_attributo_' + i + '" name="tipo_attributo[]" required>' +
+                '<select id="tipo_attributo_' + i + '" name="tipo_attributo[]" required onchange="populateAttributi(' + i + ')">' +
                 '<option value="INT">INT</option>' +
                 '<option value="VARCHAR">VARCHAR</option>' +
                 '<option value="DATE">DATE</option>' +
+                '<option value="BOOLEAN">BOOLEAN</option>' +
+                '<option value="TEXT">TEXT</option>' +
+                '<option value="DECIMAL">DECIMAL</option>' +
+                '<option value="FLOAT">FLOAT</option>' +
                 '</select>' +
                 '<div class="checkbox-container">' +
                 '<input type="checkbox" id="primary_key_' + i + '" name="primary_key[]" value="' + i + '">' +
@@ -106,14 +121,15 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
 
             // Popola le opzioni per la tabella vincolata
             var tabellaVincolataSelect = document.getElementById("tabella_vincolata_" + i);
+
             <?php
             $db = connectToDatabaseMYSQL();
             $query = "CALL GetTabelleCreate()";
             $stmt = $db->query($query);
-            while ($quesito = $stmt->fetch(PDO::FETCH_NUM)) {
+            while ($tabelle_di_esercizio = $stmt->fetch(PDO::FETCH_NUM)) {
                 echo 'var option = document.createElement("option");';
-                echo 'option.value = "' . $quesito[0] . '";';
-                echo 'option.textContent = "' . $quesito[0] . '";';
+                echo 'option.value = "' . $tabelle_di_esercizio[0] . '";';
+                echo 'option.textContent = "' . $tabelle_di_esercizio[0] . '";';
                 echo 'tabellaVincolataSelect.appendChild(option);';
             }
             ?>
@@ -121,16 +137,32 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
 
         // Mostra gli attributi corrispondenti alla tabella selezionata per la foreign key
         function populateAttributi(index) {
+
             var tabellaVincolata = document.getElementById("tabella_vincolata_" + index).value;
             var attributoVincolatoSelect = document.getElementById("attributo_vincolato_" + index);
             attributoVincolatoSelect.innerHTML = '';
 
             var attributi = attributiPerTabella[tabellaVincolata];
+            if (attributi == null) {
+                return;
+            }
             for (var j = 0; j < attributi.length; j++) {
                 var option = document.createElement("option");
-                option.value = attributi[j];
-                option.textContent = attributi[j];
-                attributoVincolatoSelect.appendChild(option);
+                // se l'attributo è dello stesso tipo di quello che si sta creando
+                // lo mostro, altrimenti no
+                if (document.getElementById("tipo_attributo_" + index).value == attributi[j].tipo) {
+                    option.value = attributi[j].nome;
+                    option.textContent = attributi[j].nome;
+                    attributoVincolatoSelect.appendChild(option);
+                }
+            }
+
+            // se non ci sono attributi dello stesso tipo disabilito la foreign key
+            if (attributoVincolatoSelect.innerHTML == '') {
+                alert("Non ci sono attributi dello stesso tipo in altre tabelle.\nLa foreign key verrà disabilitata.");
+                document.getElementById("foreign_key_options_" + index).style.display = "none";
+            } else {
+                document.getElementById("foreign_key_options_" + index).style.display = "block";
             }
         }
 
@@ -167,7 +199,6 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
 
         // Mostra le opzioni per la foreign key quando la checkbox è selezionata
         var foreignKeyCheckboxes = document.getElementsByName("foreign_key[]");
-        console.log(foreignKeyCheckboxes);
         for (var i = 0; i < foreignKeyCheckboxes.length; i++) {
             foreignKeyCheckboxes[i].addEventListener("change", function() {
                 var index = parseInt(this.id.split("_")[1]); // Ottieni l'indice dall'ID dell'elemento
@@ -179,9 +210,14 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
                 }
             });
         }
+
+        // TODO: controlla che il nome delle variabili non sia uguale a quello di un attributo già inserito
+
+        // TODO: controlla che il nome delle variabili non corrisponda al tipo dell'attributo (INT, VARCHAR, ecc.)
+
+        // TODO: rimuovi gli spazi e i caratteri speciali dai nomi degli attributi e delle tabelle
+        
     </script>
-
-
 
 </body>
 

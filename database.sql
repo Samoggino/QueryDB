@@ -1561,8 +1561,9 @@ END $$ DELIMITER;
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS GetPrimaryKey (IN p_table_name VARCHAR(100)) BEGIN
 SELECT
-    ID             AS INDICE       ,
-    nome_attributo AS NOME_ATTRIBUTO
+    ID             AS INDICE        ,
+    nome_attributo AS NOME_ATTRIBUTO,
+    tipo_attributo AS TIPO_ATTRIBUTO
 FROM
     TAB_ATT AS TA
 WHERE
@@ -1911,5 +1912,14 @@ SELECT
     numero_risposte
 FROM
     Classifica_quesitiPerNumeroRisposte;
+
+END $$ DELIMITER;
+
+-- elimina tabella
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS EliminaTabella (IN p_nome_tabella VARCHAR(20)) BEGIN
+DELETE FROM TABELLA_DELLE_TABELLE
+WHERE
+    nome_tabella = p_nome_tabella;
 
 END $$ DELIMITER;

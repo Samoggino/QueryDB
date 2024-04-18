@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../helper/connessione_mysql.php';
+require_once '../helper/connessione_mongodb.php';
 require_once 'tabella_logica.php';
 require_once 'tabella_fisica.php';
 ini_set('display_errors', 1);
@@ -63,12 +64,36 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
         $query_corrente = inserisciTriggerNumeroRighe($query_corrente, $nome_tabella);
 
         $stmt = $db->prepare($query_corrente);
+
+        $documento = (
+            array(
+                'creazione_tabella' => 'creazione_tabella',
+                'nome_tabella' => $nome_tabella,
+                'errore' => $th->getMessage(),
+                'data' => date('Y-m-d'),
+                'query' => $query_corrente
+            )
+        );
+
+        connectToDatabaseMONGODB($documento);
         $stmt->execute();
         $db = null;
 
         header("Location: /pages/professore/riempi_tabella.php?nome_tabella=$nome_tabella");
         exit();
     } catch (\Throwable $th) {
+        // eliminare la tabella logica
+        $db = connectToDatabaseMYSQL();
+        $stmt = $db->prepare("CALL EliminaTabella(:nome_tabella)");
+        $stmt->bindParam(':nome_tabella', $nome_tabella, PDO::PARAM_STR);
+        $stmt->execute();
+        $stmt->closeCursor();
+        echo "<script>console.log('" . $nome_tabella . " eliminata a causa di un errore nella creazione fisica')</script>";
+        echo "<script>console.log('" . json_encode($_POST) . "')</script>";
+        echo "<script>console.log('" . $query_corrente . "')</script>";
+
+
+
         echo $th->getMessage();
     }
 }
