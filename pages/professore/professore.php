@@ -4,9 +4,6 @@ require_once '../../helper/connessione_mysql.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-echo "<script>console.log('Debug: " . $_SESSION['email'] . "');</script>";
-echo "<script>console.log('Debug: " . $_SESSION['ruolo'] . "');</script>";
-
 
 if ($_SESSION['ruolo'] != 'PROFESSORE') {
     echo "<script>alert('Non hai i permessi per accedere a questa pagina!'); window.location.replace('/pages/login.php')</script>";
@@ -24,157 +21,106 @@ if (isset($_POST['test_associato'])) {
 <head>
     <title>Creazione test</title>
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
-    <style>
-        /* Stile generale */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
+    <link rel="stylesheet" href="../../styles/global.css">
+    <link rel="stylesheet" href="../../styles/professore.css">
+    <script>
+        // Definizione della funzione updateActionConcludiTest
+        function updateActionConcludiTest(concludi) {
+            console.log(concludi.value); // Verifica che il valore sia corretto
+            var selectedValue = concludi.value; // Usare l'elemento passato come parametro
+            var form = document.getElementById("concludi-quesito-form");
+            form.action = "/pages/professore/modifica_test.php?test_associato=" + selectedValue;
         }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        h1,
-        h2,
-        h3 {
-            color: #333;
-        }
-
-        /* Stile per i form */
-        form {
-            margin-bottom: 20px;
-        }
-
-        input[type="text"],
-        input[type="file"],
-        input[type="submit"],
-        select {
-            /* fade-in */
-            transition: all 0.15s ease;
-            margin-bottom: 10px;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        input[type="submit"] {
-            background-color: #007bff;
-            color: #fff;
-            cursor: pointer;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #0056b3;
-        }
-
-        /* Stile per i link */
-        a {
-            color: #007bff;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    </script>
 
 </head>
 
 <body>
-    <div class="container">
+    <h1>Buongiorno professore!</h1>
+    <h2>La sua email è : <?php echo $_SESSION['email'] ?> </h2>
 
-        <h1>Buongiorno professore!</h1>
-        <?php
-        echo "<h2>La tua email è : " . $_SESSION['email'] . "</h2>";
-        ?>
-        <h2>Crea un test</h2>
-        <form id="uploadForm" method="post" action="crea_test.php" enctype="multipart/form-data">
-            <input for="titolo_test_creato" name="titolo_test_creato" placeholder="Titolo" type="text" required>
-            <div>
-                <label for="file_immagine" name="file_immagine">Seleziona un'immagine:</label><br>
-                <input type="file" name="file_immagine" accept="image/*"><br>
-            </div>
-            <input type="submit" value="Crea">
-        </form>
+    <div class="container-professore">
+        <div class="widget-professore">
+            <h3>Crea un test</h3>
+            <button onclick="window.location.href='/pages/professore/crea_test.php';">Crea</button>
+        </div>
 
-        <h2>Aggiungi quesito</h2>
-        <h3>Scegli un test</h3>
-        <form id="aggiungi-quesito-form" method="post">
-            <select name=" test_associato" for="test_associato" onchange="updateActionAggiungiQuesito(this)">
-                <?php
-                require_once "./tendina_test.php";
-                tendinaTest();
-                ?>
-            </select>
-            <input type="submit" value="Aggiungi quesito">
-        </form>
+        <div class="widget-professore">
+            <h3>Aggiungi quesito ad un test</h3>
+            <!-- <h4>Scegli un test</h4> -->
+            <form id="aggiungi-quesito-form" method="post">
+                <div>
+                    <select name="test_associato" for="test_associato" onchange="updateActionAggiungiQuesito(this)">
+                        <?php
+                        require_once "./tendina_test.php";
+                        tendinaTest();
+                        ?>
+                    </select>
+                </div>
+                <button type="submit" style="width:fit-content"> Aggiungi quesito </button>
+            </form>
+        </div>
 
+        <div class="widget-professore">
+            <h3>Concludi test</h3>
+            <form id="concludi-quesito-form" method="post">
+                <div>
+                    <select name="concludi" for="concludi" onchange="updateActionConcludiTest(this)">
+                        <?php
+                        require_once "./tendina_test.php";
+                        tendinaTest();
+                        ?>
+                    </select>
+                </div>
+                <button type="submit" style="width:fit-content"> Concludi test </button>
+            </form>
+        </div>
 
-        <h2>Concludi test</h2>
-        <?php
-        require_once "./tendina_test.php";
-        $db = connectToDatabaseMYSQL();
-        $sql = "CALL GetTestDelProfessore(:email_professore);";
-        $stmt = $db->prepare($sql);
-        $stmt->bindParam(':email_professore', $_SESSION['email']);
-        try {
-            $stmt->execute();
-            $test = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            foreach ($test as $test) {
-                echo "<a href='modifica_test.php?test_associato=" . $test['titolo'] . "'>" . $test['titolo'] . "</a>" . "<br>";
-            }
-        } catch (\Throwable $th) {
-            echo "<script>console.log('Errore: " . $th . "');</script>";
-        }
-        $stmt->closeCursor();
-        ?>
+        <div class="widget-professore" onclick="window.location.href='/pages/messaggi.php';" style="cursor: pointer;">
+            <h3>Vai ai messaggi</h3>
+            <button href="/pages/messaggi.php">Messaggi</button>
+        </div>
 
 
-        <h2>Vai ai messaggi</h2>
-        <a href="/pages/messaggi.php">Messaggi</a>
+        <div class="widget-professore">
+            <h3>Vai a creazione tabella </h3>
+            <button href="/pages/professore/crea_tabella_esercizio.php">Crea tabella</button>
+        </div>
 
-        <h2>Vai a creazione tabella </h2>
-        <a href="/pages/professore/crea_tabella_esercizio.php">Crea tabella</a>
+        <div class="widget-professore">
 
-        <!-- scegli la tabella in cui inserire nuovi valori -->
-        <h2>Inserisci valori in tabella</h2>
-        <form id="inserisci-valori-form" method="post">
-            <select name="nome_tabella" id="nome_tabella" onchange="updateActionRiempiTabella(this)">
-                <?php
-                $sql = "CALL GetTabelleCreate();";
-                $stmt = $db->prepare($sql);
-                try {
-                    $stmt->execute();
-                    $tabelle = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                    foreach ($tabelle as $tabella) {
-                        echo "<option value='" . $tabella['nome_tabella'] . "'>" . $tabella['nome_tabella'] . "</option>";
-                    }
-                } catch (\Throwable $th) {
-                    echo "<script>console.log('Errore: " . $th . "');</script>";
-                }
-                $stmt->closeCursor();
-                ?>
-            </select>
-            <input type="submit" value="Inserisci valori">
-        </form>
+            <!-- scegli la tabella in cui inserire nuovi valori -->
+            <h3>Inserisci valori in tabella</h3>
+            <form id="inserisci-valori-form" method="post">
+                <div>
+                    <select name=" nome_tabella" id="nome_tabella" onchange="updateActionRiempiTabella(this)">
+                        <?php
+                        require_once '../../helper/connessione_mysql.php';
+                        $db = connectToDatabaseMYSQL();
+                        $sql = "CALL GetTabelleCreate();";
+                        $stmt = $db->prepare($sql);
+                        try {
+                            $stmt->execute();
+                            $tabelle = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            echo "<script>console.log('Tabelle: " . json_encode($tabelle) . "');</script>";
+                            foreach ($tabelle as $tabella) {
+                                echo "<option value='" . $tabella['nome_tabella'] . "'>" . $tabella['nome_tabella'] . "</option>";
+                            }
+                        } catch (\Throwable $th) {
+                            echo "<script>console.log('Errore: " . $th . "');</script>";
+                        }
+                        $stmt->closeCursor();
+                        ?>
+                    </select>
+                </div>
+                <button type="submit"> Vai </button>
+            </form>
+        </div>
     </div>
 </body>
 
 
 <script>
-    // Pulisci il form quando la pagina viene caricata o ricaricata
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('uploadForm').reset();
-    });
-
-    window.addEventListener('load', function() {
-        document.getElementById('uploadForm').reset();
-    });
-
     // Funzione per aggiornare l'URL dell'azione del form
     function updateActionRiempiTabella() {
         var select = document.getElementById("nome_tabella");
@@ -193,9 +139,7 @@ if (isset($_POST['test_associato'])) {
         var form = document.getElementById("aggiungi-quesito-form");
         form.action = "/pages/professore/crea_quesito.php?test_associato=" + selectedValue;
     }
-
-    // Chiamata iniziale per generare l'URL quando la pagina viene caricata
-    // updateActionAggiungiQuesito();
+    updateActionAggiungiQuesito();
 </script>
 
 </html>

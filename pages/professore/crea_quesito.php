@@ -121,7 +121,7 @@ try {
 
 <body>
     <!-- crea dei quesiti per il test, il quesito è fatto con un enum per la difficoltà e un campo per la descrizione -->
-    <form method="POST" action="" id="form-quesito">
+    <form method="POST" action="crea_quesito.php" id="form-quesito">
         <label for="descrizione" name="descrizione">Descrizione:</label>
         <input for="descrizione" name="descrizione" placeholder="Descrizione" type="text" required>
         <select for="difficolta" name="difficolta" id="difficolta" required>

@@ -4,6 +4,7 @@ require_once '../../helper/connessione_mysql.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+echo "<script>console.log('Debugging...');</script>";
 
 if ($_SESSION['ruolo'] != 'PROFESSORE') {
     echo "<script>alert('Non hai i permessi per accedere a questa pagina!'); window.location.replace('/pages/login.php')</script>";
@@ -68,11 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 
 <body>
-    <!-- TODO: il trigger per il numero_risposte deve fare riferimento alle risposte 
-    date dagli studenti e non le opzioni inserite dal professore, 
-    viene chiarita questa cosa solamente nella descrizioni delle view -->
     <?php
-
     $visualizza_risposte_checkbox = $test['VisualizzaRisposte'] == 1 ? 1 : 0;
 
     try {

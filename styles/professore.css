@@ -1,0 +1,68 @@
+.container-professore {
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    column-gap: 50px;
+}
+
+.widget-professore {
+    margin: 10px;
+    padding: 20px;
+    border: 3px solid black;
+    border-radius: 10px;
+    width: 250px;
+    height: 250px;
+    align-items: center;
+    box-shadow: 4px 4px black;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.widget-professore:hover {
+    background-color: var(--background-default-color);
+    transition: all 0.3s;
+}
+
+h1 {
+    text-align: center;
+    margin: 50px 0;
+}
+
+h2 {
+    text-align: center;
+    margin: 20px 0;
+}
+
+h3 {
+    margin-bottom: 1px;
+}
+
+.widget-professore button {
+    margin-top: 15px
+}
+
+.widget-professore button:hover {
+    transition: all 0.2s;
+    /* ingrandisci */
+    transform: scale(1.1);
+}
+
+.widget-professore select {
+    margin-top: 5px;
+    border-radius: 4px;
+}
+
+.widget-professore form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.widget-professore form select {
+    margin-top: 10px;
+}

@@ -27,25 +27,33 @@ $stmt = $db->prepare($sql);
 $stmt->execute();
 $classificaQuesitiPerNumeroRisposte = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+if ($_SESSION['ruolo'] == 'STUDENTE') {
+    $sql = "CALL GetMatricola(:email_studente);";
+    $stmt = $db->prepare($sql);
+    $stmt->bindParam(':email_studente', $_SESSION['email']);
+    $stmt->execute();
+    $matricola = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt->closeCursor();
+}
 // select matricola ed evidenzia i record di quello studente
-$sql = "CALL GetMatricola(:email_studente);";
-$stmt = $db->prepare($sql);
-$stmt->bindParam(':email_studente', $_SESSION['email']);
-$stmt->execute();
-$matricola = $stmt->fetch(PDO::FETCH_ASSOC);
-$stmt->closeCursor();
 
 $db = null;
 
 function checkMatricola($row)
 {
     global $matricola;
-    if ($row['matricola'] == $matricola['matricola']) {
-        echo "<td style='color:green;'>";
-        echo  $row['matricola'];
-    } else {
+    if ($_SESSION['ruolo'] != 'STUDENTE' || isset($_SESSION['ruolo']) == false) {
         echo "<td>";
         echo $row['matricola'];
+        return;
+    } else {
+        if ($row['matricola'] == $matricola['matricola']) {
+            echo "<td style='color:green;'>";
+            echo  $row['matricola'];
+        } else {
+            echo "<td>";
+            echo $row['matricola'];
+        }
     }
 }
 ?>
