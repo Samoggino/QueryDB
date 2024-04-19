@@ -15,8 +15,13 @@ function tendinaTest()
     try {
         $stmt->execute();
         $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo "<option hidden value=0>Seleziona un test</option>";
         foreach ($tests as $test) {
-            echo "<option value='" . $test['titolo'] . "'>" . $test['titolo'] . "</option>";
+            if ($test['VisualizzaRisposte'] == 0 && $_SESSION['completati'] == 1) {
+                echo "<option value='" . $test['titolo'] . "'required>" . $test['titolo'] . "</option>";
+            } else if (isset($_SESSION['completati']) == false) {
+                echo "<option value='" . $test['titolo'] . "'required>" . $test['titolo'] . "</option>";
+            }
         }
     } catch (\Throwable $th) {
         echo "<script>console.log('Errore: " . $th . "');</script>";

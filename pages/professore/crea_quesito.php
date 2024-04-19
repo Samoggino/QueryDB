@@ -106,6 +106,7 @@ try {
             }
         }
     }
+    header("Location: crea_test.php?test_associato=" . $test_associato);
 } catch (\Throwable $th) {
     echo  "Errore: " . $th->getMessage();
 }

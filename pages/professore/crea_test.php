@@ -15,6 +15,8 @@ try {
         $db = connectToDatabaseMYSQL();
 
         $test_associato = $_POST['titolo_test_creato'];
+        // mostra POST
+        echo "<script>console.log(" . json_encode($_POST) . ");</script>";
         if ($_SESSION['test_associato'] != $test_associato) {
 
             $sql = "CALL InserisciNuovoTest(:test_associato, :email_professore)";
@@ -71,10 +73,15 @@ try {
             }
         }
 
-
-
         //header("Location: ../professore/crea_quesito.php?test_associato=" . $test_associato);
-        echo "<input id = 'test_associato' value = '$test_associato'></input>";
+        echo "<h1>$test_associato</h1>";
+        echo "<input hidden id = 'test_associato' value = '$test_associato'></input>";
+        echo "<script>console.log(test_associato);</script>";
+    }
+    if (isset($_GET['test_associato'])) {
+        $test_associato = $_GET['test_associato'];
+        echo "<h1>$test_associato</h1>";
+        echo "<input hidden id = 'test_associato' value = '$test_associato'></input>";
         echo "<script>console.log(test_associato);</script>";
     }
 } catch (\Throwable $th) {
@@ -96,10 +103,83 @@ try {
             flex-direction: row;
             align-items: center;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         #quesiti.off {
             display: none;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+        }
+
+        input[type="text"] {
+            width: 200px;
+            background-color: white;
+            border: 1px solid black;
+        }
+
+        .checkbox-container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .add-remove-container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .add-remove-container button {
+            margin: 5px;
+            font-size: medium;
+            width: fit-content;
+            font-weight: 500;
+        }
+
+        .widget-quesito {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid black;
+            border-radius: 5px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .quesito-chiuso {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        #soluzione_aperto {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            margin-top: 5px;
+            flex-wrap: wrap;
+            max-width: 410px;
+            gap: 5px;
+        }
+
+        textarea {
+            width: 200px;
+            height: 100px;
+            background-color: white;
+            border: 1px solid black;
         }
     </style>
 </head>
@@ -107,7 +187,6 @@ try {
 <body>
 
     <form id="uploadForm" method="post" action="" enctype="multipart/form-data">
-
         <input for="titolo_test_creato" name="titolo_test_creato" placeholder="Titolo" type="text" required>
         <div id="select-image">
             <label for="file_immagine" name="file_immagine">Seleziona un'immagine:</label><br>
@@ -117,61 +196,68 @@ try {
     </form>
 
     <div id="quesiti" class="off">
-        <!-- crea dei quesiti per il test, il quesito è fatto con un enum per la difficoltà e un campo per la descrizione -->
-        <form method="POST" action="crea_quesito.php" id="form-quesito">
-            <label for="descrizione" name="descrizione">Descrizione:</label>
-            <input for="descrizione" name="descrizione" placeholder="Descrizione" type="text" required>
-            <select for="difficolta" name="difficolta" id="difficolta" required>
-                <option value="BASSO">Basso</option>
-                <option value="MEDIO">Medio</option>
-                <option value="ALTO">Alto</option>
-            </select>
-            <div>
-                <label for="quesito-aperto-checkbox">Aperto</label>
-                <input type="checkbox" id="quesito-aperto-checkbox" name="APERTO">
-                <div id="APERTO" style="display: none;">
-                    <div>
-                        <button type="button" id="aggiungi_soluzione">Aggiungi soluzione</button><br>
-                        <button type="button" id="rimuovi_soluzione">Rimuovi soluzione</button><br>
+        <div class="widget-quesito">
+            <!-- crea dei quesiti per il test, il quesito è fatto con un enum per la difficoltà e un campo per la descrizione -->
+            <form method="POST" action="crea_quesito.php?test_associato=<?php echo $test_associato ?>" id="form-quesito">
+                <label for="descrizione" name="descrizione">Descrizione:</label>
+                <input for="descrizione" name="descrizione" placeholder="Descrizione" type="text" required>
+                <select for="difficolta" name="difficolta" id="difficolta" required>
+                    <option value="BASSO">Basso</option>
+                    <option value="MEDIO">Medio</option>
+                    <option value="ALTO">Alto</option>
+                </select>
+                <div>
+                    <div class="checkbox-container">
+                        <label for="quesito-aperto-checkbox">Aperto</label>
+                        <input type="checkbox" id="quesito-aperto-checkbox" name="APERTO">
                     </div>
-                    <div id="soluzione_aperto">
-                        <div class="quesito-aperto">
+                    <div id="APERTO" style="display: none;">
+                        <div class="add-remove-container">
+                            <button type="button" id="aggiungi_soluzione">Aggiungi soluzione</button><br>
+                            <button type="button" id="rimuovi_soluzione">Rimuovi soluzione</button><br>
+                        </div>
+                        <div id="soluzione_aperto">
+                            <div class="quesito-aperto">
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div>
-                <label for="quesito-chiuso-checkbox">Chiuso</label>
-                <input type="checkbox" id="quesito-chiuso-checkbox" name="CHIUSO">
-                <div id="CHIUSO" style="display: none;">
-                    <div>
-                        <button type="button" id="aggiungi_opzione">Aggiungi opzione</button><br>
-                        <button type="button" id="rimuovi_opzione">Rimuovi opzione</button><br>
+                <div>
+                    <div class="checkbox-container">
+                        <label for="quesito-chiuso-checkbox">Chiuso</label>
+                        <input type="checkbox" id="quesito-chiuso-checkbox" name="CHIUSO">
                     </div>
-                    <div id="opzioni_chiuso">
-                        <div class="quesito-chiuso">
-                            <input name="opzione[]" placeholder="Opzione" type="text">
-                            <input name="opzione_vera[]" type="checkbox"> Opzione Vera
+                    <div id="CHIUSO" style="display: none;">
+                        <div class="add-remove-container">
+                            <button type="button" id="aggiungi_opzione">Aggiungi opzione</button><br>
+                            <button type="button" id="rimuovi_opzione">Rimuovi opzione</button><br>
+                        </div>
+                        <div id="opzioni_chiuso">
+                            <div class="quesito-chiuso">
+                                <input name="opzione[]" placeholder="Opzione" type="text">
+                                <input name="opzione_vera[]" type="checkbox"> Opzione Vera
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <!-- seleziona le tabelle di esercizio a cui fare riferimento -->
-            <select id="tabelleRiferimento" name="tabelle[]" multiple>
-                <?php
-                $sql = "CALL GetTabelleCreate()";
-                $db = connectToDatabaseMYSQL();
-                $stmt = $db->prepare($sql);
-                $stmt->execute();
-                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                foreach ($result as $row) {
-                    echo "<option value='" . $row['nome_tabella'] . "'>" . $row['nome_tabella'] . "</option>";
-                }
-                ?>
-            </select>
+                <!-- seleziona le tabelle di esercizio a cui fare riferimento -->
+                <select id="tabelleRiferimento" name="tabelle[]" multiple>
+                    <?php
+                    $sql = "CALL GetTabelleCreate()";
+                    $db = connectToDatabaseMYSQL();
+                    $stmt = $db->prepare($sql);
+                    $stmt->execute();
+                    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($result as $row) {
+                        echo "<option value='" . $row['nome_tabella'] . "'>" . $row['nome_tabella'] . "</option>";
+                    }
+                    ?>
+                </select>
 
-            <input type="hidden" for="tipo_quesito" name="tipo_quesito" id="tipo_quesito" value="">
-            <button type="submit" value="crea il test">Crea il test</button>
+                <input type="hidden" for="tipo_quesito" name="tipo_quesito" id="tipo_quesito" value="">
+                <button type="submit" value="crea il test">Crea il test</button>
+            </form>
+        </div>
     </div>
 
 </body>
@@ -198,7 +284,7 @@ try {
                 quesito_aperto.className = 'quesito-aperto';
 
                 if (document.getElementById('soluzione_aperto').children.length == 1) {
-                    quesito_aperto.innerHTML = `<input name="soluzione[]" placeholder="Soluzione" type="text" required>`;
+                    quesito_aperto.innerHTML = `<textarea name="soluzione[]" placeholder="Soluzione" type="text" required></textarea>`;
                     document.getElementById('soluzione_aperto').appendChild(quesito_aperto);
                 }
 
@@ -214,7 +300,7 @@ try {
                 quesito_aperto_checkbox.checked = false; // Disabilita la checkbox aperto quando selezioni chiuso
                 aperto_div.style.display = "none"; // Nasconde il campo anno immatricolazione quando selezioni chiuso
             } else {
-                chiuso_div.style.display = "none";
+                chiuso_div.style.reset();
             }
         });
 
@@ -256,8 +342,9 @@ try {
             var quesito_chiuso = document.createElement('div');
             quesito_chiuso.className = 'quesito-chiuso';
             quesito_chiuso.innerHTML = `
-                <input type="text" name="opzione[]" placeholder="Opzione" required>
-                <input type="checkbox" name="opzione_vera[]"> Opzione Vera`;
+                    <input type="text" name="opzione[]" placeholder="Opzione" required>
+                    <input type="checkbox" name="opzione_vera[]"> Opzione Vera
+                `;
             document.getElementById('opzioni_chiuso').appendChild(quesito_chiuso);
         });
 
@@ -278,7 +365,7 @@ try {
             var quesito_aperto = document.createElement('div');
             quesito_aperto.className = 'quesito-aperto';
             quesito_aperto.innerHTML = `
-                <input type="text" name="soluzione[]" placeholder="Soluzione" required>`;
+                <textarea type="text" name="soluzione[]" placeholder="Soluzione" required></textarea>`;
             document.getElementById('soluzione_aperto').appendChild(quesito_aperto);
         });
 

@@ -10,7 +10,12 @@ if ($_SESSION['ruolo'] != 'PROFESSORE') {
 }
 if (isset($_POST['test_associato'])) {
     $test_associato = $_POST['test_associato'];
-    header("Location: crea_quesito.php?test_associato=" . $test_associato);
+    if ($test_associato == 0) {
+        echo "<script>alert('Seleziona un test!')</script>";
+    } else {
+        $_POST['titolo_test_creato'] = $test_associato;
+        header("Location: crea_test.php?test_associato=" . $test_associato);
+    }
 }
 ?>
 
@@ -26,11 +31,18 @@ if (isset($_POST['test_associato'])) {
     <script>
         // Definizione della funzione updateActionConcludiTest
         function updateActionConcludiTest(concludi) {
-            console.log(concludi.value); // Verifica che il valore sia corretto
-            var selectedValue = concludi.value; // Usare l'elemento passato come parametro
-            var form = document.getElementById("concludi-quesito-form");
-            form.action = "/pages/professore/modifica_test.php?test_associato=" + selectedValue;
+
+            if (concludi.value != 0 && concludi.value != null) {
+                console.log(concludi.value); // Verifica che il valore sia corretto
+
+                var selectedValue = concludi.value; // Usare l'elemento passato come parametro
+                var form = document.getElementById("concludi-quesito-form");
+                form.action = "/pages/professore/modifica_test.php?test_associato=" + selectedValue;
+            }
         }
+
+        // Chiamata iniziale per generare l'URL quando la pagina viene caricata
+        updateActionConcludiTest(document.getElementById("concludi"));
     </script>
 
 </head>
@@ -68,7 +80,9 @@ if (isset($_POST['test_associato'])) {
                     <select name="concludi" for="concludi" onchange="updateActionConcludiTest(this)">
                         <?php
                         require_once "./tendina_test.php";
+                        $_SESSION['completati'] = 1;
                         tendinaTest();
+                        unset($_SESSION['completati']);
                         ?>
                     </select>
                 </div>
@@ -88,7 +102,6 @@ if (isset($_POST['test_associato'])) {
         </div>
 
         <div class="widget-professore">
-
             <!-- scegli la tabella in cui inserire nuovi valori -->
             <h3>Inserisci valori in tabella</h3>
             <form id="inserisci-valori-form" method="post">
@@ -96,13 +109,12 @@ if (isset($_POST['test_associato'])) {
                     <select name=" nome_tabella" id="nome_tabella" onchange="updateActionRiempiTabella(this)">
                         <?php
                         require_once '../../helper/connessione_mysql.php';
-                        $db = connectToDatabaseMYSQL();
-                        $sql = "CALL GetTabelleCreate();";
-                        $stmt = $db->prepare($sql);
                         try {
+                            $db = connectToDatabaseMYSQL();
+                            $sql = "CALL GetTabelleCreate();";
+                            $stmt = $db->prepare($sql);
                             $stmt->execute();
                             $tabelle = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                            echo "<script>console.log('Tabelle: " . json_encode($tabelle) . "');</script>";
                             foreach ($tabelle as $tabella) {
                                 echo "<option value='" . $tabella['nome_tabella'] . "'>" . $tabella['nome_tabella'] . "</option>";
                             }
@@ -110,6 +122,7 @@ if (isset($_POST['test_associato'])) {
                             echo "<script>console.log('Errore: " . $th . "');</script>";
                         }
                         $stmt->closeCursor();
+                        $db = null;
                         ?>
                     </select>
                 </div>
@@ -136,8 +149,12 @@ if (isset($_POST['test_associato'])) {
     function updateActionAggiungiQuesito() {
         var select = document.getElementById("test_associato");
         var selectedValue = select.value;
+        if (selectedValue === 0) {
+            alert("Seleziona un test!");
+            return;
+        }
         var form = document.getElementById("aggiungi-quesito-form");
-        form.action = "/pages/professore/crea_quesito.php?test_associato=" + selectedValue;
+        form.action = "/pages/professore/crea_test.php?test_associato=" + selectedValue;
     }
     updateActionAggiungiQuesito();
 </script>
