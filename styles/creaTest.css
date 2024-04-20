@@ -1,0 +1,84 @@
+#quesiti.on {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15%;
+}
+
+#quesiti.off {
+    display: none;
+}
+
+input[type="checkbox"] {
+    width: 20px;
+}
+
+input[type="text"] {
+    width: 200px;
+    background-color: white;
+    border: 1px solid black;
+}
+
+.checkbox-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.add-remove-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.add-remove-container button {
+    margin: 5px;
+    font-size: medium;
+    width: fit-content;
+    font-weight: 500;
+}
+
+.widget-quesito {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
+h1 {
+    text-align: center;
+}
+
+.quesito-chiuso {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5px;
+}
+
+#soluzione_aperto {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5px;
+    flex-wrap: wrap;
+    max-width: 410px;
+    gap: 5px;
+}
+
+textarea {
+    width: 200px;
+    height: 100px;
+    background-color: white;
+    border: 1px solid black;
+}

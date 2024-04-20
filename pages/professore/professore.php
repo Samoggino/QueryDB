@@ -17,6 +17,17 @@ if (isset($_POST['test_associato'])) {
         header("Location: crea_test.php?test_associato=" . $test_associato);
     }
 }
+if (isset($_POST['logout'])) {
+    // Controlla se è stato fatto clic sul pulsante di logout
+    if (isset($_POST['logout'])) {
+        // Svuota e distruggi la sessione
+        session_unset(); // Rimuove tutte le variabili di sessione
+        session_destroy(); // Elimina completamente la sessione
+        // Reindirizza alla pagina di login
+        header('Location: /pages/login.php');
+    }
+}
+
 ?>
 
 
@@ -48,8 +59,13 @@ if (isset($_POST['test_associato'])) {
 </head>
 
 <body>
-    <h1>Buongiorno professore!</h1>
-    <h2>La sua email è : <?php echo $_SESSION['email'] ?> </h2>
+
+    <div id="intestazione">
+        <div id="intestazione">
+            <a class="logout" href='/pages/logout.php'></a>
+            <h1>Buongiorno professore</h1>
+        </div>
+    </div>
 
     <div class="container-professore">
         <div class="widget-professore">
@@ -92,13 +108,18 @@ if (isset($_POST['test_associato'])) {
 
         <div class="widget-professore" onclick="window.location.href='/pages/messaggi.php';" style="cursor: pointer;">
             <h3>Vai ai messaggi</h3>
-            <button href="/pages/messaggi.php">Messaggi</button>
+            <button onclick="window.location.href='/pages/messaggi.php';">Messaggi</button>
         </div>
 
 
         <div class="widget-professore">
             <h3>Vai a creazione tabella </h3>
-            <button href="/pages/professore/crea_tabella_esercizio.php">Crea tabella</button>
+            <button onclick="window.location.href='/pages/professore/crea_tabella_esercizio.php';">Crea tabella</button>
+        </div>
+
+        <div class="widget-professore">
+            <h3>Vai a classifiche </h3>
+            <button onclick="window.location.href='/pages/classifiche.php';">Classifiche</button>
         </div>
 
         <div class="widget-professore">

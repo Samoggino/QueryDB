@@ -9,6 +9,7 @@
 
 body {
     background-color: rgb(242, 216, 183);
+    overflow-x: hidden;
 }
 
 
@@ -120,4 +121,77 @@ button {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+}
+
+.widget-professore {
+    margin: 10px;
+    padding: 20px;
+    border: 3px solid black;
+    border-radius: 10px;
+    width: 250px;
+    height: 250px;
+    align-items: center;
+    box-shadow: 4px 4px black;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.widget-professore:hover {
+    background-color: var(--background-default-color);
+    transition: all 0.3s;
+}
+
+#quesiti .widget-professore {
+    min-width: 350px;
+    height: max-content;
+    max-height: 500px;
+}
+
+#quesiti .scrollable-widget {
+    scroll-behavior: smooth;
+    overflow-y: scroll;
+}
+
+#quesiti textarea {
+    width: 300px;
+    height: 100px;
+}
+
+#quesiti #tabelleRiferimento {
+    width: 90%;
+    margin: 10px 15px 0 15px;
+}
+
+#intestazione {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 720px;
+    padding-right: 814px;
+}
+
+#intestazione a.home {
+    display: inline-block;
+    background-image: url("../images/icons/home.svg");
+    width: 30px;
+    height: 30px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    margin-left: 50px;
+}
+
+#intestazione a.logout {
+    display: inline-block;
+    background-image: url("../images/icons/logout.svg");
+    width: 30px;
+    height: 30px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    margin-left: 50px;
+}
+
+#intestazione h1 {
+    white-space: nowrap;
 }

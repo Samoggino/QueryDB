@@ -4,6 +4,7 @@ body {
     padding: 20px;
     gap: 20px;
     background-color: rgb(242, 216, 183);
+    overflow: hidden;
 }
 
 h1 {
@@ -12,36 +13,35 @@ h1 {
     font-weight: 800;
 }
 
-
 table {
     width: 25dvw;
 }
 
-.blocco-classifica {
+.widget-classifica {
     display: flex;
     flex-direction: column;
     align-items: center;
     background-color: white;
     padding: 10px 20px 20px 20px;
+    max-height: 650px;
+    overflow-y: scroll;
+    border: 3px solid black;
+    box-shadow: 4px 4px black;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.blocco-classifica:hover {
+.widget-classifica:hover {
     background-color: rgba(245, 245, 245, 0.9);
     /* Opacità maggiore rispetto al colore di base */
     transition: background-color 0.3s ease;
 }
 
-
-
-.blocco-classifica h2 {
+.widget-classifica h2 {
     color: red;
 }
 
 .container-classifiche {
     display: flex;
-    grid-template-columns: 1fr 1fr 1fr;
     gap: 20px;
     flex-wrap: wrap;
 }

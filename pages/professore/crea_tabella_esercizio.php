@@ -52,6 +52,7 @@ echo "<script>console.log(attributiPerTabella)</script>";
 
 <head>
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="../../styles/global.css">
     <link rel="stylesheet" href="../../styles/creaTabella.css">
     <title>Inserimento Dati Tabella</title>
 </head>
@@ -216,7 +217,6 @@ echo "<script>console.log(attributiPerTabella)</script>";
         // TODO: controlla che il nome delle variabili non corrisponda al tipo dell'attributo (INT, VARCHAR, ecc.)
 
         // TODO: rimuovi gli spazi e i caratteri speciali dai nomi degli attributi e delle tabelle
-        
     </script>
 
 </body>

@@ -58,7 +58,13 @@ if (isset($_GET['nome_tabella'])) {
 
 <body>
     <div class="container">
-        <h1>Inserisci i valori all'interno della tabella</h1>
+
+        <div id="intestazione">
+            <div id="intestazione">
+                <a href="/pages/professore/professore.php" class="home"></a>
+                <h1>Inserisci i valori all'interno della tabella</h1>
+            </div>
+        </div>
         <div class="tabelle">
             <div>
                 <form id="insert_values" method='post' action='/pages/professore/riempi_tabella_handler.php?nome_tabella=<?php echo $nome_tabella; ?>'>

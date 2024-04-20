@@ -62,17 +62,50 @@ function checkMatricola($row)
 
 <head>
     <title>Classifiche</title>
+    <link rel="icon" href="../images/favicon/favicon.ico">
     <link rel="stylesheet" href="../styles/global.css">
     <link rel="stylesheet" href="../styles/eseguiTest.css">
     <link rel="stylesheet" href="../styles/classifiche.css">
+
 </head>
 
 <body>
-
-    <h1>Classifiche</h1>
+    <!-- TODO: si può ancora cambiare il colore delle tabelle, ma per il resto va tutto bene -->
+    <div id="intestazione">
+        <?php
+        $path = "/pages/";
+        if ($_SESSION['ruolo'] == 'PROFESSORE') {
+            $path .= "professore/professore.php";
+        } else if ($_SESSION['ruolo'] == 'STUDENTE') {
+            $path .= "studente/studente.php";
+        }
+        echo "<a href='$path' class='home'></a>";
+        ?>
+        <h1>Classifiche</h1>
+    </div>
     <div class="container-classifiche">
 
-        <div class="blocco-classifica">
+        <!-- TEST COMPLETATI -->
+        <div class="widget-classifica">
+            <h2>Test completati</h2>
+            <table>
+                <tr>
+                    <th>Matricola</th>
+                    <th>Test completati</th>
+                </tr>
+                <?php
+                foreach ($classificaTestCompletati as $row) {
+                    echo "<tr>";
+                    checkMatricola($row);
+                    echo "<td>" . $row['Test_conclusi'] . "</td>";
+                    echo "</tr>";
+                }
+                ?>
+            </table>
+        </div>
+
+        <!-- PRECISIONE -->
+        <div class="widget-classifica">
             <h2>Precisione delle risposte</h2>
             <table>
                 <tr>
@@ -91,26 +124,9 @@ function checkMatricola($row)
             </table>
         </div>
 
-        <div class="blocco-classifica">
-            <h2>Test completati</h2>
-            <table>
-                <tr>
-                    <th>Matricola</th>
-                    <th>Test completati</th>
-                </tr>
-                <?php
-                foreach ($classificaTestCompletati as $row) {
-                    echo "<tr>";
-                    checkMatricola($row);
-                    echo "<td>" . $row['Test_conclusi'] . "</td>";
-                    echo "</tr>";
-                }
-                ?>
-            </table>
-        </div>
-
-        <div class="blocco-classifica">
-            <h2>Quesiti con maggior numero di interazioni</h2>
+        <!-- NUMERO RISPOSTE -->
+        <div class="widget-classifica">
+            <h2>Quesiti con maggior numero di risposte</h2>
             <table>
                 <tr>
                     <th>Test</th>
