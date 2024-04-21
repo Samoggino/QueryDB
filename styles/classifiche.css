@@ -45,3 +45,12 @@ table {
     gap: 20px;
     flex-wrap: wrap;
 }
+
+#intestazione {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 42dvw;
+    padding-right: 814px;
+    justify-content: center;
+}

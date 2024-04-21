@@ -1923,3 +1923,29 @@ WHERE
     nome_tabella = p_nome_tabella;
 
 END $$ DELIMITER;
+
+-- GetQuesitiAssociatiAlTest
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS GetQuesitiAssociatiAlTest (IN p_test_associato VARCHAR(100)) BEGIN
+SELECT
+    *
+FROM
+    QUESITO
+WHERE
+    test_associato = p_test_associato
+ORDER BY
+    numero_quesito ASC;
+
+END $$ DELIMITER;
+
+-- GetTabelleQuesitiNum
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS GetTabelleQuesitiNum (IN p_id_quesito INT) BEGIN
+SELECT
+    nome_tabella
+FROM
+    QUESITI_TABELLA as QT
+WHERE
+    QT.id_quesito = p_id_quesito;
+
+END $$ DELIMITER;

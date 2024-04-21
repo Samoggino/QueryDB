@@ -9,7 +9,7 @@
 
 body {
     background-color: rgb(242, 216, 183);
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
 
@@ -123,6 +123,20 @@ button {
     justify-content: center;
 }
 
+#uploadForm #intestazione {
+    display: flex;
+    align-items: center;
+    margin-left: 55px;
+    width: 100%;
+    justify-content: center;
+    gap: 39dvw;
+}
+
+#uploadForm h1 {
+    text-align: center;
+    margin-left: -35px;
+}
+
 .widget-professore {
     margin: 10px;
     padding: 20px;
@@ -144,8 +158,13 @@ button {
 
 #quesiti .widget-professore {
     min-width: 350px;
-    height: max-content;
+    /* height: max-content;1 */
     max-height: 500px;
+}
+
+#quesiti .widget-classifica {
+    min-height: 500px;
+    background-color: transparent;
 }
 
 #quesiti .scrollable-widget {
@@ -165,11 +184,11 @@ button {
 
 #intestazione {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    gap: 720px;
+    gap: 42dvw;
     padding-right: 814px;
+    width: 100%;
 }
 
 #intestazione a.home {
@@ -179,7 +198,7 @@ button {
     height: 30px;
     background-size: contain;
     background-repeat: no-repeat;
-    margin-left: 50px;
+    /* margin-left: 50px; */
 }
 
 #intestazione a.logout {
@@ -189,9 +208,61 @@ button {
     height: 30px;
     background-size: contain;
     background-repeat: no-repeat;
-    margin-left: 50px;
 }
 
 #intestazione h1 {
     white-space: nowrap;
+}
+
+.icons-container {
+    display: flex;
+    align-items: center;
+    align-content: center;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+    flex-direction: row;
+    gap: 8px;
+}
+
+#intestazione h1 {
+    color: red;
+    text-align: center;
+    white-space: nowrap;
+}
+
+
+.widget-classifica {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: white;
+    padding: 10px 20px 20px 20px;
+    max-height: 650px;
+    overflow-y: scroll;
+    border: 3px solid black;
+    box-shadow: 4px 4px black;
+    border-radius: 10px;
+}
+
+.widget-classifica:hover {
+    background-color: rgba(245, 245, 245, 0.9);
+    /* Opacità maggiore rispetto al colore di base */
+    transition: background-color 0.3s ease;
+}
+
+.widget-classifica h2 {
+    color: red;
+}
+
+.container-classifiche {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    padding: 0;
 }

@@ -56,15 +56,18 @@ if (isset($_POST['logout'])) {
         updateActionConcludiTest(document.getElementById("concludi"));
     </script>
 
+    <style>
+       
+    </style>
 </head>
 
-<body>
+<body style="overflow-y: scroll; scroll-behavior:smooth">
 
     <div id="intestazione">
-        <div id="intestazione">
+        <div class="icons-container">
             <a class="logout" href='/pages/logout.php'></a>
-            <h1>Buongiorno professore</h1>
         </div>
+        <h1>Buongiorno professore</h1>
     </div>
 
     <div class="container-professore">

@@ -72,15 +72,10 @@ function checkMatricola($row)
 <body>
     <!-- TODO: si può ancora cambiare il colore delle tabelle, ma per il resto va tutto bene -->
     <div id="intestazione">
-        <?php
-        $path = "/pages/";
-        if ($_SESSION['ruolo'] == 'PROFESSORE') {
-            $path .= "professore/professore.php";
-        } else if ($_SESSION['ruolo'] == 'STUDENTE') {
-            $path .= "studente/studente.php";
-        }
-        echo "<a href='$path' class='home'></a>";
-        ?>
+        <div class="icons-container">
+            <a class="logout" href='/pages/logout.php'></a>
+            <a class="home" href='/pages/<?php echo strtolower($_SESSION['ruolo']) . "/" . strtolower($_SESSION['ruolo']) . "php" ?>'></a>
+        </div>
         <h1>Classifiche</h1>
     </div>
     <div class="container-classifiche">

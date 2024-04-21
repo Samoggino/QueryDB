@@ -1,7 +1,3 @@
-body {
-    overflow-x: hidden;
-}
-
 .container-professore {
     display: flex;
     flex-direction: row;
@@ -51,7 +47,6 @@ h3 {
 
 .widget-professore button:hover {
     transition: all 0.2s;
-    /* ingrandisci */
     transform: scale(1.1);
 }
 
@@ -71,13 +66,11 @@ h3 {
     margin-top: 10px;
 }
 
+.icons-container {
+    margin-left: 70px;
+}
 
 #intestazione {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    gap: 617px !important;
-    padding-right: 814px;
+    gap: 38dvw !important;
     color: red;
 }
