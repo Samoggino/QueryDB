@@ -6,34 +6,42 @@ require "../../helper/connessione_mysql.php";
 
 
 if ($_SESSION['ruolo'] != 'PROFESSORE') {
-    echo "<script>alert('Non hai i permessi per accedere a questa pagina!'); window.location.replace('/pages/login.php')</script>";
+    echo "<script>alert('Non hai i permessi per accedere a questa pagina!'); window.location.replace('/pages/login.php');</script>";
 }
 
 try {
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    if (isset($_POST['titolo_test_creato'])) {
+        echo "<script>console.log('SONO DENTRO');</script>";
         // Connessione al database
         $db = connectToDatabaseMYSQL();
 
-        $test_associato = $_POST['titolo_test_creato'] ?? $_GET['test_associato'];
-        // mostra POST
-        echo "<script>console.log(" . json_encode($_POST) . ");</script>";
-        if ($_SESSION['test_associato'] != $test_associato) {
+        echo "<script>console.log('Test associato POST: " . $_POST['titolo_test_creato'] . "');</script>";
+        $test_associato = $_POST['titolo_test_creato'];
 
-            $sql = "CALL InserisciNuovoTest(:test_associato, :email_professore)";
-            $stmt = $db->prepare($sql);
-            $stmt->bindParam(':test_associato', $test_associato);
-            $stmt->bindParam(':email_professore', $_SESSION['email']);
+        // controllo se il test è già presente
+        $sql = "CALL GetTest(:test_associato)";
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':test_associato', $test_associato);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
 
+        if ($result != null) {
+            echo "<script> alert('Test $test_associato già presente!');</script>";
+            echo "<script>window.location.replace('/pages/professore/crea_test.php');</script>";
+        }
 
-            if ($stmt->execute()) {
-                echo "<script> alert('Test inserito con successo!');</script>";
-                $stmt->closeCursor();
+        $sql = "CALL InserisciNuovoTest(:test_associato, :email_professore)";
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':test_associato', $test_associato);
+        $stmt->bindParam(':email_professore', $_SESSION['email']);
 
-                // Salva il titolo del test nella sessione
-                $_SESSION['test_associato'] = $test_associato;
-            } else {
-                echo "<script> alert('Errore durante l'inserimento del test!');</script>";
-            }
+        if ($stmt->execute()) {
+            $stmt->closeCursor();
+
+            // Salva il titolo del test nella sessione
+            $_SESSION['test_associato'] = $test_associato;
 
             // Verifica se è stata selezionata un'immagine
             if (isset($_FILES["file_immagine"]) && $_FILES["file_immagine"]["error"] == UPLOAD_ERR_OK) {
@@ -50,13 +58,21 @@ try {
 
                 // Esegui la query
                 if ($stmt->execute()) {
-                    echo "<script>alert('Immagine caricata con successo.');<script>";
+                    echo "<script>alert('Test e immagine caricati con successo.');<script>";
                 } else {
-                    echo "script>alert('Immagine non è stata inserita nel db perchè c'è stato un errore.');<script>";
+                    echo "script>alert('Errore in inserimento dell'immagine');<script>";
                 }
-                echo "<script>location.reload();</script>";
             }
+
+            echo "<script> alert('Test inserito con successo!');</script>";
+        } else {
+            echo "<script>console.log('Test associato fallito: " . $test_associato . "');</script>";
+            echo "<script> alert('Errore durante l'inserimento del test!');</script>";
         }
+
+
+        unset($_POST['titolo_test_creato']);
+        echo "<script>window.location.replace('/pages/professore/crea_test.php?test_associato=$test_associato');</script>";
     }
 } catch (\Throwable $th) {
     echo "ERRORE:<br>" . $th->getMessage() . "";
@@ -97,9 +113,7 @@ try {
                 <div style="display: flex;align-items: center;">
                     <input for="titolo_test_creato" name="titolo_test_creato" placeholder="Titolo" type="text" required>
                     <div id="select-image">
-                        <label for="file_immagine" class="custom-file-input-label">
-
-                        </label>
+                        <label for="file_immagine" class="custom-file-input-label"></label>
                         <input id="file_immagine" type="file" name="file_immagine" accept="image/*" class="custom-file-input" style="display:none">
                     </div>
                 </div>
@@ -131,7 +145,7 @@ try {
                 $stmt->execute();
                 $tabelle_di_esercizio = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                echo "<script>console.log(" . json_encode($tabelle_di_esercizio) . ");</script>";
+                // echo "<script>console.log(" . json_encode($tabelle_di_esercizio) . ");</script>";
                 // Se è stata trovata un'immagine, visualizzala
                 if ($tabelle_di_esercizio != null && count($tabelle_di_esercizio) > 0) {
                 ?>
@@ -147,6 +161,7 @@ try {
                 ?>
 
                 <div class="widget-professore">
+                    <h2>Aggiungi quesito</h2>
                     <div class="scrollable-widget">
 
                         <!-- crea dei quesiti per il test, il quesito è fatto con un enum per la difficoltà e un campo per la descrizione -->

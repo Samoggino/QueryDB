@@ -156,16 +156,6 @@ button {
     transition: all 0.3s;
 }
 
-#quesiti .widget-professore {
-    min-width: 350px;
-    /* height: max-content;1 */
-    max-height: 500px;
-}
-
-#quesiti .widget-classifica {
-    min-height: 500px;
-    background-color: transparent;
-}
 
 #quesiti .scrollable-widget {
     scroll-behavior: smooth;

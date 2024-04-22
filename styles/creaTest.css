@@ -26,6 +26,7 @@ input[type="text"] {
     flex-direction: row;
     align-items: center;
     justify-content: flex-start;
+    margin-top: 15px;
 }
 
 .add-remove-container {
@@ -144,4 +145,24 @@ textarea {
 
 .widget-professore.crea {
     height: 350px;
+}
+
+#quesiti .widget-professore h2 {
+    display: flex;
+    width: 100%;
+    /* align-content: center; */
+    justify-content: center;
+    margin-top: 0;
+}
+
+
+#quesiti .widget-professore {
+    min-width: 350px;
+    max-height: 500px;
+    justify-content: space-evenly;
+}
+
+#quesiti .widget-classifica {
+    min-height: 500px;
+    background-color: transparent;
 }

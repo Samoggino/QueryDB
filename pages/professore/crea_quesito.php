@@ -12,7 +12,6 @@ if ($_SESSION['ruolo'] != 'PROFESSORE') {
 try {
 
     $db = connectToDatabaseMYSQL();
-
     $test_associato = $_GET['test_associato'];
     $numero_quesito = getNumeroNuovoQuesito($test_associato);
     echo "<h1>Titolo test: " . $test_associato . "</h1>";
@@ -104,7 +103,10 @@ try {
             }
         }
     }
+    $stmt->closeCursor();
+    $db = null;
     header("Location: crea_test.php?test_associato=" . $test_associato);
+    exit();
 } catch (\Throwable $th) {
     echo  "Errore: " . $th->getMessage();
 }
