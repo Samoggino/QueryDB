@@ -21,7 +21,7 @@ function generateTable($tabella)
 
 
     <h3><?php echo "Tabella: " . $tabella ?></h3>
-    <table class="printed">
+    <table>
         <tr>
             <?php foreach ($attributi as $attributo) { ?>
                 <th style="color:<?php if ($attributo['is_key'] == "TRUE") {

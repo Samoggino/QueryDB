@@ -106,10 +106,6 @@ function tendinaTest()
             align-content: center;
         }
 
-        .inner-form input[type='text']::placeholder {
-            text-align: center;
-            padding: 0;
-        }
 
         #messaggi .widget-professore {
             width: 500px;
@@ -139,7 +135,7 @@ function tendinaTest()
             padding: 10px 60px;
         }
 
-        #messaggi #intestazione {
+        #intestazione {
             margin-bottom: 20px;
             gap: 35dvw;
             margin-left: 3dvw;

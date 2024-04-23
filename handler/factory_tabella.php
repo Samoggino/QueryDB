@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
             array(
                 'creazione_tabella' => 'creazione_tabella',
                 'nome_tabella' => $nome_tabella,
-                'errore' => $th->getMessage(),
+                // 'errore' => $th->getMessage(),
                 'data' => date('Y-m-d'),
                 'query' => $query_corrente
             )

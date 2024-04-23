@@ -4,16 +4,14 @@ require_once '../../helper/connessione_mysql.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+// TODO: gestire il caso in cui non ci siano valori nella tabella di riferimento
 
 if ($_SESSION['ruolo'] != 'PROFESSORE') {
     echo "<script>alert('Non hai i permessi per accedere a questa pagina!'); window.location.replace('/pages/login.php')</script>";
 }
 
-
-
 if (isset($_GET['nome_tabella'])) {
     $nome_tabella = $_GET['nome_tabella'];
-    echo "<script>console.log('NOME TABELLA: " . $nome_tabella . "');</script>";
     try {
         $db = connectToDatabaseMYSQL();
         $stmt = $db->prepare("CALL GetAttributiTabella(:nome_tabella)");
@@ -29,8 +27,17 @@ if (isset($_GET['nome_tabella'])) {
         $valori = $stmt->fetchAll();
         $stmt->closeCursor();
 
-        echo "<script>console.log('ATTRIBUTI: " . json_encode($attributi) . "');</script>";
-        echo "<script>console.log('VALORI: " . json_encode($valori) . "');</script>";
+        try {
+            $db = connectToDatabaseMYSQL();
+            $stmt = $db->prepare("CALL GetChiaviEsterne(:nome_tabella)");
+            $stmt->bindParam(':nome_tabella', $nome_tabella, PDO::PARAM_STR);
+            $stmt->execute();
+            $tabelle_riferite = $stmt->fetchAll();
+            $stmt->closeCursor();
+        } catch (\Throwable $th) {
+            echo "PROBLEM TABELLE RIFERITE <br>" . $th->getMessage();
+        }
+
 
         if ($valori == null) {
             echo "<br>VALORI NULLI";
@@ -49,24 +56,115 @@ if (isset($_GET['nome_tabella'])) {
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../../styles/global.css">
     <style>
-        .tabelle {
+        <?php
+        if ($tabelle_riferite != null) {
+
+        ?>.tabelle {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(calc(33.33% - 20px), 1fr));
+            /* Imposta le colonne della griglia con una larghezza minima di 33.33% */
+            grid-gap: 50px;
+            /* Aggiunge spazio tra le tabelle */
+            justify-content: center;
+            /* Centra gli elementi nella griglia */
+        }
+
+        <?php
+        } else {
+
+        ?>.tabelle {
+            position: relative;
+            justify-content: center;
+            max-width: 50%;
+            left: 25%;
+        }
+
+        <?php } ?>
+        /* .widget-classifica {} */
+
+        #intestazione {
+            margin-bottom: 20px;
+            gap: 35dvw;
+            margin-left: 3dvw;
+        }
+
+        input {
+            width: auto;
+            height: auto;
+            border-radius: 0;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 0;
+            background-color: lightgray;
+        }
+
+
+        form {
+            width: 100%;
             display: flex;
-            gap: 50px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .vincoli.widget-classifica.on {
+            /* grid-column: span 3; */
+            width: 50%;
+            margin-bottom: 50px;
+        }
+
+        .vincoli.widget-classifica.off {
+            display: none;
+        }
+
+
+        .mostra-vincoli {
+            position: relative;
+            left: 90%;
+            bottom: 145%;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
+    <div id="riempi">
 
         <div id="intestazione">
-            <div id="intestazione">
-                <a href="/pages/professore/professore.php" class="home"></a>
-                <h1>Inserisci i valori all'interno della tabella</h1>
+            <div class="icons-container">
+                <a class="logout" href="/pages/logout.php"></a>
+                <a class="home" href="/pages/<?php echo strtolower($_SESSION['ruolo']) . '/' . strtolower($_SESSION['ruolo']) . ".php" ?>"></a>
             </div>
+            <h1>Inserisci valori</h1>
+
         </div>
+
+        <?php
+        if ($tabelle_riferite != null) {
+            echo ' <button class="mostra-vincoli" onclick="mostraVincoli()">Mostra vincoli</button>';
+        } ?>
+        <?php
+        if ($tabelle_riferite != null) {
+        ?>
+            <div class="vincoli widget-classifica off">
+                <h2>Vincoli di integrità</h2>
+                <table>
+                    <tr>
+                        <th>Attributo in <?php echo $nome_tabella ?></th>
+                        <th>Reference </th>
+                    </tr>
+                    <tbody>
+                        <?php foreach ($tabelle_riferite as $tabella) { ?>
+                            <tr>
+                                <td><?php echo strtoupper($tabella['nome_tabella']) . "." .  $tabella['nome_attributo'] . " ===> "; ?></td>
+                                <td><?php echo strtoupper($tabella['tabella_vincolata']) . "." . $tabella['attributo_vincolato']; ?></td>
+                            </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php } ?>
         <div class="tabelle">
-            <div>
+            <div class="widget-classifica">
                 <form id="insert_values" method='post' action='/pages/professore/riempi_tabella_handler.php?nome_tabella=<?php echo $nome_tabella; ?>'>
 
                     <?php
@@ -75,67 +173,66 @@ if (isset($_GET['nome_tabella'])) {
                     ?>
                     <tbody>
                         <tr>
-                            <?php foreach ($attributi as $attributo) { ?>
-                                <td><input type="text" name="<?php echo $attributo['nome_attributo']; ?>" required></td>
-                            <?php } ?>
+                            <?php foreach ($attributi as $attributo) {
+                                $tipo_placeholder = $attributo['tipo_attributo'];
+                                $placeholder = $attributo['nome_attributo'];
+
+                                echo "<td><input name='$placeholder' placeholder='Inserisci *$placeholder*'";
+
+                                if (strtoupper($tipo_placeholder) == 'INT') {
+                                    echo "type='number' step='1'";
+                                } else if (strtoupper($tipo_placeholder) == 'FLOAT') {
+                                    echo "type='number' step='0.01'";
+                                } else if (strtoupper($tipo_placeholder) == 'DATE') {
+                                    echo "type='date'";
+                                } else if (strtoupper($tipo_placeholder) == 'DECIMAL') {
+                                    echo "type='number' step='0.01'";
+                                } else {
+                                    echo "type='text'";
+                                }
+                                if ($attributo['is_key'] == "TRUE") {
+                                    echo  "required>";
+                                }
+                                echo "</td>";
+                            } ?>
                         </tr>
                     </tbody>
                     </table>
-                    <input type='submit' value='Aggiungi riga'>
+                    <button type='submit'>Aggiungi riga</button>
                 </form>
+            </div>
+
+            <!-- mostra anche le tabelle a cui la tabella in get fa reference se ne ha-->
+            <?php
+
+            if ($tabelle_riferite != null) {
+            ?>
 
 
-                <!-- mostra anche le tabelle a cui la tabella in get fa reference se ne ha-->
+                <!-- <h3>Righe tabella vincolata</h3> -->
                 <?php
-                try {
-                    $db = connectToDatabaseMYSQL();
-                    $stmt = $db->prepare("CALL GetChiaviEsterne(:nome_tabella)");
-                    $stmt->bindParam(':nome_tabella', $nome_tabella, PDO::PARAM_STR);
-                    $stmt->execute();
-                    $tabelle_riferite = $stmt->fetchAll();
-                    $stmt->closeCursor();
-                } catch (\Throwable $th) {
-                    echo "PROBLEM TABELLE RIFERITE <br>" . $th->getMessage();
+                require_once '../../helper/print_table.php';
+
+                foreach ($tabelle_riferite as $tabella) {
+
+                    echo '<div class="widget-classifica">';
+                    generateTable($tabella['tabella_vincolata']);
+                    echo "</table> </div>";
                 }
 
-                if ($tabelle_riferite != null) {
                 ?>
 
-            </div>
-            <div class="tabella-esterna">
-                <h2>Righe tabella vincolata</h2>
-                <?php
-                    require_once '../../helper/print_table.php';
-                    generateTable($tabelle_riferite[0]['tabella_vincolata']);
-                    echo "</table>";
-                ?>
-            </div>
+            <?php } ?>
         </div>
 
 
-        <div id="vincoli">
-            <h2>Vincoli di integrità</h2>
-            <table>
-                <tr>
-                    <th>Tabella padre</th>
-                    <th>Attributo in <?php echo $nome_tabella ?></th>
-                    <th>Reference </th>
-                </tr>
-                <tbody>
-                    <?php foreach ($tabelle_riferite as $tabella) { ?>
-                        <tr>
-                            <td><?php echo $tabella['tabella_vincolata']; ?></td>
-                            <td><?php echo $tabella['nome_attributo'] . " -> "; ?></td>
-                            <td><?php echo $tabella['attributo_vincolato']; ?></td>
-                        </tr>
-                    <?php } ?>
-                </tbody>
-            </table>
-        </div>
-
-    <?php } ?>
-    </div>
-
+        <script>
+            function mostraVincoli() {
+                var vincoli = document.querySelector('.vincoli');
+                vincoli.classList.toggle('on');
+                vincoli.classList.toggle('off');
+            }
+        </script>
 </body>
 
 </html>
