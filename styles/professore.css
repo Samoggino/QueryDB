@@ -50,11 +50,6 @@ h3 {
     transform: scale(1.1);
 }
 
-.widget-professore select {
-    margin-top: 5px;
-    border-radius: 4px;
-}
-
 .widget-professore form {
     display: flex;
     flex-direction: column;
@@ -62,9 +57,6 @@ h3 {
     align-items: center;
 }
 
-.widget-professore form select {
-    margin-top: 10px;
-}
 
 .icons-container {
     margin-left: 70px;

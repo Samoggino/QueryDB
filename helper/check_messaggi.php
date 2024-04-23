@@ -16,28 +16,32 @@ function visualizzaMessaggi()
     $db = null;
 
     if (count($messaggi) > 0) { ?>
-        <h1>Messaggi Ricevuti</h1>
-        <table class="messaggi">
-            <tr>
-                <th>Mittente</th>
-                <th>Titolo</th>
-                <th>Testo</th>
-                <th>Data</th>
-                <th>Test Associato</th>
-            </tr>
-            <tbody>
-                <?php foreach ($messaggi as $messaggio) { ?>
-                    <tr>
-                        <td><?php echo $messaggio['mittente']; ?></td>
-                        <td><?php echo $messaggio['titolo']; ?></td>
-                        <td><?php echo $messaggio['testo']; ?></td>
-                        <td><?php echo $messaggio['data_inserimento']; ?></td>
-                        <td><?php echo $messaggio['test_associato']; ?></td>
-                    </tr>
-                <?php } ?>
-            </tbody>
-        </table>
+        <div class="widget-classifica">
+            <h2 style="color: black;">Messaggi Ricevuti</h2>
+
+            <table class="messaggi">
+                <tr>
+                    <th>Mittente</th>
+                    <th>Titolo</th>
+                    <th>Testo</th>
+                    <th>Data</th>
+                    <th>Test Associato</th>
+                </tr>
+                <tbody>
+                    <?php foreach ($messaggi as $messaggio) { ?>
+                        <tr>
+                            <td><?php echo $messaggio['mittente']; ?></td>
+                            <td><?php echo $messaggio['titolo']; ?></td>
+                            <td><?php echo $messaggio['testo']; ?></td>
+                            <td><?php echo $messaggio['data_inserimento']; ?></td>
+                            <td><?php echo $messaggio['test_associato']; ?></td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+
     <?php } else { ?>
-        <h1>Messaggi Ricevuti</h1>
+        <h2>Non hai ricevuto messaggi</h2>
 <?php }
 }

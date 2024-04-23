@@ -9,7 +9,7 @@
 
 body {
     background-color: rgb(242, 216, 183);
-    overflow: hidden;
+    overflow-x: hidden;
 }
 
 
@@ -255,4 +255,9 @@ input[type="checkbox"] {
     height: 20px;
     margin: 0;
     padding: 0;
+}
+
+.widget-professore form select {
+    border-radius: 4px;
+    margin-top: 10px;
 }
