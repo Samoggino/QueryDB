@@ -145,7 +145,6 @@ try {
                 $stmt->execute();
                 $tabelle_di_esercizio = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                // echo "<script>console.log(" . json_encode($tabelle_di_esercizio) . ");</script>";
                 // Se è stata trovata un'immagine, visualizzala
                 if ($tabelle_di_esercizio != null && count($tabelle_di_esercizio) > 0) {
                 ?>

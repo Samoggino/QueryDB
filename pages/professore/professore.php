@@ -5,13 +5,16 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 
+
+// se concludi o test associato sono 0 disabilita i due bottoni
 if ($_SESSION['ruolo'] != 'PROFESSORE') {
     echo "<script>alert('Non hai i permessi per accedere a questa pagina!'); window.location.replace('/pages/login.php')</script>";
 }
 if (isset($_POST['test_associato'])) {
     $test_associato = $_POST['test_associato'];
     if ($test_associato == 0) {
-        echo "<script>alert('Seleziona un test!')</script>";
+        unset($_POST['test_associato']);
+        echo "<script>alert('Seleziona un test!'); window.location.replace('professore.php')</script>";
     } else {
         $_POST['titolo_test_creato'] = $test_associato;
         header("Location: crea_test.php?test_associato=" . $test_associato);
@@ -23,7 +26,6 @@ if (isset($_POST['logout'])) {
         // Svuota e distruggi la sessione
         session_unset(); // Rimuove tutte le variabili di sessione
         session_destroy(); // Elimina completamente la sessione
-        // Reindirizza alla pagina di login
         header('Location: /pages/login.php');
     }
 }
@@ -57,7 +59,7 @@ if (isset($_POST['logout'])) {
     </script>
 
     <style>
-       
+
     </style>
 </head>
 
@@ -99,9 +101,7 @@ if (isset($_POST['logout'])) {
                     <select name="concludi" for="concludi" onchange="updateActionConcludiTest(this)">
                         <?php
                         require_once "./tendina_test.php";
-                        $_SESSION['completati'] = 1;
                         tendinaTest();
-                        unset($_SESSION['completati']);
                         ?>
                     </select>
                 </div>
@@ -109,7 +109,7 @@ if (isset($_POST['logout'])) {
             </form>
         </div>
 
-        <div class="widget-professore" onclick="window.location.href='/pages/messaggi.php';" style="cursor: pointer;">
+        <div class="widget-professore" style="cursor: pointer;">
             <h3>Vai ai messaggi</h3>
             <button onclick="window.location.href='/pages/messaggi.php';">Messaggi</button>
         </div>
