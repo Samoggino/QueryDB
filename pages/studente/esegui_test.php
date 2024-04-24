@@ -99,13 +99,99 @@ function test_gia_svolto($test)
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../../styles/global.css">
     <link rel="stylesheet" href="../../styles/eseguiTest.css">
+
+    <style>
+        .widget-professore {
+            margin: 0;
+        }
+
+        #tabelle-esterne {
+            display: grid;
+            justify-content: center;
+            align-items: center;
+            justify-items: center;
+            align-content: center;
+            width: 900px;
+        }
+
+        #quesiti.widget-professore {
+            width: 500px;
+            height: 700px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            grid-gap: 4dvw;
+            justify-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 4dvh;
+        }
+
+        /* Stile dei quesiti e delle tabelle */
+        .chiusi,
+        .aperti {
+            margin-bottom: 20px;
+            padding: 0 60px;
+        }
+
+        #vincoli.widget-professore {
+            width: 800px;
+            height: fit-content;
+            padding: 20px 0;
+        }
+
+        #vincoli h2 {
+            margin-top: 0;
+        }
+
+        input[type='radio'] {
+            margin-right: 10px;
+            width: auto;
+            height: auto;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-content: center;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        #tables {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-content: center;
+            margin-top: 1dvh;
+            justify-content: center;
+            width: 800px;
+        }
+
+        #tables .widget-classifica {
+            max-height: 570px;
+            width: 320px;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Esegui: <span style="color: red;"><?php echo strtoupper($_GET['test_associato']); ?></span></h1>
+
+    <div id="intestazione">
+        <div class="icons-container">
+            <a class="logout" href='/pages/logout.php'></a>
+            <a class="home" href='/pages/studente/studente.php'></a>
+        </div>
+        <h1>Esegui: <span style="color: red;"><?php echo strtoupper($_GET['test_associato']); ?></span></h1>
+    </div>
+
 
     <div class="container">
-        <div id="quesiti">
+        <div id="quesiti" class="widget-professore">
             <?php
             $db = connectToDatabaseMYSQL();
 
@@ -114,16 +200,21 @@ function test_gia_svolto($test)
                 echo "<div class='vuoto'><h1>Non ci sono quesiti per questo test</h1></div>";
             } else {
             ?>
-                <form method='post' action='../../helper/elabora_risposte.php'>
-                    <input type='hidden' name='test_associato' value='<?php echo $_GET['test_associato'] ?>'>
-                    <?php
-                    // Mostra i quesiti nel form
-                    foreach ($quesiti as $tabelle_di_esercizio) {
-                        build_view_quesito($tabelle_di_esercizio, $db);
-                    }
-                    ?>
-                    <input type='submit' value='Invia risposte'>
-                </form>
+                <div style="overflow-y: scroll; width: 100%;">
+                    <form method='post' action='../../helper/elabora_risposte.php'>
+                        <input type='hidden' name='test_associato' value='<?php echo $_GET['test_associato'] ?>'>
+                        <?php
+                        // Mostra i quesiti nel form
+                        foreach ($quesiti as $tabelle_di_esercizio) {
+                            build_view_quesito($tabelle_di_esercizio, $db);
+                            echo "<br>";
+                        }
+                        ?>
+                        <div style="position: relative;left: 40%;">
+                            <button type='submit'>Invia risposte</button>
+                        </div>
+                    </form>
+                </div>
             <?php
             }
             $db = null;
@@ -146,7 +237,7 @@ function test_gia_svolto($test)
 
         <div id="tabelle-esterne">
 
-            <div id="vincoli">
+            <div id="vincoli" class="widget-professore">
                 <?php
                 include '../../helper/print_vincoli.php';
                 if (count($tabelle) > 0 && $tabelle != null) {
@@ -161,8 +252,10 @@ function test_gia_svolto($test)
             <div id="tables">
                 <?php
                 foreach ($tabelle as $tabella) {
+                    echo "<div class='widget-classifica'>";
                     generateTable($tabella['nome_tabella']);
                     echo "</table>";
+                    echo "</div>";
                     echo "<br>";
                 }
                 ?>

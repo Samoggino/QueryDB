@@ -5,6 +5,10 @@ require '../helper/check_closed.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+if (isset($_SESSION['email']) == false || $_SESSION['ruolo'] != "STUDENTE") {
+    header('Location: ../index.php');
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Verifica se il titolo del test è stato passato tramite POST
     if (isset($_POST['test_associato'])) {
@@ -140,9 +144,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $db = null;
 
             // Reindirizza alla pagina dei risultati
-            header("Location: ../pages/studente/risultati_test.php");
-            exit();
-            // echo "<button onclick='window.location.href = \"../pages/studente/risultati_test.php?test_associato=" . $test_associato . "\";'>Visualizza Risultati</button>";
+            require_once 'check_closed.php';
+
+
+            if (check_svolgimento($test_associato, $email_studente) == 1) {
+                echo "<script>console.log('Test concluso');
+                window.location.href = '../pages/studente/risultati_test.php';</script>";
+            } else {
+                echo "<script>console.log('Il test non è concluso');
+                window.location.href = '../pages/studente/esegui_test.php?test_associato=" . $test_associato . "';</script>";
+            }
+
+
+            // header("Location: ../pages/studente/risultati_test.php");
+            // exit();
         } catch (PDOException $e) {
             // Gestisci eventuali errori di connessione al database
             echo "Errore di connessione al database: " . $e->getMessage();

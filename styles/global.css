@@ -101,12 +101,13 @@ button {
 ::-webkit-scrollbar {
     visibility: visible;
     cursor: pointer;
+    width: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
     background: transparent;
     border-radius: 40px;
-    background-color: rgb(81, 16, 3);
+    background-color: rgb(162, 161, 158);
 }
 
 #select-image {
@@ -124,18 +125,13 @@ button {
 }
 
 #uploadForm #intestazione {
-    display: flex;
-    align-items: center;
-    margin-left: 55px;
     width: 100%;
-    justify-content: center;
-    gap: 39dvw;
 }
 
-#uploadForm h1 {
+/* #uploadForm h1 {
     text-align: center;
     margin-left: -35px;
-}
+} */
 
 .widget-professore {
     margin: 10px;
@@ -151,10 +147,10 @@ button {
     justify-content: center;
 }
 
-.widget-professore:hover {
-    background-color: var(--background-default-color);
+/* .widget-professore:hover {
+    background-color: transparent;
     transition: all 0.3s;
-}
+} */
 
 
 #quesiti .scrollable-widget {
@@ -172,14 +168,7 @@ button {
     margin: 10px 15px 0 15px;
 }
 
-#intestazione {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-    gap: 42dvw;
-    padding-right: 814px;
-    width: 100%;
-}
+
 
 #intestazione a.home {
     display: inline-block;
@@ -207,11 +196,9 @@ button {
 .icons-container {
     display: flex;
     align-items: center;
-    align-content: center;
-    justify-content: space-evenly;
-    flex-wrap: wrap;
-    flex-direction: row;
-    gap: 8px;
+    justify-content: center;
+    gap: 1dvw;
+    padding-left: 4dvw;
 }
 
 #intestazione h1 {
@@ -225,7 +212,7 @@ button {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: white;
+    background-color: transparent;
     padding: 10px 20px 20px 20px;
     max-height: 650px;
     overflow-y: scroll;
@@ -234,20 +221,16 @@ button {
     border-radius: 10px;
 }
 
-.widget-classifica:hover {
-    background-color: rgba(245, 245, 245, 0.9);
-    /* Opacità maggiore rispetto al colore di base */
-    transition: background-color 0.3s ease;
-}
-
 .widget-classifica h2 {
     color: red;
 }
 
 .container-classifiche {
     display: flex;
-    gap: 20px;
+    gap: 3dvw;
     flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
 }
 
 input[type="checkbox"] {
@@ -282,4 +265,15 @@ input[type='text']::placeholder {
     align-items: center;
     justify-content: center;
     margin-top: 20px;
+}
+
+#intestazione {
+    /* display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 42dvw;
+    padding-right: 814px;
+    width: 100%; */
+    display: grid;
+    grid-template-columns: 0.1fr 0.8fr;
 }

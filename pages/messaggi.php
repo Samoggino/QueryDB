@@ -107,12 +107,12 @@ function tendinaTest()
         }
 
 
-        #messaggi .widget-professore {
+        .widget-professore {
             width: 500px;
             height: min-content;
         }
 
-        #messaggi input[type='text'] {
+        input[type='text'] {
             width: 300px;
             height: 30px;
             margin: 10px;
@@ -135,13 +135,7 @@ function tendinaTest()
             padding: 10px 60px;
         }
 
-        #intestazione {
-            margin-bottom: 20px;
-            gap: 35dvw;
-            margin-left: 3dvw;
-        }
-
-        #messaggi #body-messaggi {
+        #body-messaggi {
             display: flex;
             gap: 70px;
             align-content: center;
@@ -149,16 +143,17 @@ function tendinaTest()
             align-items: center;
             flex-wrap: wrap;
             flex-direction: row;
+            margin-top: 3dvh;
         }
 
-        #messaggi .widget-classifica {
+        .widget-classifica {
             width: 60%;
             height: <?php echo $_SESSION['ruolo'] == 'STUDENTE' ? '600px' : '530px'; ?>;
         }
     </style>
 </head>
 
-<body id="messaggi">
+<body>
 
     <div id="intestazione">
         <div class="icons-container">

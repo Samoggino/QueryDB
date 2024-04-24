@@ -5,101 +5,116 @@ require_once '../../helper/connessione_mysql.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-$email_studente = $_SESSION['email'];
-
-// Assicurati che la connessione al database sia stabilita correttamente
-$db = connectToDatabaseMYSQL();
-
-// Preparare la query per ottenere tutti i test
-$sql = "CALL GetAllTests();";
-
-// Preparare lo statement
-$stmt = $db->prepare($sql);
-$stmt->execute();
-$tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
-$stmt->closeCursor();
-
-
-if ($tests == null || count($tests) == 0) {
-    echo "<h1>Non hai svolto alcun test</h1>";
-    throw new Exception("Non hai svolto alcun test");
+if (isset($_SESSION['email']) == false || $_SESSION['ruolo'] != "STUDENTE") {
+    header('Location: ../index.php');
 }
 
-foreach ($tests as $key => $test) {
-    $test_associato = $test['titolo'];
+$db = connectToDatabaseMYSQL();
+$sql = "CALL CheckRisultatiStudente(:email);";
+$stmt = $db->prepare($sql);
+$stmt->bindParam(':email', $_SESSION['email'], PDO::PARAM_STR);
+$stmt->execute();
+$test_concluso_bool = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt->closeCursor();
 
-    $risposte = getRisposte($test_associato, $email_studente);
+if ($test_concluso_bool['check'] == 0) {
+    echo "<script>alert('Non hai concluso alcun test')
+    window.location.href = '/pages/studente/studente.php';</script>";
+}
+function costruisciTabellaRisultati()
+{
+    $email_studente = $_SESSION['email'];
+    // Assicurati che la connessione al database sia stabilita correttamente
+    $db = connectToDatabaseMYSQL();
 
-    if (count($risposte) == 0) {
-        continue;
-    }
+    $sql = "CALL GetTestDelloStudente(:email);";
+    $stmt = $db->prepare($sql);
+    $stmt->bindParam(':email', $email_studente, PDO::PARAM_STR);
+    $stmt->execute();
+    $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt->closeCursor();
 
-    // Stampare il titolo del test e le risposte
-    echo "<table>";
-    echo "<tr><th id='test' colspan='5'>" . $test_associato . "</th></tr>"; // Utilizzo colspan per estendere il titolo su 4 colonne
-    echo "<tr>";
-    echo "<th>Numero quesito</th>";
-    echo "<th>Data</th>";
-    echo "<th>Risposta dello studente</th>";
-    echo "<th>Risposta del professore</th>";
-    echo "<th>Esito</th>";
-    echo "</tr>";
-    foreach ($risposte as $risposta) {
-        $id_quesito = $risposta['id_quesito'];
-        echo "<tr>";
-        echo "<td>" . $risposta['numero_quesito'] . "</td>";
-        echo "<td id='col-data'>" . $risposta['in_data'] . "</td>";
+    foreach ($tests as $key => $test) {
 
-        if ($risposta['tipo_risposta'] == 'CHIUSA') {
-            $sql = "CALL GetSceltaQuesitoChiuso(:id_quesito, :email_studente);";
-            $stmt = $db->prepare($sql);
-            $stmt->bindParam(':id_quesito', $id_quesito);
-            $stmt->bindParam(':email_studente', $email_studente);
-            $stmt->execute();
-            $scelta = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stmt->closeCursor();
-            echo "<td>" . $scelta['opzione_scelta'] . "</td>";
+        $test_associato = $test['titolo_test'];
 
-            $sql = "CALL GetOpzioniCorrette(:id_quesito)";
-            $stmt = $db->prepare($sql);
-            $stmt->bindParam(':id_quesito', $id_quesito);
-            $stmt->execute();
-            $opzioni = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $stmt->closeCursor();
+        $risposte = getRisposte($test_associato, $email_studente);
 
-            if ($opzioni[0]['numero_opzione'] == $scelta['opzione_scelta']) {
-                echo "<td>" . $opzioni[0]['numero_opzione'] . "</td>";
-            } else {
-                echo "<td> - </td>";
+
+        if ($test['stato'] == "CONCLUSO") {
+            echo  '<div class="widget-classifica">';
+            // Stampare il titolo del test e le risposte
+            echo "<table>";
+            echo "<tr><th id='test' class='titolo-tabella' colspan='5'>" . $test_associato;
+
+            echo "</th></tr>"; // Utilizzo colspan per estendere il titolo su 4 colonne
+            echo "<tr>";
+            echo "<th>Numero quesito</th>";
+            echo "<th>Data</th>";
+            echo "<th>Risposta dello studente</th>";
+            echo "<th>Risposta del professore</th>";
+            echo "<th>Esito</th>";
+            echo "</tr>";
+
+            if (count($risposte) == 0) {
+                echo "<tr><td colspan='5'>Non hai inserito risposte, ma il test ora è concluso</td></tr>";
+                echo "</table>";
+                echo "</div>";
+                echo "<br>";
+                continue;
             }
-        } elseif ($risposta['tipo_risposta'] == 'APERTA') {
+            foreach ($risposte as $risposta) {
+                $id_quesito = $risposta['id_quesito'];
+                echo "<tr>";
+                echo "<td>" . $risposta['numero_quesito'] . "</td>";
+                echo "<td id='col-data'>" . $risposta['in_data'] . "</td>";
 
-            $sql = "CALL GetRispostaQuesitoAperto(:id_quesito, :email_studente);";
-            $stmt = $db->prepare($sql);
-            $stmt->bindParam(':id_quesito', $id_quesito);
-            $stmt->bindParam(':email_studente', $email_studente);
-            $stmt->execute();
-            $scelta = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stmt->closeCursor();
-            echo "<td>" . $scelta['risposta'] . "</td>";
-            echo "<td>" . mostraSoluzione($scelta['esito'], $scelta['risposta'], $id_quesito) . "</td>";
-        }
+                if ($risposta['tipo_risposta'] == 'CHIUSA') {
+                    $sql = "CALL GetSceltaQuesitoChiuso(:id_quesito, :email_studente);";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindParam(':id_quesito', $id_quesito);
+                    $stmt->bindParam(':email_studente', $email_studente);
+                    $stmt->execute();
+                    $scelta = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $stmt->closeCursor();
+                    echo "<td>" . $scelta['opzione_scelta'] . "</td>";
 
-        if ($risposta['esito'] == "GIUSTA") {
-            echo "<td id = 'esito-giusta'>" . $risposta['esito'] . "</td>";
-        } else if ($risposta['esito'] == "SBAGLIATA") {
-            echo "<td id = 'esito-sbagliata'>" . $risposta['esito'] . "</td>";
+                    $sql = "CALL GetOpzioniCorrette(:id_quesito)";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindParam(':id_quesito', $id_quesito);
+                    $stmt->execute();
+                    $opzioni = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    $stmt->closeCursor();
+
+                    echo "<td>" . $opzioni[0]['numero_opzione'] . "</td>";
+                } elseif ($risposta['tipo_risposta'] == 'APERTA') {
+
+                    $sql = "CALL GetRispostaQuesitoAperto(:id_quesito, :email_studente);";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindParam(':id_quesito', $id_quesito);
+                    $stmt->bindParam(':email_studente', $email_studente);
+                    $stmt->execute();
+                    $scelta = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $stmt->closeCursor();
+                    echo "<td>" . $scelta['risposta'] . "</td>";
+                    echo "<td>" . mostraSoluzione($scelta['esito'], $scelta['risposta'], $id_quesito) . "</td>";
+                }
+
+                echo "<td>" . $risposta['esito'] . "</td>";
+                echo "</tr>";
+            }
+            echo "</table>";
+            echo "</div>";
+            echo "<br>";
         }
-        echo "</tr>";
     }
-    echo "</table>";
-    echo "<br>";
 }
 
 
 function mostraSoluzione($esito, $risposta_studente, $id_quesito)
 {
 
+    // TODO: mostra la soluzione se il test è concluso, a prescindere dall'esito
 
     if ($esito == "GIUSTA") {
         $db = connectToDatabaseMYSQL();
@@ -143,30 +158,50 @@ function mostraSoluzione($esito, $risposta_studente, $id_quesito)
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../../styles/global.css">
-    <link rel="stylesheet" href="../../styles/risultatiTest.css">
 
     <title>Risultati</title>
 
+    <style>
+
+        .widget-classifica {
+            max-width: 70%
+        }
+
+        .container-risultati {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            align-content: center;
+            gap: 15px;
+        }
+
+        .titolo-tabella {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            background-color: #f2f2f2;
+            color: red;
+        }
+    </style>
 </head>
 
 <body>
-    <p>
-        <?php
-        $sql = "CALL GetAllRisposteDellUtente(:email_studente);";
-        $stmt = $db->prepare($sql);
-        $stmt->bindParam(':email_studente', $_SESSION['email']);
-        $stmt->execute();
-        $risposte = $stmt->fetch(PDO::FETCH_ASSOC);
-        $stmt->closeCursor();
+    <div id="intestazione">
+        <div class="icons-container">
+            <a class="logout" href='/pages/logout.php'></a>
+            <a class="home" href='/pages/studente/studente.php'></a>
+        </div>
+        <h1>Test conclusi</h1>
+    </div>
 
-        if ($risposte == 0) {
-            echo "Non hai svolto alcun test";
-            // header("Location: ../../pages/studente/studente.php");
-            // exit();
-        } else {
+    <div class="container-risultati">
+        <?php
+        costruisciTabellaRisultati();
         ?>
-    </p>
-<?php } ?>
+    </div>
+
 </body>
 
 

@@ -19,6 +19,12 @@ try {
         echo "<script>console.log('Test associato POST: " . $_POST['titolo_test_creato'] . "');</script>";
         $test_associato = $_POST['titolo_test_creato'];
 
+        // se c'è un apostrofo nel titolo del test, sostituiscilo con uno spazio
+        if (strpos($test_associato, "'") !== false) {
+            $test_associato = str_replace("'", " ", $test_associato);
+        }
+
+
         // controllo se il test è già presente
         $sql = "CALL GetTest(:test_associato)";
         $stmt = $db->prepare($sql);
@@ -28,8 +34,8 @@ try {
         $stmt->closeCursor();
 
         if ($result != null) {
-            echo "<script> alert('Test $test_associato già presente!');</script>";
-            echo "<script>window.location.replace('/pages/professore/crea_test.php');</script>";
+            echo "<script> alert('Test $test_associato già presente!'); 
+                            window.location.replace('/pages/professore/crea_test.php');</script>";
         }
 
         $sql = "CALL InserisciNuovoTest(:test_associato, :email_professore)";
@@ -72,7 +78,7 @@ try {
 
 
         unset($_POST['titolo_test_creato']);
-        echo "<script>window.location.replace('/pages/professore/crea_test.php?test_associato=$test_associato');</script>";
+        echo '<script>window.location.replace("/pages/professore/crea_test.php?test_associato=' . $test_associato . '");</script>';
     }
 } catch (\Throwable $th) {
     echo "ERRORE:<br>" . $th->getMessage() . "";
@@ -90,7 +96,7 @@ try {
     <link rel="stylesheet" href="../../styles/creaTest.css">
 
     <style>
-        
+
     </style>
 
 </head>
@@ -125,7 +131,7 @@ try {
     <?php if (isset($_GET['test_associato']) || isset($_POST['titolo_test_creato'])) {
         $test_associato = $_GET['test_associato'] ?? $_POST['titolo_test_creato'];
     ?>
-        <div id="intestazione" class="added">
+        <div id="intestazione">
             <div class="icons-container">
                 <a class="logout" href="/pages/logout.php"></a>
                 <a class="home" href="/pages/<?php echo strtolower($_SESSION['ruolo']) . '/' . strtolower($_SESSION['ruolo']) . ".php" ?>"></a>
@@ -420,18 +426,16 @@ try {
 
     });
 
-    // se è presente il test mostra il form per i quesiti
-    // document.addEventListener("DOMContentLoaded", function() {
-    //     var test_associato = document.getElementById("test_associato");
-
-    //     if (test_associato != null) {
-    //         console.log("value: " + test_associato.value);
-    //         document.getElementById("uploadForm").style.display = "none";
-    //         document.getElementById("quesiti").className = "on";
-    //     } else {
-    //         document.getElementById("quesiti").className = "off";
-    //     }
-    // });
+    // non permettere inserimenti di apostrofi in uploadForm
+    document.getElementById('uploadForm').addEventListener('submit', function(event) {
+        var titolo_test_creato = document.getElementById('titolo_test_creato');
+        if (titolo_test_creato.value.includes("'")) {
+            event.preventDefault();
+            alert("Il titolo del test non può contenere apostrofi.");
+            console.log(titolo_test_creato.value);
+            return;
+        }
+    });
 </script>
 
 </html>

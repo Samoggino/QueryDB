@@ -5,7 +5,7 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 
-if (isset($_SESSION['email']) == false) {
+if (isset($_SESSION['email']) == false || $_SESSION['ruolo'] != "STUDENTE") {
     header('Location: ../index.php');
 }
 
@@ -17,7 +17,15 @@ $stmt->execute();
 $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $stmt->closeCursor();
 
-// controlla se l'utente ha svolto dei test
+// controlla se l'utente ha concluso dei test
+$sql = "CALL CheckRisultatiStudente(:email);";
+$stmt = $db->prepare($sql);
+$stmt->bindParam(':email', $_SESSION['email'], PDO::PARAM_STR);
+$stmt->execute();
+$test_concluso_bool = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt->closeCursor();
+
+echo "<script>console.log(" . $test_concluso_bool['check'] . ")</script>";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -30,45 +38,85 @@ $stmt->closeCursor();
     <link rel="stylesheet" href="../../styles/global.css">
     <link rel="stylesheet" href="../../styles/studente.css">
 
+
+    <style>
+        .test-list {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            align-content: center;
+        }
+
+        .container-studente {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            justify-items: center;
+            align-items: center;
+            justify-content: center;
+            align-content: center;
+        }
+
+        .links {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            align-content: center;
+            flex-wrap: wrap;
+        }
+
+        .widget-professore {
+            width: 12dvw;
+            height: 31dvh;
+            min-width: 200px;
+        }
+    </style>
+
 </head>
 
 <body>
-    <div class="container">
-        <h1>Ciao</h1>
-        <div class="welcome">
-            <?php
-            echo "Benvenuto " . $_SESSION['nome'] . " " . $_SESSION['cognome'] . "<br>";
-            echo "Email: " . $_SESSION['email'];
-            ?>
+    <div id="intestazione">
+        <div class="icons-container">
+            <a class="logout" href='/pages/logout.php'></a>
+        </div>
+        <h1>Buongiorno <?php echo   $_SESSION['nome'] . " " . $_SESSION['cognome'] ?></h1>
+    </div>
+
+    <div class="links">
+        <div class="widget-professore">
+            <h3>Vai ai messaggi</h3>
+            <button onclick="location.href='/pages/messaggi.php'">Messaggi</button>
         </div>
 
-        <div class="test-list">
-            <?php
-            require_once "../../helper/check_closed.php";
-            // stampa tutti i test
-            foreach ($tests as $test) {
-                $is_closed = check_svolgimento($test['titolo'], $_SESSION['email']);
-                echo "<div class='test-item'>";
-                echo "<h3>" . strtoupper($test['titolo']) . "</h3>";
-                if ($is_closed == 1) {
-                    echo "<p style='color: green;'>Hai già svolto questo test</p>";
-                    // manca il link per visualizzare i risultati
-                    echo "<a href='/pages/studente/risultati_test.php?test_associato=" . $test['titolo'] . "'>Visualizza i risultati</a>";
-                } else {
-                    echo "<a href='/pages/studente/esegui_test.php?test_associato=" . $test['titolo'] . "'>Svolgi il test</a>";
-                }
-                echo "</div>";
+        <div class="widget-professore">
+            <h3>Vai alle classifiche</h3>
+            <button onclick="location.href='/pages/classifiche.php'">Classifiche</button>
+        </div>
+        <div class="widget-professore">
+            <h3>Visualizza i tuoi test</h3>
+            <button onclick="location.href='/pages/studente/risultati_test.php' <?php echo $test_concluso_bool['check'] > 0  ?  '' :  'disable' ?>">Risultati</button>
+        </div>
+    </div>
+
+    <div class="test-list">
+        <?php
+        require_once "../../helper/check_closed.php";
+        // stampa tutti i test
+        foreach ($tests as $test) {
+            $is_closed = check_svolgimento($test['titolo'], $_SESSION['email']);
+            echo "<div class='widget-professore'>";
+            echo "<h3>" . strtoupper($test['titolo']) . "</h3>";
+            if ($is_closed == 1) {
+                echo "<p style='color: green;'>Il test è concluso</p>";
+                echo "<button onclick='location.href=\"/pages/studente/esegui_test.php?test_associato=" . $test['titolo'] . "\"'>Risultati</button>";
+            } else {
+                echo "<button onclick='location.href=\"/pages/studente/esegui_test.php?test_associato=" . $test['titolo'] . "\"'>Svolgi</button>";
             }
-            ?>
-        </div>
-
-        <div class="links">
-            <h1>Vai ai messaggi</h1>
-            <a href="/pages/messaggi.php">Messaggi</a>
-
-            <h1>Vai alle classifiche</h1>
-            <a href="../classifiche.php">Classifiche</a>
-        </div>
+            echo "</div>";
+        }
+        ?>
     </div>
 </body>
 

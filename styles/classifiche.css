@@ -1,12 +1,3 @@
-body {
-    place-items: center;
-    margin: 0;
-    padding: 20px;
-    gap: 20px;
-    background-color: rgb(242, 216, 183);
-    overflow: hidden;
-}
-
 h1 {
     color: red;
     text-align: center;
@@ -38,19 +29,4 @@ table {
 
 .widget-classifica h2 {
     color: red;
-}
-
-.container-classifiche {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-#intestazione {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-    gap: 42dvw;
-    padding-right: 814px;
-    justify-content: center;
 }

@@ -661,11 +661,6 @@ CREATE TABLE IF NOT EXISTS
         CONSTRAINT UNIQUE_quesito_tabella UNIQUE (id_quesito, nome_tabella)
     );
 
-INSERT INTO
-    TEST (titolo, email_professore)
-VALUES
-    ('test1', 'professore@unibo.it');
-
 -- procedura per prendere il numero del nuovo quesito
 DELIMITER $$
 CREATE PROCEDURE GetNumeroNuovoQuesito (IN p_test_associato VARCHAR(100)) BEGIN
@@ -1596,20 +1591,6 @@ WHERE
 
 END $$ DELIMITER;
 
--- crea GetAllRisposte
-DELIMITER $$
-CREATE PROCEDURE IF NOT EXISTS GetAllRisposteDellUtente (IN p_email_studente VARCHAR(100)) BEGIN
-SELECT
-    COUNT(*)
-FROM
-    RISPOSTA
-WHERE
-    email_studente = p_email_studente
-GROUP BY
-    email_studente;
-
-END $$ DELIMITER;
-
 -- insert into TAB_ATT
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS InserisciAttributo (
@@ -1786,20 +1767,20 @@ VALUES
 INSERT INTO
     provolone (NomeR, CognomeR, numero)
 VALUES
-    ('Mario', 'Rossi', 123)      ,
-    ('Luigi', 'Verdi', 456)      ,
-    ('Giovanna', 'Bianchi', 789) ,
-    ('Paola', 'Neri', 1011)      ,
-    ('Marco', 'Gialli', 1213)    ,
-    ('Alessandra', 'Rosa', 1415) ,
-    ('Giacomo', 'Viola', 1617)   ,
-    ('Elena', 'Blu', 1819)       ,
-    ('Stefano', 'Arancio', 2021) ,
-    ('Federica', 'Marrone', 2223),
-    ('Roberto', 'Grigio', 2425)  ,
-    ('Simona', 'Rosa', 2627)     ,
-    ('Andrea', 'Azzurro', 2829)  ,
-    ('Laura', 'Celeste', 3031)   ,
+    -- ('Mario', 'Rossi', 123)          ,
+    --     ('Luigi', 'Verdi', 456)      ,
+    --     ('Giovanna', 'Bianchi', 789) ,
+    --     ('Paola', 'Neri', 1011)      ,
+    --     ('Marco', 'Gialli', 1213)    ,
+    --     ('Alessandra', 'Rosa', 1415) ,
+    --     ('Giacomo', 'Viola', 1617)   ,
+    --     ('Elena', 'Blu', 1819)       ,
+    --     ('Stefano', 'Arancio', 2021) ,
+    --     ('Federica', 'Marrone', 2223),
+    --     ('Roberto', 'Grigio', 2425)  ,
+    --     ('Simona', 'Rosa', 2627)     ,
+    --     ('Andrea', 'Azzurro', 2829)  ,
+    --     ('Laura', 'Celeste', 3031)   ,
     ('Davide', 'Indaco', 3233);
 
 INSERT INTO
@@ -1947,5 +1928,51 @@ FROM
     QUESITI_TABELLA as QT
 WHERE
     QT.id_quesito = p_id_quesito;
+
+END $$ DELIMITER;
+
+-- get test
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS GetTest (IN p_titolo VARCHAR(100)) BEGIN
+SELECT
+    *
+FROM
+    TEST
+WHERE
+    titolo = p_titolo;
+
+END $$ DELIMITER;
+
+-- get professori
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS GetProfessori () BEGIN
+SELECT
+    email_professore
+FROM
+    PROFESSORE;
+
+END $$ DELIMITER;
+
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS CheckRisultatiStudente (IN p_email_studente VARCHAR(100)) BEGIN
+SELECT
+    COUNT(*) as 'check'
+FROM
+    SVOLGIMENTO_TEST st
+where
+    st.email_studente = p_email_studente
+    and stato = "CONCLUSO";
+
+END $$ DELIMITER;
+
+-- get GetTestDelloStudente
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS GetTestDelloStudente (IN p_email_studente VARCHAR(100)) BEGIN
+SELECT
+    *
+FROM
+    SVOLGIMENTO_TEST
+WHERE
+    email_studente = p_email_studente;
 
 END $$ DELIMITER;

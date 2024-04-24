@@ -81,15 +81,7 @@ if (isset($_GET['nome_tabella'])) {
             left: 25%;
         }
 
-        <?php } ?>
-
-        #intestazione {
-            margin-bottom: 20px;
-            gap: 35dvw;
-            margin-left: 3dvw;
-        }
-
-        input {
+        <?php } ?>input {
             width: auto;
             height: auto;
             border-radius: 0;

@@ -88,17 +88,12 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
             margin-top: 35px;
             margin-bottom: -75px;
         }
-
-        #intestazione {
-            gap: 32dvw;
-            margin-left: 50px;
-        }
     </style>
 </head>
 
 <body>
 
-    <div id="intestazione" class="added">
+    <div id="intestazione">
         <div class="icons-container">
             <a class="logout" href="/pages/logout.php"></a>
             <a class="home" href="/pages/professore/professore.php"></a>
