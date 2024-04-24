@@ -76,11 +76,12 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
         );
 
         connectToDatabaseMONGODB($documento);
-        $stmt->execute();
-        $db = null;
-
-        header("Location: /pages/professore/riempi_tabella.php?nome_tabella=$nome_tabella");
-        exit();
+        if ($stmt->execute()) {
+            $db = null;
+            echo "<script>alert('Tabella creata con successo, riempila'); window.location.replace('/pages/professore/riempi_tabella.php?nome_tabella=$nome_tabella&factory=true')</script>";
+        } else {
+            echo "<script>alert('Errore nella creazione della tabella')</script>";
+        }
     } catch (\Throwable $th) {
         // eliminare la tabella logica
         $db = connectToDatabaseMYSQL();
@@ -91,9 +92,22 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
         echo "<script>console.log('" . $nome_tabella . " eliminata a causa di un errore nella creazione fisica')</script>";
         echo "<script>console.log('" . json_encode($_POST) . "')</script>";
         echo "<script>console.log('" . $query_corrente . "')</script>";
-
-
-
-        echo $th->getMessage();
+        echo "<script>alert('Errore nella creazione della tabella'); window.location.replace('/pages/professore/crea_tabella.php')</script>";
     }
 }
+
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Document</title>
+    <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="../../styles/global.css">
+</head>
+
+<body>
+
+</body>
+
+</html>

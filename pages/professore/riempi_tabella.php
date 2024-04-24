@@ -9,7 +9,10 @@ error_reporting(E_ALL);
 if ($_SESSION['ruolo'] != 'PROFESSORE') {
     echo "<script>alert('Non hai i permessi per accedere a questa pagina!'); window.location.replace('/pages/login.php')</script>";
 }
-
+if (isset($_POST)) {
+    echo "<script>console.log('POST: " . json_encode($_POST) . "');</script>";
+    unset($_POST);
+}
 if (isset($_GET['nome_tabella'])) {
     $nome_tabella = $_GET['nome_tabella'];
     try {
@@ -35,15 +38,17 @@ if (isset($_GET['nome_tabella'])) {
             $tabelle_riferite = $stmt->fetchAll();
             $stmt->closeCursor();
         } catch (\Throwable $th) {
-            echo "PROBLEM TABELLE RIFERITE <br>" . $th->getMessage();
+            echo "<script>alert('PROBLEM VINCOLI <br>" . $th->getMessage() . ")</script>";
         }
 
 
         if ($valori == null) {
-            echo "<br>VALORI NULLI";
+            if (!isset($_GET['factory'])) {
+                echo "<script>alert('La tabella è vuota, inserisci dei valori!');</script>";
+            }
         }
     } catch (\Throwable $th) {
-        echo "PROBLEM RIEMPIMENTO <br>" . $th->getMessage();
+        echo "<script>alert('PROBLEM <br>" . $th->getMessage() . ")</script>";
     }
 }
 ?>
@@ -62,11 +67,8 @@ if (isset($_GET['nome_tabella'])) {
         ?>.tabelle {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(calc(33.33% - 20px), 1fr));
-            /* Imposta le colonne della griglia con una larghezza minima di 33.33% */
             grid-gap: 50px;
-            /* Aggiunge spazio tra le tabelle */
             justify-content: center;
-            /* Centra gli elementi nella griglia */
         }
 
         <?php
@@ -80,7 +82,6 @@ if (isset($_GET['nome_tabella'])) {
         }
 
         <?php } ?>
-        /* .widget-classifica {} */
 
         #intestazione {
             margin-bottom: 20px;

@@ -40,7 +40,7 @@ function primary_key($query_corrente, $primary_keys, $nome_attributo)
             $query_corrente .= ")";
         }
     } catch (\Throwable $th) {
-        echo "PRIMARY KEY PROBLEM <br>" . $th->getMessage();
+        echo "<script>alert('PRIMARY KEY PROBLEM' <br>" . $th->getMessage() . ")</script>";
     }
 
     return $query_corrente;
@@ -58,7 +58,6 @@ function foreign_key($foreign_keys_raw, $query_corrente)
         $json = convertToJSONFormat($foreign_keys_raw); // Converto l'array in formato JSON per facilitare la manipolazione
         $decodedJson = json_decode($json, true);
 
-        // echo "<script>console.log(" . json_encode($decodedJson) . ");</script>";
 
         // Esempio di utilizzo
         if ($decodedJson['foreign_keys'] > 0)
@@ -79,7 +78,7 @@ function foreign_key($foreign_keys_raw, $query_corrente)
                     . implode(", ", array_column($attributes, 'attributo_riferimento')) . ") ON DELETE CASCADE ";
             }
     } catch (\Throwable $th) {
-        echo "FOREIGN KEY PROBLEM <br>" . $th->getMessage();
+        echo "<script>alert('FOREIGN KEY PROBLEM' <br>" . $th->getMessage() . ")</script>";
     }
     return $query_corrente;
 }
@@ -104,7 +103,7 @@ function convertToJSONFormat($input)
             );
         }
     } catch (\Throwable $th) {
-        echo "JSON PROBLEM <br>" . $th->getMessage();
+        echo "<script>alert('CONVERSION PROBLEM' <br>" . $th->getMessage() . ")</script>";
     }
 
     return json_encode($output, JSON_PRETTY_PRINT);
@@ -135,7 +134,6 @@ function verificaOrdine($attributi_ordinati, $attributes)
 
     // controllo l'ordine degli attributi, se manca un elemento della chiave esterna allora lancia un'eccezione
     for ($i = 0; $i < count($attributes); $i++) {
-        echo  $attributes[$i]['attributo_riferimento'] . " = " . $attributi_ordinati[$i]['NOME_ATTRIBUTO'] . "?<br>";
         if ($attributes[$i]['attributo_riferimento'] != $attributi_ordinati[$i]['NOME_ATTRIBUTO']) {
             throw new Exception("Non sono presenti tutti gli elementi necessari per fare la chiave esterna.");
         }
@@ -185,7 +183,7 @@ function attributi(
             }
         }
     } catch (\Throwable $th) {
-        echo "ATTRIBUTES PROBLEM <br>" . $th->getMessage();
+        echo "<script>alert('ATTRIBUTES PROBLEM' <br>" . $th->getMessage() . ")</script>";
     }
     return $query_corrente;
 }

@@ -182,14 +182,8 @@ function tendinaTest()
             <form method='post' action=''>
 
                 <div class="inner-form">
-                    <div class="tendina">
-                        <h4 for="titolo_messaggio">Titolo:</h4>
-                        <input for='titolo_messaggio' name='titolo_messaggio' placeholder='Inserisci il titolo del messaggio' type='text' required>
-                    </div>
-                    <div class="tendina">
-                        <h4 for="testo_messaggio">Messaggio:</h4>
-                        <textarea for='testo_messaggio' name='testo_messaggio' placeholder='Scrivi il tuo messaggio' type='text' required></textarea>
-                    </div>
+                    <input for='titolo_messaggio' name='titolo_messaggio' placeholder='Inserisci il titolo del messaggio' type='text' required>
+                    <textarea for='testo_messaggio' name='testo_messaggio' placeholder='Scrivi il tuo messaggio' type='text' required></textarea>
                     <?php
                     if ($_SESSION['ruolo'] == 'STUDENTE') {
                         echo "<div class='tendina'>Destinatario <br>";
@@ -205,7 +199,6 @@ function tendinaTest()
             </form>
         </div>
         <?php visualizzaMessaggi(); ?>
-
     </div>
 
 

@@ -90,7 +90,7 @@ try {
     <link rel="stylesheet" href="../../styles/creaTest.css">
 
     <style>
-
+        
     </style>
 
 </head>
@@ -160,18 +160,27 @@ try {
                 ?>
 
                 <div class="widget-professore">
-                    <h2>Aggiungi quesito</h2>
+                    <h2 style="margin-bottom:0">Aggiungi quesito</h2>
                     <div class="scrollable-widget">
-
                         <!-- crea dei quesiti per il test, il quesito è fatto con un enum per la difficoltà e un campo per la descrizione -->
                         <form method="POST" action="crea_quesito.php?test_associato=<?php echo $test_associato ?>" id="form-quesito">
-                            <label for="descrizione" name="descrizione">Descrizione:</label>
-                            <input for="descrizione" name="descrizione" placeholder="Descrizione" type="text" required>
-                            <select for="difficolta" name="difficolta" id="difficolta" required>
-                                <option value="BASSO">Basso</option>
-                                <option value="MEDIO">Medio</option>
-                                <option value="ALTO">Alto</option>
-                            </select>
+                            <div class="lable-input-container" style="flex-direction: row; gap:5px; align-items:flex-start">
+                                <div style="flex-direction: column;display:flex;align-items:center">
+                                    <label for="descrizione" name="descrizione">Descrizione:</label>
+                                    <input for="descrizione" name="descrizione" placeholder="Descrizione" type="text" required>
+                                </div>
+                                <div style="flex-direction: column;display:flex;">
+                                    <label for="difficolta" name="difficolta">Difficoltà:</label>
+                                    <select for="difficolta" name="difficolta" id="difficolta" required>
+                                        <option value="BASSO">Basso</option>
+                                        <option value="MEDIO">Medio</option>
+                                        <option value="ALTO">Alto</option>
+                                    </select>
+                                </div>
+                            </div>
+
+
+
                             <div>
                                 <div class="checkbox-container">
                                     <label for="quesito-aperto-checkbox">Aperto</label>
@@ -206,8 +215,8 @@ try {
                             </div>
                             <!-- seleziona le tabelle di esercizio a cui fare riferimento -->
 
-                            <div>
-
+                            <div class="lable-input-container">
+                                <label for="tabelleRiferimento">Tabelle di riferimento:</label>
                                 <select id="tabelleRiferimento" name="tabelle[]" multiple>
                                     <?php
                                     $sql = "CALL GetTabelleCreate()";
@@ -286,16 +295,16 @@ try {
                 quesito_aperto_checkbox.checked = false; // Disabilita la checkbox aperto quando selezioni chiuso
                 aperto_div.style.display = "none"; // Nasconde il campo anno immatricolazione quando selezioni chiuso
 
-
-                // <input name="opzione[]" placeholder="Opzione" type="text">
-                // <input name="opzione_vera[]" type="checkbox"> Opzione Vera
                 var quesito_chiuso = document.createElement('div');
                 quesito_chiuso.className = 'quesito-chiuso';
 
                 if (document.getElementById('opzioni_chiuso').children.length == 1) {
                     quesito_chiuso.innerHTML = `
                     <input name="opzione[]" placeholder="Opzione" type="text" required>
-                    <input name="opzione_vera[]" type="checkbox"> Opzione Vera
+                    <div style="display:flex;flex-direction:column;margin-left: 25px;align-items: center;"> 
+                        <label for="opzione_vera">Opzione vera</label>
+                        <input name="opzione_vera[]" type="checkbox">
+                    </div>
                 `;
                     document.getElementById('opzioni_chiuso').appendChild(quesito_chiuso);
                 }
@@ -371,8 +380,11 @@ try {
             var quesito_chiuso = document.createElement('div');
             quesito_chiuso.className = 'quesito-chiuso';
             quesito_chiuso.innerHTML = `
-                    <input type="text" name="opzione[]" placeholder="Opzione" required>
-                    <input type="checkbox" name="opzione_vera[]"> Opzione Vera
+                    <input name="opzione[]" placeholder="Opzione" type="text" required>
+                    <div style="display:flex;flex-direction:column;margin-left: 25px;align-items: center;"> 
+                        <label for="opzione_vera">Opzione vera</label>
+                        <input name="opzione_vera[]" type="checkbox">
+                    </div>
                 `;
             document.getElementById('opzioni_chiuso').appendChild(quesito_chiuso);
         });

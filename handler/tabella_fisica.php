@@ -22,7 +22,7 @@ function inserisciInTabellaDelleTabelle($nome_tabella)
         $stmt->closeCursor();
         $db = null;
     } catch (\Throwable $th) {
-        echo "TABLE^2 PROBLEM <br>" . $th->getMessage();
+        echo "<script>alert('TABLE^2 PROBLEM' <br>" . $th->getMessage() . ")</script>";
     }
 }
 function inserisciInAttributi($numero_attributi, $nome_attributo, $tipo_attributo, $nome_tabella)
@@ -39,7 +39,7 @@ function inserisciInAttributi($numero_attributi, $nome_attributo, $tipo_attribut
         }
         $db = null;
     } catch (\Throwable $th) {
-        echo "TAB_ATT PROBLEM <br>" . $th->getMessage();
+        echo "<script>alert('ATTRIBUTES PROBLEM' <br>" . $th->getMessage() . ")</script>";
     }
 }
 
@@ -58,7 +58,7 @@ function inserisciForeignKey($nome_tabella, $foreign_keys)
         }
         $db = null;
     } catch (\Throwable $th) {
-        echo "FOREIGN INSERT PROBLEM <br>" . $th->getMessage();
+        echo "<script>alert('FOREIGN KEY INSERT PROBLEM' <br>" . $th->getMessage() . ")</script>";
     }
 }
 function inserisciPrimaryKey($nome_tabella, $primary_keys, $nome_attributo)
@@ -75,6 +75,6 @@ function inserisciPrimaryKey($nome_tabella, $primary_keys, $nome_attributo)
         }
         $db = null;
     } catch (\Throwable $th) {
-        echo "PRIMARY KEY INSERT PROBLEM <br>" . $th->getMessage();
+        echo "<script>alert('PRIMARY KEY INSERT PROBLEM' <br>" . $th->getMessage() . ")</script>";
     }
 }
