@@ -210,7 +210,6 @@ if (isset($_GET['nome_tabella'])) {
             ?>
 
 
-                <!-- <h3>Righe tabella vincolata</h3> -->
                 <?php
                 require_once '../../helper/print_table.php';
 

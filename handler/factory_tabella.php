@@ -1,15 +1,36 @@
 <?php
 session_start();
+?>
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="../styles/global.css">
+    <style>
+        body {
+            color: transparent;
+        }
+    </style>
+
+</head>
+
+<body>
+
+</body>
+
+</html>
+
+
+<?php
+// se non è stato un post non fare nulla
 require_once '../helper/connessione_mysql.php';
 require_once '../helper/connessione_mongodb.php';
 require_once 'tabella_logica.php';
 require_once 'tabella_fisica.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-
-
-// se non è stato un post non fare nulla
-
 if ($_SERVER['REQUEST_METHOD'] != 'POST') {
     throw new Exception("Richiesta non valida");
 } else {
@@ -55,9 +76,6 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
 
         $query_corrente = crea_tabella_logica($nome_tabella, $numero_attributi, $nome_attributo, $tipo_attributo, $primary_keys, $foreign_keys);
 
-        // echo "<script>console.log('" . $query_corrente . "')</script>";
-
-
         // Inserimento della tabella nel database delle tabelle create
         crea_tabella_fisica($numero_attributi, $nome_attributo, $tipo_attributo, $nome_tabella, $foreign_keys, $primary_keys);
 
@@ -65,19 +83,20 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
 
         $stmt = $db->prepare($query_corrente);
 
-        $documento = (
-            array(
-                'creazione_tabella' => 'creazione_tabella',
-                'nome_tabella' => $nome_tabella,
-                // 'errore' => $th->getMessage(),
-                'data' => date('Y-m-d'),
-                'query' => $query_corrente
-            )
-        );
 
-        connectToDatabaseMONGODB($documento);
         if ($stmt->execute()) {
             $db = null;
+            $documento = (
+                array(
+                    'creazione_tabella' => 'creazione_tabella',
+                    'nome_tabella' => $nome_tabella,
+                    // 'errore' => $th->getMessage(),
+                    'data' => date('Y-m-d'),
+                    'query' => $query_corrente
+                )
+            );
+
+            connectToDatabaseMONGODB($documento);
             echo "<script>alert('Tabella creata con successo, riempila'); window.location.replace('/pages/professore/riempi_tabella.php?nome_tabella=$nome_tabella&factory=true')</script>";
         } else {
             echo "<script>alert('Errore nella creazione della tabella')</script>";
@@ -89,25 +108,19 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
         $stmt->bindParam(':nome_tabella', $nome_tabella, PDO::PARAM_STR);
         $stmt->execute();
         $stmt->closeCursor();
+        $documento = (
+            array(
+                'creazione_tabella' => 'creazione_tabella',
+                'nome_tabella' => $nome_tabella,
+                'errore' => $th->getMessage(),
+                'data' => date('Y-m-d'),
+                'query' => $query_corrente
+            )
+        );
+        connectToDatabaseMONGODB($documento);
         echo "<script>console.log('" . $nome_tabella . " eliminata a causa di un errore nella creazione fisica')</script>";
         echo "<script>console.log('" . json_encode($_POST) . "')</script>";
         echo "<script>console.log('" . $query_corrente . "')</script>";
         echo "<script>alert('Errore nella creazione della tabella'); window.location.replace('/pages/professore/crea_tabella.php')</script>";
     }
 }
-
-?>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <title>Document</title>
-    <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="../../styles/global.css">
-</head>
-
-<body>
-
-</body>
-
-</html>
