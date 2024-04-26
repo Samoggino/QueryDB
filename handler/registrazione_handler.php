@@ -1,14 +1,10 @@
 <?php
 require_once '../helper/connessione_mysql.php';
+require_once '../helper/connessione_mongodb.php';
+require_once '../composer/vendor/autoload.php';
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-function getPDO()
-{
-    $pdo = connectToDatabaseMYSQL();
-    if (!$pdo) {
-        throw new Exception("Errore di connessione al database!");
-    }
-    return $pdo;
-}
 
 function registrazione()
 {
@@ -20,53 +16,134 @@ function registrazione()
         $tipoUtente = $_POST["tipo_utente"];
         $telefono = $_POST["telefono"];
 
-        try {
-            $pdo = getPDO();
-            if ($tipoUtente == "studente") {
-                $annoImmatricolazione = $_POST["anno_immatricolazione"];
-                $matricola = $_POST["matricola"];
-                insertNewStudent($pdo, $email, $nome, $cognome, $PASSWORD, $telefono, $annoImmatricolazione, $matricola);
-                echo "<p>Studente registrato con successo!</p>";
-            } elseif ($tipoUtente == "professore") {
-                $dipartimento = $_POST["dipartimento"];
-                $corso = $_POST["corso"];
-                insertNewProfessor($pdo, $email, $nome, $cognome, $PASSWORD, $telefono, $dipartimento, $corso);
-                echo "<p>Professore registrato con successo!</p>";
-            } else {
-                throw new Exception("Tipo utente non valido!");
-            }
-        } catch (PDOException $e) {
-            echo "<p>Errore durante l'accesso al database: " . $e->getMessage() . "</p>";
-        } catch (Exception $e) {
-            echo "<p>Errore durante la registrazione dell'utente: " . $e->getMessage() . "</p>";
+        // controlla se l'email è già presente nel database
+        $db = connectToDatabaseMYSQL();
+        $sql = "CALL CercaUtente(:email)";
+        $query = $db->prepare($sql);
+        $query->bindParam(':email', $email, PDO::PARAM_STR);
+        $query->execute();
+        $result = $query->fetch(PDO::FETCH_ASSOC);
+        $query->closeCursor();
+
+        if ($result) {
+            echo "<script>alert('Email già presente nel database'); window.location.href = '../pages/login.php' </script>";
+        }
+
+
+        $db = connectToDatabaseMYSQL();
+        if ($tipoUtente == "studente") {
+            $annoImmatricolazione = $_POST["anno_immatricolazione"];
+            $matricola = $_POST["matricola"];
+
+            insertNewStudent($db, $email, $nome, $cognome, $PASSWORD, $telefono, $annoImmatricolazione, $matricola);
+        } elseif ($tipoUtente == "professore") {
+            $dipartimento = $_POST["dipartimento"];
+            $corso = $_POST["corso"];
+            insertNewProfessor($db, $email, $nome, $cognome, $PASSWORD, $telefono, $dipartimento, $corso);
+        } elseif ($tipoUtente == "" || $tipoUtente == null) {
+            echo "<script>alert('Seleziona almeno una delle opzioni: Studente o Professore.'); </script>";
         }
     }
 }
 
-function insertNewStudent($pdo, $email, $nome, $cognome, $password, $telefono, $annoImmatricolazione, $matricola)
+function insertNewStudent($db, $email, $nome, $cognome, $password, $telefono, $annoImmatricolazione, $matricola)
 {
-    $sql = "CALL InserisciNuovoStudente(:email, :nome, :cognome, :password, :telefono, :annoImmatricolazione, :matricola)";
-    $query = $pdo->prepare($sql);
-    $query->bindParam(':email', $email, PDO::PARAM_STR);
-    $query->bindParam(':nome', $nome, PDO::PARAM_STR);
-    $query->bindParam(':cognome', $cognome, PDO::PARAM_STR);
-    $query->bindParam(':password', $password, PDO::PARAM_STR);
-    $query->bindParam(':telefono', $telefono, PDO::PARAM_STR);
-    $query->bindParam(':annoImmatricolazione', $annoImmatricolazione, PDO::PARAM_STR);
-    $query->bindParam(':matricola', $matricola, PDO::PARAM_STR);
-    $query->execute();
+
+
+    try {
+        $sql = "CALL InserisciNuovoStudente(:email, :nome, :cognome, :password, :annoImmatricolazione, :matricola, :telefono)";
+        $query = $db->prepare($sql);
+        $query->bindParam(':email', $email, PDO::PARAM_STR);
+        $query->bindParam(':nome', $nome, PDO::PARAM_STR);
+        $query->bindParam(':cognome', $cognome, PDO::PARAM_STR);
+        $query->bindParam(':password', $password, PDO::PARAM_STR);
+        $query->bindParam(':annoImmatricolazione', $annoImmatricolazione, PDO::PARAM_STR);
+        $query->bindParam(':matricola', $matricola, PDO::PARAM_STR);
+
+        if ($telefono != null || $telefono != "") {
+            $query->bindParam(':telefono', $telefono, PDO::PARAM_STR);
+        } else {
+            $query->bindParam(':telefono', $telefono, PDO::PARAM_NULL);
+        }
+
+        if ($query->execute()) {
+
+
+            $_SESSION['nome'] = $nome;
+            $_SESSION['cognome'] = $cognome;
+            $_SESSION['email'] = $email;
+            $_SESSION['ruolo'] = 'STUDENTE';
+            $_SESSION['matricola'] = $matricola;
+
+            try {
+
+                insertOnMONGODB(
+                    'registrazione_studente',
+                    [
+                        'ruolo' => 'STUDENTE',
+                        'email' => $email,
+                        'nome' => $nome,
+                        'cognome' => $cognome,
+                        'anno_immatricolazione' => $annoImmatricolazione,
+                        'matricola' => $matricola,
+                        'telefono' => $telefono ?? ""
+                    ],
+                    'Lo studente ' .  $cognome . " " . $nome  .  ' è stato registrato con successo! La sua email è: ' . $email
+                );
+                echo "<script>console.log('Benvenuto professor $nome $cognome'); window.location.href = 'studente/studente.php';</script>";
+            } catch (\Throwable $th) {
+                echo "<script>alert('Errore di mongoDB: " . $th->getMessage() . "'); window.location.href = '../pages/login.php' </script>";
+            }
+        }
+    } catch (\Throwable $th) {
+        echo "<script>alert('Errore: " . $th->getMessage() . "'); window.location.href = '../pages/login.php' </script>";
+    }
 }
 
-function insertNewProfessor($pdo, $email, $nome, $cognome, $password, $telefono, $dipartimento, $corso)
+function insertNewProfessor($db, $email, $nome, $cognome, $password, $telefono, $dipartimento, $corso)
 {
-    $sql = "CALL InserisciNuovoProfessore(:email, :nome, :cognome, :password, :telefono, :dipartimento, :corso)";
-    $query = $pdo->prepare($sql);
-    $query->bindParam(':email', $email, PDO::PARAM_STR);
-    $query->bindParam(':nome', $nome, PDO::PARAM_STR);
-    $query->bindParam(':cognome', $cognome, PDO::PARAM_STR);
-    $query->bindParam(':password', $password, PDO::PARAM_STR);
-    $query->bindParam(':telefono', $telefono, PDO::PARAM_STR);
-    $query->bindParam(':dipartimento', $dipartimento, PDO::PARAM_STR);
-    $query->bindParam(':corso', $corso, PDO::PARAM_STR);
-    $query->execute();
+    try {
+        $sql = "CALL InserisciNuovoProfessore(:email, :nome, :cognome, :password, :dipartimento, :corso, :telefono)";
+        $query = $db->prepare($sql);
+        $query->bindParam(':email', $email, PDO::PARAM_STR);
+        $query->bindParam(':nome', $nome, PDO::PARAM_STR);
+        $query->bindParam(':cognome', $cognome, PDO::PARAM_STR);
+        $query->bindParam(':password', $password, PDO::PARAM_STR);
+        $query->bindParam(':dipartimento', $dipartimento, PDO::PARAM_STR);
+        $query->bindParam(':corso', $corso, PDO::PARAM_STR);
+
+        if ($telefono != null || $telefono != "") {
+            $query->bindParam(':telefono', $telefono, PDO::PARAM_STR);
+        } else {
+            $query->bindParam(':telefono', $telefono, PDO::PARAM_NULL);
+        }
+
+        if ($query->execute()) {
+            $_SESSION['nome'] = $nome;
+            $_SESSION['cognome'] = $cognome;
+            $_SESSION['email'] = $email;
+            $_SESSION['ruolo'] = 'PROFESSORE';
+
+            try {
+                insertOnMONGODB(
+                    'registrazione_professore',
+                    [
+                        'ruolo' => 'PROFESSORE',
+                        'email' => $email,
+                        'nome' => $nome,
+                        'cognome' => $cognome,
+                        'dipartimento' => $dipartimento,
+                        'corso' => $corso,
+                        'telefono' => $telefono ?? ""
+                    ],
+                    'Il professore ' .  $cognome . " " . $nome  .  ' è stato registrato con successo! La sua email è: ' . $email
+                );
+                echo "<script>alert('Benvenuto professor $nome $cognome'); window.location.href = 'professore/professore.php';</script>";
+            } catch (\Throwable $th) {
+                echo "<script>alert('Errore di mongoDB: " . $th->getMessage() . "'); window.location.href = '../pages/login.php' </script>";
+            }
+        }
+    } catch (\Throwable $th) {
+        echo "<script>alert('Errore: " . $th->getMessage() . "'); </script>";
+    }
 }

@@ -3,7 +3,7 @@ session_start();
 require '../helper/connessione_mongodb.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-function login()
+function loginHandler()
 {
 
     try {
@@ -35,7 +35,7 @@ function login()
             $cognome = $result['@cognome'];
 
             if ($authenticated) {
-                echo "<script>alert('Login effettuato con successo')</script>";
+                // echo "<script>alert('Login effettuato con successo')</script>";
 
                 $_SESSION['email'] = $email;
                 $_SESSION['nome'] = $nome;
@@ -51,16 +51,18 @@ function login()
                         $stmt->closeCursor();
                         $_SESSION['matricola'] = $studente['matricola'];
                         $_SESSION['ruolo'] = 'STUDENTE';
+                        echo "<script>window.location.href = './studente/studente.php';</script>";
                     } catch (\Throwable $th) {
                         echo "<script>alert('Errore numero di matricola')</script>";
                     }
                 } elseif ($tipo_utente  == 'PROFESSORE') {
 
                     $_SESSION['ruolo'] = 'PROFESSORE';
+                    echo "<script>window.location.href = './professore/professore.php';</script>";
                 }
+            } else {
+                echo "<script>alert('Credenziali errate'); window.location.href = '../pages/login.php'</script>";
             }
-            $db = null;
-            return $authenticated;
         }
     } catch (\Throwable $th) {
         //  throw $th;

@@ -17,7 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $email_studente = $_SESSION['email'];
 
         if (check_svolgimento($test_associato, $email_studente)) {
-            echo "<script>console.log('Test già svolto')</script>";
+            echo "<script>alert('Test già svolto')</script>";
             header("Location: ../pages/studente/risultati_test.php");
             exit();
         }
@@ -149,15 +149,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if (check_svolgimento($test_associato, $email_studente) == 1) {
                 echo "<script>console.log('Test concluso');
-                window.location.href = '../pages/studente/risultati_test.php';</script>";
+                 window.location.href = '../pages/studente/risultati_test.php';</script>";
             } else {
                 echo "<script>console.log('Il test non è concluso');
-                window.location.href = '../pages/studente/esegui_test.php?test_associato=" . $test_associato . "';</script>";
+                 window.location.href = '../pages/studente/esegui_test.php?test_associato=" . $test_associato . "';</script>";
             }
 
 
-            // header("Location: ../pages/studente/risultati_test.php");
-            // exit();
+            header("Location: ../pages/studente/risultati_test.php");
+            exit();
         } catch (PDOException $e) {
             // Gestisci eventuali errori di connessione al database
             echo "Errore di connessione al database: " . $e->getMessage();

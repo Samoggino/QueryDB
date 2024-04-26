@@ -122,11 +122,10 @@ function test_gia_svolto($test)
         .container {
             display: flex;
             flex-direction: row;
-            grid-gap: 4dvw;
+            grid-gap: <?php if (isset($tabelle) && $tabelle != null && count($tabelle) > 0) echo "4dw" ?>;
             justify-items: center;
             justify-content: center;
             flex-wrap: wrap;
-            margin-top: 4dvh;
         }
 
         /* Stile dei quesiti e delle tabelle */
@@ -173,7 +172,7 @@ function test_gia_svolto($test)
         }
 
         #tables .widget-classifica {
-            max-height: 570px;
+            max-height: 560px;
             width: 320px;
         }
     </style>
@@ -235,32 +234,33 @@ function test_gia_svolto($test)
         $stmt->closeCursor();
         ?>
 
-        <div id="tabelle-esterne">
 
-            <div id="vincoli" class="widget-professore">
-                <?php
-                include '../../helper/print_vincoli.php';
-                if (count($tabelle) > 0 && $tabelle != null) {
-                ?>
+
+        <?php
+        include '../../helper/print_vincoli.php';
+        if (count($tabelle) > 0 && $tabelle != null) {
+        ?>
+            <div id="tabelle-esterne">
+                <div id="vincoli" class="widget-professore">
                     <h2>Vincoli di integrità</h2>
                 <?php }
-                foreach ($tabelle as $tabella) {
-                    stampaVincoli($tabella['nome_tabella']);
-                }
+            foreach ($tabelle as $tabella) {
+                stampaVincoli($tabella['nome_tabella']);
+            }
                 ?>
+                </div>
+                <div id="tables">
+                    <?php
+                    foreach ($tabelle as $tabella) {
+                        echo "<div class='widget-classifica'>";
+                        generateTable($tabella['nome_tabella']);
+                        echo "</table>";
+                        echo "</div>";
+                        echo "<br>";
+                    }
+                    ?>
+                </div>
             </div>
-            <div id="tables">
-                <?php
-                foreach ($tabelle as $tabella) {
-                    echo "<div class='widget-classifica'>";
-                    generateTable($tabella['nome_tabella']);
-                    echo "</table>";
-                    echo "</div>";
-                    echo "<br>";
-                }
-                ?>
-            </div>
-        </div>
     </div>
 
 

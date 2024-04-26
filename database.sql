@@ -58,7 +58,7 @@ VALUES
         'studente1@example.com',
         'Mario'                ,
         'Rossi'                ,
-        'password123'          ,
+        '1234'                 ,
         '12324567'             ,
         'STUDENTE'
     ),
@@ -66,7 +66,7 @@ VALUES
         'studente2@example.com',
         'Luca'                 ,
         'Bianchi'              ,
-        'pass123'              ,
+        '1234'                 ,
         '12324567'             ,
         'STUDENTE'
     ),
@@ -74,7 +74,7 @@ VALUES
         'vincenzo.scollo@example.com',
         'Anna'                       ,
         'Verdi'                      ,
-        'securepass'                 ,
+        '1234'                       ,
         '12324567'                   ,
         'PROFESSORE'
     ),
@@ -82,7 +82,7 @@ VALUES
         'mariagrazia.fabbri@example.com',
         'Carlo'                         ,
         'Neri'                          ,
-        'supersecret'                   ,
+        '1234'                          ,
         '12324567'                      ,
         'PROFESSORE'
     ),
@@ -210,13 +210,13 @@ END $$ DELIMITER;
 -- Procedura di registrazione studente
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS InserisciNuovoStudente (
-    IN p_email VARCHAR(100)      ,
-    IN p_nome VARCHAR(50)        ,
-    IN p_cognome VARCHAR(50)     ,
-    IN p_password VARCHAR(100)   ,
-    IN p_telefono VARCHAR(20)    ,
-    IN p_matricola VARCHAR(16)   ,
-    IN p_anno_immatricolazione INT
+    IN p_email VARCHAR(100)       ,
+    IN p_nome VARCHAR(50)         ,
+    IN p_cognome VARCHAR(50)      ,
+    IN p_password VARCHAR(100)    ,
+    IN p_matricola VARCHAR(16)    ,
+    IN p_anno_immatricolazione INT,
+    IN p_telefono VARCHAR(20)
 ) BEGIN DECLARE EXIT
 HANDLER FOR SQLEXCEPTION BEGIN
 ROLLBACK;
@@ -264,9 +264,9 @@ CREATE PROCEDURE IF NOT EXISTS InserisciNuovoProfessore (
     IN p_nome VARCHAR(50)         ,
     IN p_cognome VARCHAR(50)      ,
     IN p_password VARCHAR(100)    ,
-    IN p_telefono VARCHAR(20)     ,
     IN p_dipartimento VARCHAR(100),
-    IN p_corso VARCHAR(100)
+    IN p_corso VARCHAR(100)       ,
+    IN p_telefono VARCHAR(20)
 ) BEGIN DECLARE EXIT
 HANDLER FOR SQLEXCEPTION BEGIN
 ROLLBACK;
@@ -657,7 +657,7 @@ CREATE TABLE IF NOT EXISTS
     SVOLGIMENTO_TEST (
         titolo_test VARCHAR(100) NOT NULL                                                 ,
         email_studente VARCHAR(100) NOT NULL                                              ,
-        data_inzio TIMESTAMP                                                              ,
+        data_inizio TIMESTAMP                                                             ,
         data_fine TIMESTAMP                                                               ,
         stato ENUM('APERTO', 'IN_COMPLETAMENTO', 'CONCLUSO') DEFAULT 'APERTO' NOT NULL    ,
         PRIMARY KEY (titolo_test, email_studente)                                         ,
@@ -1072,7 +1072,7 @@ END $$ DELIMITER;
 
 -- SONO QUI
 -- TRIGGER che si aziona quando un utente inserisce una risposta
--- la tabella svolgimento_test viene aggiornata e viene settata la data di inzio e lo stato IN_COMPLETAMENTO
+-- la tabella svolgimento_test viene aggiornata e viene settata la data di inizio e lo stato IN_COMPLETAMENTO
 DELIMITER $$
 DROP TRIGGER IF EXISTS update_svolgimento_test;
 
@@ -1102,7 +1102,7 @@ WHERE
 IF is_prima_risposta = 1 THEN
 UPDATE SVOLGIMENTO_TEST
 SET
-    data_inzio = NOW()       ,
+    data_inizio = NOW()      ,
     stato = 'IN_COMPLETAMENTO'
 WHERE
     titolo_test = p_test_associato
@@ -2023,5 +2023,17 @@ FROM
     SVOLGIMENTO_TEST
 WHERE
     email_studente = p_email_studente;
+
+END $$ DELIMITER;
+
+-- cerca utente
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS CercaUtente (IN p_email VARCHAR(100)) BEGIN
+SELECT
+    email
+FROM
+    UTENTE
+WHERE
+    email = p_email;
 
 END $$ DELIMITER;

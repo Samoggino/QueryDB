@@ -1,7 +1,10 @@
 <?php
 session_start();
 require_once "../../helper/connessione_mysql.php";
+require_once "../../helper/connessione_mongodb.php";
+require_once '../../composer/vendor/autoload.php';
 require_once "../../helper/numero_nuovo_quesito.php";
+
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -101,6 +104,24 @@ try {
                 echo  "Errore nel creare il riferimento: <br> ";
                 echo  "<br> SQL: " . $sql . "<br>" . $th->getMessage();
             }
+        }
+
+        try {
+            insertOnMONGODB(
+                'quesiti',
+                [
+                    'id_quesito' => $id_quesito,
+                    'numero_quesito' => $numero_quesito,
+                    'test_associato' => $test_associato,
+                    'descrizione' => $descrizione,
+                    'livello_difficolta' => $livello_difficolta,
+                    'tipo_quesito' => $tipo_quesito,
+                    'tabelle' => implode(", ", $tabelle) ?? "",
+                ],
+                'Il professor ' . $_SESSION['cognome']  . ' ha inserito un nuovo quesito al test "' . $test_associato . '"!'
+            );
+        } catch (\Throwable $th) {
+            echo "<script>alert('Errore inserimento quesito su MongoDB')</script>";
         }
     }
     $stmt->closeCursor();

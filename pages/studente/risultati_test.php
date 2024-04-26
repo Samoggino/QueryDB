@@ -158,33 +158,10 @@ function mostraSoluzione($esito, $risposta_studente, $id_quesito)
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../../styles/global.css">
+    <link rel="stylesheet" href="../../styles/risultatiTest.css">
 
     <title>Risultati</title>
 
-    <style>
-
-        .widget-classifica {
-            max-width: 70%
-        }
-
-        .container-risultati {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-            align-content: center;
-            gap: 15px;
-        }
-
-        .titolo-tabella {
-            font-size: 1.5em;
-            font-weight: bold;
-            text-align: center;
-            background-color: #f2f2f2;
-            color: red;
-        }
-    </style>
 </head>
 
 <body>

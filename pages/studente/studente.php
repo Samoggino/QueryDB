@@ -11,8 +11,9 @@ if (isset($_SESSION['email']) == false || $_SESSION['ruolo'] != "STUDENTE") {
 
 // mostra i test all'utente 
 $db = connectToDatabaseMYSQL();
-$sql = "CALL GetAllTests();";
+$sql = "CALL GetTestDelloStudente(:email);";
 $stmt = $db->prepare($sql);
+$stmt->bindParam(':email', $_SESSION['email'], PDO::PARAM_STR);
 $stmt->execute();
 $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $stmt->closeCursor();
@@ -37,42 +38,6 @@ echo "<script>console.log(" . $test_concluso_bool['check'] . ")</script>";
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../../styles/global.css">
     <link rel="stylesheet" href="../../styles/studente.css">
-
-
-    <style>
-        .test-list {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-            align-content: center;
-        }
-
-        .container-studente {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            justify-items: center;
-            align-items: center;
-            justify-content: center;
-            align-content: center;
-        }
-
-        .links {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            align-content: center;
-            flex-wrap: wrap;
-        }
-
-        .widget-professore {
-            width: 12dvw;
-            height: 31dvh;
-            min-width: 200px;
-        }
-    </style>
 
 </head>
 
@@ -105,14 +70,22 @@ echo "<script>console.log(" . $test_concluso_bool['check'] . ")</script>";
         require_once "../../helper/check_closed.php";
         // stampa tutti i test
         foreach ($tests as $test) {
-            $is_closed = check_svolgimento($test['titolo'], $_SESSION['email']);
             echo "<div class='widget-professore'>";
-            echo "<h3>" . strtoupper($test['titolo']) . "</h3>";
-            if ($is_closed == 1) {
-                echo "<p style='color: green;'>Il test è concluso</p>";
-                echo "<button onclick='location.href=\"/pages/studente/esegui_test.php?test_associato=" . $test['titolo'] . "\"'>Risultati</button>";
+            echo "<h3>" . strtoupper($test['titolo_test']) . "</h3>";
+            if ($test['stato'] == "CONCLUSO") {
+                echo "<div style = 'display: flex; flex-direction: column; align-items: center;'>";
+                echo "<p style='color: green;margin-top:0;text-align: center'>Il test è concluso</p>";
+                echo "<p style='color: black;margin-top:0;text-align: center'>In data: " . $test['data_fine'] . "</p>";
+                echo "<button style='margin-top:0' onclick='location.href=\"/pages/studente/esegui_test.php?test_associato=" . $test['titolo_test'] . "\"'>Risultati</button>";
+                echo "</div>";
+            } elseif ($test['stato'] == 'IN_COMPLETAMENTO') {
+                echo "<div style = 'display: flex; flex-direction: column; align-items: center;'>";
+                echo "<p style='color: #0077ff;margin-top:0;text-align: center'>Il test è in completamento</p>";
+                echo "<p style='color: black;margin-top:0;text-align: center '>Data inizio: " . $test['data_inizio'] . "</p>";
+                echo "<button style='margin-top:0' onclick='location.href=\"/pages/studente/esegui_test.php?test_associato=" . $test['titolo_test'] . "\"'>Svolgi</button>";
+                echo "</div>";
             } else {
-                echo "<button onclick='location.href=\"/pages/studente/esegui_test.php?test_associato=" . $test['titolo'] . "\"'>Svolgi</button>";
+                echo "<button onclick='location.href=\"/pages/studente/esegui_test.php?test_associato=" . $test['titolo_test'] . "\"'>Svolgi</button>";
             }
             echo "</div>";
         }

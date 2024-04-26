@@ -37,18 +37,19 @@ session_start();
                     <div class="flip-card__back">
                         <div class="title">Sign up</div>
                         <form method="POST" action="" class="flip-card__form" id="signup-form">
-                            <input for="nome" name="nome" class="flip-card__input" placeholder="Nome" type="text" required>
-                            <input for="cognome" name="cognome" class="flip-card__input" placeholder="Cognome" type="text" required>
-                            <input for="email" name="email" class="flip-card__input" placeholder="Email" type="email" required>
-                            <input for="password" name="password" class="flip-card__input" placeholder="Password" type="password" required>
-                            <input for="telefono" name="telefono" class="flip-card__input" placeholder="Telefono" type="text">
+                            <input for="nome" name="nome" class="flip-card__input" placeholder="Nome" type="text" value="nome" required>
+                            <input for="cognome" name="cognome" class="flip-card__input" placeholder="Cognome" type="text" value="cognome" required>
+                            <input for="email" name="email" class="flip-card__input" placeholder="Email" type="email" autocomplete="off" required>
+                            <input for="password" name="password" class="flip-card__input" placeholder="Password" type="password" autocomplete="off" required>
+
+                            <input for="telefono" name="telefono" class="flip-card__input" placeholder="Telefono" type="number">
                             <input type="hidden" name="action" value="registrazione"> <!-- Campo nascosto per indicare registrazione -->
                             <div>
                                 <label for="studente-checkbox" class="flip-card__label">Studente</label>
                                 <input type="checkbox" id="studente-checkbox" class="flip-card__checkbox" name="studente">
                                 <div id="studente" style="display: none;">
-                                    <input for="anno_immatricolazione" name="anno_immatricolazione" class="flip-card__input" placeholder="Anno di immatricolazione" type="text">
-                                    <input for="matricola" name="matricola" class="flip-card__input" placeholder="Codice" type="text">
+                                    <input for="anno_immatricolazione" name="anno_immatricolazione" class="flip-card__input" placeholder="Anno di immatricolazione" value="1000" type="number" min="0" max="<?php echo date('Y') ?>" required>
+                                    <input for="matricola" name="matricola" class="flip-card__input" placeholder="Codice" value="1000" required>
                                 </div>
                             </div>
                             <div>
@@ -68,7 +69,7 @@ session_start();
         </div>
     </div>
 
-    <!-- impasto a mano con 90% di idratazione non si può fare. cit -SerAn51 -->
+
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             var studenteCheckbox = document.getElementById("studente-checkbox");
@@ -115,22 +116,10 @@ session_start();
     require_once '../handler/login_handler.php';
     require_once '../handler/registrazione_handler.php';
 
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    echo "<script>console.log(" . json_encode($_POST) . ")</script>";
+    if (isset($_POST)) {
         if (isset($_POST['login'])) {
-
-            $login = login();
-
-            if ($login) {
-                if (isset($_SESSION['email'])) {
-                    if ($_SESSION['ruolo'] == 'PROFESSORE') {
-                        echo "<script>window.location.href = './professore/professore.php';</script>";
-                    } elseif ($_SESSION['ruolo'] == 'STUDENTE') {
-                        echo "<script>window.location.href = './studente/studente.php';</script>";
-                    }
-                }
-            } else {
-                echo "<script>alert('Credenziali errate!');</script>";
-            }
+            loginHandler();
         } elseif (isset($_POST['registrazione'])) {
             registrazione();
         }

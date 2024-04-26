@@ -2,7 +2,9 @@
 session_start();
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-require "../../helper/connessione_mysql.php";
+require_once "../../helper/connessione_mysql.php";
+require  '../../composer/vendor/autoload.php'; // include Composer's autoloader
+require_once "../../helper/connessione_mongodb.php";
 
 
 if ($_SESSION['ruolo'] != 'PROFESSORE') {
@@ -69,6 +71,19 @@ try {
                     echo "script>alert('Errore in inserimento dell'immagine');<script>";
                 }
             }
+
+
+            // inserisci su mongodb
+            insertOnMONGODB(
+                'test',
+                [
+                    'titolo' => $test_associato,
+                    'professore' => $_SESSION['email'],
+                    'foto' => isset($_FILES["file_immagine"]) ? $_FILES["file_immagine"]["name"] : null
+                ],
+                'Test inserito da ' . $_SESSION['email'] . ' con titolo ' . $test_associato
+            );
+
 
             echo "<script> alert('Test inserito con successo!');</script>";
         } else {

@@ -68,7 +68,6 @@ if (isset($_POST['logout'])) {
     <div id="intestazione">
         <div class="icons-container">
             <a class="logout" href='/pages/logout.php'></a>
-            <a class="home" href='/pages/professore/professore.php'></a>
         </div>
         <h1>Buongiorno professore</h1>
     </div>

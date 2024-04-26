@@ -147,7 +147,7 @@ textarea {
 
 #quesiti .widget-professore {
     min-width: 350px;
-    max-height: 500px;
+    height: 650px;
     justify-content: space-evenly;
 }
 
