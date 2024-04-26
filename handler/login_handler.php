@@ -5,83 +5,65 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 function login()
 {
-    global $db, $email, $PASSWORD, $utente;
 
     try {
 
 
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $email = $_POST["email"];
-            $PASSWORD = $_POST["password"];
+            $password = $_POST["password"];
 
             $db = connectToDatabaseMYSQL();
 
-            // Utilizzo della stored procedure
-            $sql = "CALL authenticateUser(:email, :psswd)";
-            $stmt = $db->prepare($sql);
-            $stmt->bindParam(':email', $email, PDO::PARAM_STR);
-            $stmt->bindParam(':psswd', $PASSWORD, PDO::PARAM_STR);
-            $stmt->execute();
-            $utente = $stmt->fetch(PDO::FETCH_ASSOC);
+            try {
+                $stmt = $db->prepare("CALL authenticateUser(:email, :password, @authenticated, @tipo_utente, @nome, @cognome)");
+                $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+                $stmt->bindParam(':password', $password, PDO::PARAM_STR);
 
-            if (count($utente) > 0) {
+                $stmt->execute();
+            } catch (\Throwable $th) {
+                echo "<p>Errore nell'autenticazione dell'utente: " . $th->getMessage() . "</p>";
+            }
+            // Recupero dei valori dei parametri di output
+            $stmt = $db->query("SELECT @authenticated, @tipo_utente, @nome, @cognome");
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
 
-                foreach ($utente as $key => $value) {
-                    echo "<script>console.log('Chiave: " . $key . " Valore: " . $value . "');</script>";
-                }
+            $authenticated = $result['@authenticated'];
+            $tipo_utente = $result['@tipo_utente'];
+            $nome = $result['@nome'];
+            $cognome = $result['@cognome'];
+
+            if ($authenticated) {
+                echo "<script>alert('Login effettuato con successo')</script>";
 
                 $_SESSION['email'] = $email;
-                $_SESSION['nome'] = $utente['nome'];
-                $_SESSION['cognome'] = $utente['cognome'];
-                
-                // Close the cursor for the previous query
-                $stmt->closeCursor();
+                $_SESSION['nome'] = $nome;
+                $_SESSION['cognome'] = $cognome;
 
-                if ($result = getUtenteType($db, $email)) { // Use a function to get the user type
-
-                    if ($result['RUOLO'] == 'STUDENTE') {
-                        connectToDatabaseMONGODB([
-                            'ruolo' => 'STUDENTE',
-                            'email' => $email
-                        ]);
-
-                        $_SESSION['matricola'] = $utente['matricola'];
+                if ($tipo_utente == 'STUDENTE') {
+                    try {
+                        $sql = "CALL GetMatricola(:email)";
+                        $stmt = $db->prepare($sql);
+                        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+                        $stmt->execute();
+                        $studente = $stmt->fetch(PDO::FETCH_ASSOC);
+                        $stmt->closeCursor();
+                        $_SESSION['matricola'] = $studente['matricola'];
                         $_SESSION['ruolo'] = 'STUDENTE';
-
-                        return true;
-                    } elseif ($result['RUOLO']  == 'PROFESSORE') {
-                        connectToDatabaseMONGODB([
-                            'ruolo' => 'PROFESSORE',
-                            'email' => $email
-                        ]);
-
-                        $_SESSION['ruolo'] = 'PROFESSORE';
-                        return true;
-                    } else {
-                        throw new Exception("Ruolo non riconosciuto!");
+                    } catch (\Throwable $th) {
+                        echo "<script>alert('Errore numero di matricola')</script>";
                     }
+                } elseif ($tipo_utente  == 'PROFESSORE') {
 
-                    if (count($result) == 0) {
-                        throw new Exception("Nessun risultato trovato!");
-                    }
-                } else {
-                    throw new Exception("Errore nella query!");
+                    $_SESSION['ruolo'] = 'PROFESSORE';
                 }
             }
+            $db = null;
+            return $authenticated;
         }
     } catch (\Throwable $th) {
         //  throw $th;
         echo "<p>Errore: " . $th->getMessage() . "</p>";
     }
-}
-
-
-
-function getUtenteType($database, $email)
-{
-    $query = "CALL VerificaTipoUtente('$email')";
-    $risultato_della_query = $database->query($query);
-    $righe_del_database = $risultato_della_query->fetch();
-
-    return $righe_del_database;
 }

@@ -143,18 +143,67 @@ VALUES
 -- Procedura di registrazione studente
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS authenticateUser (
-    IN p_email VARCHAR(100)  ,
-    IN p_password VARCHAR(100)
-) BEGIN
+    IN p_email VARCHAR(100)                         ,
+    IN p_password VARCHAR(100)                      ,
+    OUT p_authenticated TINYINT(1)                  ,
+    OUT p_tipo_utente ENUM('STUDENTE', 'PROFESSORE'),
+    OUT p_nome_utente VARCHAR(50)                   ,
+    OUT p_cognome_utente VARCHAR(50)
+) BEGIN DECLARE user_count INT;
+
+DECLARE tipo ENUM('STUDENTE', 'PROFESSORE');
+
+DECLARE nome_utente VARCHAR(50);
+
+DECLARE cognome_utente VARCHAR(50);
+
+-- Controlla se le credenziali sono valide e recupera il tipo di utente, nome e cognome
 SELECT
-    email ,
-    nome  ,
-    cognome
+    COUNT(*)                 ,
+    tipo_utente              ,
+    nome                     ,
+    cognome INTO   user_count,
+    tipo                     ,
+    nome_utente              ,
+    cognome_utente
 FROM
     UTENTE
 WHERE
     email = p_email
-    AND PASSWORD = p_password;
+    AND PASSWORD = p_password
+GROUP BY
+    tipo_utente,
+    nome       ,
+    cognome;
+
+-- Se user_count è maggiore di 0, significa che le credenziali sono valide
+IF user_count > 0 THEN
+SET
+    p_authenticated = 1;
+
+SET
+    p_tipo_utente = tipo;
+
+SET
+    p_nome_utente = nome_utente;
+
+SET
+    p_cognome_utente = cognome_utente;
+
+ELSE
+SET
+    p_authenticated = 0;
+
+SET
+    p_tipo_utente = NULL;
+
+SET
+    p_nome_utente = NULL;
+
+SET
+    p_cognome_utente = NULL;
+
+END IF;
 
 END $$ DELIMITER;
 
