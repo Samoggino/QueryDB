@@ -1,6 +1,8 @@
 <?php
 session_start();
-require '../helper/connessione_mysql.php';
+require_once '../helper/connessione_mysql.php';
+require_once '../helper/connessione_mongodb.php';
+require_once '../composer/vendor/autoload.php';
 require '../helper/check_closed.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
@@ -39,10 +41,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $stmt->bindParam(':test_associato', $test_associato);
                     $stmt->bindParam(':numero_quesito', $numero_quesito);
                     $stmt->execute();
-                    $tabelle_di_esercizio = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $quesito = $stmt->fetch(PDO::FETCH_ASSOC);
                     $stmt->closeCursor();
 
-                    $tipo_quesito = $tabelle_di_esercizio['tipo_quesito'];
+                    $tipo_quesito = $quesito['tipo_quesito'];
                     $scelta = str_replace('"', "'", $scelta);
 
                     // Inserisci la risposta nel database in base al tipo di quesito
@@ -52,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         try {
                             $sql = "CALL GetSoluzioneQuesitoAperto(:id_quesito);";
                             $stmt = $db->prepare($sql);
-                            $stmt->bindParam(':id_quesito', $tabelle_di_esercizio['ID']);
+                            $stmt->bindParam(':id_quesito', $quesito['ID']);
                             $stmt->execute();
                             $soluzioni = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             $stmt->closeCursor();
@@ -91,15 +93,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             // Preparare lo statement
                             $statement_aperto = $db->prepare($sql_inserimento_aperto);
 
-                            echo "<script>console.log('ID Quesito: " . $tabelle_di_esercizio['ID'] . "')</script>";
+                            echo "<script>console.log('ID Quesito: " . $quesito['ID'] . "')</script>";
                             echo "<script>console.log('Email Studente: " . $email_studente . "')</script>";
 
                             // Associa i parametri e esegui l'inserimento
-                            $statement_aperto->bindParam(':id_quesito', $tabelle_di_esercizio['ID']);
+                            $statement_aperto->bindParam(':id_quesito', $quesito['ID']);
                             $statement_aperto->bindParam(':email_studente', $email_studente);
                             $statement_aperto->bindParam(':risposta', $scelta);
                             $statement_aperto->bindParam(':esito', $esito_aperta);
-                            $statement_aperto->execute();
+
+
+                            if ($statement_aperto->execute()) {
+                                insertOnMONGODB(
+                                    'risposte',
+                                    [
+                                        'id_quesito' => $quesito['ID'],
+                                        'risposta' => $scelta,
+                                        'tipo' => 'APERTO',
+                                        'esito' => $esito_aperta
+                                    ],
+                                    'Lo studente ' . $email_studente . ' ha risposto al quesito ' . $quesito['numero_quesito'] . " del test " . $test_associato . ' con esito ' . $esito_aperta
+                                );
+                            }
                         } catch (\Throwable $th) {
                             echo "Errore nella risposta aperta in inserimento <br>"  . $th->getMessage();
                         }
@@ -110,7 +125,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             // prendi il quesito e verifica se la risposta è corretta
                             $sql = "CALL GetOpzioniCorrette(:id_quesito);";
                             $stmt = $db->prepare($sql);
-                            $stmt->bindParam(':id_quesito', $tabelle_di_esercizio['ID']);
+                            $stmt->bindParam(':id_quesito', $quesito['ID']);
                             $stmt->execute();
                             $opzioni_corrette = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             $stmt->closeCursor();
@@ -122,7 +137,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             $esito_chiuso = 'SBAGLIATA';
                             // Associa i parametri e esegui l'inserimento
-                            $statement_chiuso->bindParam(':id_quesito', $tabelle_di_esercizio['ID']);
+                            $statement_chiuso->bindParam(':id_quesito', $quesito['ID']);
                             $statement_chiuso->bindParam(':email_studente', $email_studente); // Assumi che l'email dello studente sia già disponibile nella sessione
                             $statement_chiuso->bindParam(':opzione_scelta', $scelta);
                             $statement_chiuso->bindParam(':esito', $esito_chiuso);
@@ -131,7 +146,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 if ($opzione['numero_opzione'] == $scelta)
                                     $esito_chiuso = 'GIUSTA';
 
-                            $statement_chiuso->execute();
+                            if ($statement_chiuso->execute()) {
+                                insertOnMONGODB(
+                                    'risposte',
+                                    [
+                                        'id_quesito' => $quesito['ID'],
+                                        'opzione scelta' => $scelta,
+                                        'tipo' => 'CHIUSO',
+                                        'esito' => $esito_chiuso
+                                    ],
+                                    'Lo studente ' . $email_studente . ' ha risposto al quesito ' . $quesito['numero_quesito'] . " del test " . $test_associato . ' con esito ' . $esito_chiuso
+                                );
+                            }
+
+
                             $statement_chiuso->closeCursor();
                         } catch (\Throwable $th) {
                             echo "Errore nella risposta chiusa <br>" . $th->getMessage();

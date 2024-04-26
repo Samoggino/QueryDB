@@ -17,8 +17,8 @@ $db = connectToDatabaseMYSQL();
 $query = "CALL GetTabelleCreate()";
 $stmt = $db->query($query);
 $tabelle = array();
-while ($tabelle_di_esercizio = $stmt->fetch(PDO::FETCH_NUM)) {
-    $tabelle[] = $tabelle_di_esercizio[0];
+while ($quesito = $stmt->fetch(PDO::FETCH_NUM)) {
+    $tabelle[] = $quesito[0];
 }
 
 $attributi = array();
@@ -28,12 +28,12 @@ foreach ($tabelle as $tabella) {
     $stmt->bindParam(':tabella', $tabella);
     $stmt->execute();
 
-    while ($tabelle_di_esercizio = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    while ($quesito = $stmt->fetch(PDO::FETCH_ASSOC)) {
         // Creazione di un array associativo con il nome e il tipo dell'attributo
         $attributo = [
             'tabella' => $tabella, // 'tabella' => 'NOME_TABELLA
-            'nome' => $tabelle_di_esercizio['NOME_ATTRIBUTO'],
-            'tipo' => $tabelle_di_esercizio['TIPO_ATTRIBUTO']
+            'nome' => $quesito['NOME_ATTRIBUTO'],
+            'tipo' => $quesito['TIPO_ATTRIBUTO']
         ];
 
         // Aggiunta dell'array associativo all'array $attributi
@@ -181,10 +181,10 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
             $db = connectToDatabaseMYSQL();
             $query = "CALL GetTabelleCreate()";
             $stmt = $db->query($query);
-            while ($tabelle_di_esercizio = $stmt->fetch(PDO::FETCH_NUM)) {
+            while ($quesito = $stmt->fetch(PDO::FETCH_NUM)) {
                 echo 'var option = document.createElement("option");';
-                echo 'option.value = "' . $tabelle_di_esercizio[0] . '";';
-                echo 'option.textContent = "' . $tabelle_di_esercizio[0] . '";';
+                echo 'option.value = "' . $quesito[0] . '";';
+                echo 'option.textContent = "' . $quesito[0] . '";';
                 echo 'tabellaVincolataSelect.appendChild(option);';
             }
             ?>

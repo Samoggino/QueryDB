@@ -164,15 +164,15 @@ try {
                 $stmt = $db->prepare($sql);
                 $stmt->bindParam(':test_associato', $test_associato);
                 $stmt->execute();
-                $tabelle_di_esercizio = $stmt->fetch(PDO::FETCH_ASSOC);
+                $quesito = $stmt->fetch(PDO::FETCH_ASSOC);
 
                 // Se è stata trovata un'immagine, visualizzala
-                if ($tabelle_di_esercizio != null && count($tabelle_di_esercizio) > 0) {
+                if ($quesito != null && count($quesito) > 0) {
                 ?>
                     <div class="widget-professore immagine-test">
                         <h2>Immagine del test</h2>
                         <?php
-                        $immagine = $tabelle_di_esercizio['foto'];
+                        $immagine = $quesito['foto'];
                         echo "<img src='data:image/jpeg;base64," . base64_encode($immagine) . "' alt='Errore'>";
                         ?>
                     </div>
