@@ -82,7 +82,7 @@ echo "<script>console.log(" . $test_concluso_bool['check'] . ")</script>";
                 echo "<div style = 'display: flex; flex-direction: column; align-items: center;'>";
                 echo "<p style='color: #0077ff;margin-top:0;text-align: center'>Il test è in completamento</p>";
                 echo "<p style='color: black;margin-top:0;text-align: center '>Data inizio: " . $test['data_inizio'] . "</p>";
-                echo "<button style='margin-top:0' onclick='location.href=\"/pages/studente/esegui_test.php?test_associato=" . $test['titolo_test'] . "\"'>Svolgi</button>";
+                echo "<button style='margin-top:0' onclick='location.href=\"/pages/studente/esegui_test.php?test_associato=" . $test['titolo_test'] . "\"'>Completa</button>";
                 echo "</div>";
             } else {
                 echo "<button onclick='location.href=\"/pages/studente/esegui_test.php?test_associato=" . $test['titolo_test'] . "\"'>Svolgi</button>";

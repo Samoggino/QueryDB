@@ -1,6 +1,9 @@
 <?php
 session_start();
 require_once '../../helper/connessione_mysql.php';
+require_once '../../helper/connessione_mongodb.php';
+require_once '../../composer/vendor/autoload.php';
+
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -17,6 +20,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $valori_inviati = $_POST;
 
+    // se il post include un valore "" vuol dire che l'utente non ha inserito un valore, sostituisci con NULL
+    foreach ($valori_inviati as $key => $value) {
+        if ($value == "") {
+            $valori_inviati[$key] = NULL;
+        }
+    }
 
     // Costruisci la query di inserimento
     $column_names = implode(', ', array_keys($valori_inviati));
@@ -25,14 +34,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Esegui la query preparata
     try {
-        $stmt = $db->prepare($sql);;
-
-        // TODO: fai la stessa cosa per l'inserimento di una query dell'utente
-
+        $stmt = $db->prepare($sql);
 
         // Verifica se l'inserimento è riuscito
         if ($stmt->execute(array_values($valori_inviati))) {
-            redirect("Riga inserita con successo.");
+
+            // Inserisci i valori nel database MongoDB
+            insertOnMONGODB(
+                'inserimento in tabella',
+                [
+                    'tabella' => $nome_tabella,
+                    'valori' => $valori_inviati
+                ],
+                'Inserimento di una riga nella tabella ' . $nome_tabella,
+            );
+
+            echo "<script>window.location.replace('/pages/professore/riempi_tabella.php?nome_tabella=$nome_tabella')</script>";
         }
     } catch (PDOException $e) {
         $errorCode = $e->errorInfo[1];
@@ -41,16 +58,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else if ($errorCode == 1451 || $errorCode == 1452) {
             redirect("Errore: Violazione vincolo di chiave esterna.");
         } else {
-            redirect("Errore: " . $e->getMessage());
+            redirect('Errore: ' . $e->getMessage());
         }
+    } catch (Exception $e) {
+        redirect('Errore: ' . $e->getMessage());
     }
 }
 
 function redirect($messaggio)
 {
-
     $nome_tabella = $_GET['nome_tabella'];
-    unset($_POST);
-    echo "<script>alert('$messaggio');
-    window.location.replace('/pages/professore/riempi_tabella.php?nome_tabella=$nome_tabella')</script>";
+    echo "<script>alert('$messaggio ciao'); window.location.replace('/pages/professore/riempi_tabella.php?nome_tabella=$nome_tabella')</script>";
 }

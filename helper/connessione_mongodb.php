@@ -28,7 +28,7 @@ function insertOnMONGODB($collection_name, $document, $log_testuale)
 
     // Inserisce il documento nella collezione
     $collection->insertOne([
-        $log_testuale,
+        'descrizione' => $log_testuale,
         'oggetto' => $document,
         'data_creazione' => new MongoDB\BSON\UTCDateTime()
     ]);

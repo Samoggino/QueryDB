@@ -18,9 +18,9 @@ $test_concluso_bool = $stmt->fetch(PDO::FETCH_ASSOC);
 $stmt->closeCursor();
 
 if ($test_concluso_bool['check'] == 0) {
-    echo "<script>alert('Non hai concluso alcun test')
-    window.location.href = '/pages/studente/studente.php';</script>";
+    echo "<script>alert('Risposta inserita con successo!'); window.location.href = '/pages/studente/studente.php';</script>";
 }
+
 function costruisciTabellaRisultati()
 {
     $email_studente = $_SESSION['email'];

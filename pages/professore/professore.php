@@ -125,34 +125,45 @@ if (isset($_POST['logout'])) {
             <button onclick="window.location.href='/pages/classifiche.php';">Classifiche</button>
         </div>
 
-        <div class="widget-professore">
-            <!-- scegli la tabella in cui inserire nuovi valori -->
-            <h3>Inserisci valori in tabella</h3>
-            <form id="inserisci-valori-form" method="post">
-                <div>
-                    <select name=" nome_tabella" id="nome_tabella" onchange="updateActionRiempiTabella(this)">
-                        <?php
-                        require_once '../../helper/connessione_mysql.php';
-                        try {
-                            $db = connectToDatabaseMYSQL();
-                            $sql = "CALL GetTabelleCreate();";
-                            $stmt = $db->prepare($sql);
-                            $stmt->execute();
-                            $tabelle = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                            foreach ($tabelle as $tabella) {
-                                echo "<option value='" . $tabella['nome_tabella'] . "'>" . $tabella['nome_tabella'] . "</option>";
+
+
+        <?php
+        require_once '../../helper/connessione_mysql.php';
+        $db = connectToDatabaseMYSQL();
+        $sql = "CALL GetTabelleCreate();";
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
+        $tabelle = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmt->closeCursor();
+
+        if ($tabelle != null && count($tabelle) > 0) {
+        ?>
+            <div class="widget-professore">
+                <!-- scegli la tabella in cui inserire nuovi valori -->
+                <h3>Inserisci valori in tabella</h3>
+                <form id="inserisci-valori-form" method="post">
+                    <div>
+                        <select name=" nome_tabella" id="nome_tabella" onchange="updateActionRiempiTabella(this)">
+                            <?php
+                            try {
+
+                                foreach ($tabelle as $tabella) {
+                                    echo "<option value='" . $tabella['nome_tabella'] . "'>" . $tabella['nome_tabella'] . "</option>";
+                                }
+                            } catch (\Throwable $th) {
+                                echo "<script>console.log('Errore: " . $th . "');</script>";
                             }
-                        } catch (\Throwable $th) {
-                            echo "<script>console.log('Errore: " . $th . "');</script>";
-                        }
-                        $stmt->closeCursor();
-                        $db = null;
-                        ?>
-                    </select>
-                </div>
-                <button type="submit"> Vai </button>
-            </form>
-        </div>
+                            $stmt->closeCursor();
+                            $db = null;
+                            ?>
+                        </select>
+                    </div>
+                    <button type="submit"> Vai </button>
+                </form>
+            </div>
+
+        <?php } ?>
     </div>
 </body>
 

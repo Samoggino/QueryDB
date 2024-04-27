@@ -83,7 +83,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                             $esito_aperta = "GIUSTA";
                                             break;
                                         }
-                                    } catch (\Throwable $th) {
+                                    } catch (PDOException $e) {
+                                        $errorCode = $e->errorInfo[1];
+                                        if ($errorCode == 1062) {
+                                            alert("Errore: Chiave primaria duplicata.");
+                                            continue;
+                                        } else if ($errorCode == 1451 || $errorCode == 1452) {
+                                            alert("Errore: Violazione vincolo di chiave esterna.");
+                                            continue;
+                                        } else {
+                                            alert('Errore: ' . $e->getMessage());
+                                            continue;
+                                        }
+                                    } catch (Exception $e) {
+                                        alert('Errore: ' . $e->getMessage());
                                         continue;
                                     }
                                 }
@@ -110,7 +123,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                         'id_quesito' => $quesito['ID'],
                                         'risposta' => $scelta,
                                         'tipo' => 'APERTO',
-                                        'esito' => $esito_aperta
+                                        'esito' => $esito_aperta,
                                     ],
                                     'Lo studente ' . $email_studente . ' ha risposto al quesito ' . $quesito['numero_quesito'] . " del test " . $test_associato . ' con esito ' . $esito_aperta
                                 );
@@ -197,4 +210,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 } else {
     header("Location: ../pages/studente/studente.php");
     exit();
+}
+
+function alert($messaggio)
+{
+    echo "<script>alert('$messaggio')</script>";
 }

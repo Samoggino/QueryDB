@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
                 )
             );
 
-            insertOnMONGODB($documento);
+            // insertOnMONGODB($documento);
             echo "<script>alert('Tabella creata con successo, riempila'); window.location.replace('/pages/professore/riempi_tabella.php?nome_tabella=$nome_tabella&factory=true')</script>";
         } else {
             echo "<script>alert('Errore nella creazione della tabella')</script>";
@@ -117,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
                 'query' => $query_corrente
             )
         );
-        insertOnMONGODB($documento);
+        // insertOnMONGODB($documento);
         echo "<script>console.log('" . $nome_tabella . " eliminata a causa di un errore nella creazione fisica')</script>";
         echo "<script>console.log('" . json_encode($_POST) . "')</script>";
         echo "<script>console.log('" . $query_corrente . "')</script>";

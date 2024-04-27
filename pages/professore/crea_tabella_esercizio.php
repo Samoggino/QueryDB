@@ -268,12 +268,12 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
         }
 
 
+        
         document.getElementById("crea_tabella_form").addEventListener("submit", function(event) {
             var nomeTabella = document.getElementById("nome_tabella").value;
             var attributi = document.getElementsByName("nome_attributo[]");
             var tipoAttributi = document.getElementsByName("tipo_attributo[]");
 
-            // TODO: controlla che il nome delle variabili non sia uguale a quello di un attributo già inserito
             for (var i = 0; i < attributi.length; i++) {
                 for (var j = i + 1; j < attributi.length; j++) {
                     if (attributi[i].value.toUpperCase() == attributi[j].value.toUpperCase()) {
@@ -365,13 +365,7 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
                 }
             }
         });
-
-
-        // TODO: controlla che il nome delle variabili non corrisponda al tipo dell'attributo (INT, VARCHAR, ecc.)
-
-
-
-        // TODO: rimuovi gli spazi e i caratteri speciali dai nomi degli attributi e delle tabelle
+        
     </script>
 
 </body>

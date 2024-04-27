@@ -101,9 +101,9 @@ if (isset($_GET['nome_tabella'])) {
         }
 
         .vincoli.widget-classifica.on {
-            /* grid-column: span 3; */
-            width: 50%;
-            margin-bottom: 50px;
+            width: 97%;
+            margin-bottom: 10px;
+            box-shadow: 1px 1px black;
         }
 
         .vincoli.widget-classifica.off {
@@ -115,6 +115,8 @@ if (isset($_GET['nome_tabella'])) {
             position: relative;
             left: 90%;
             bottom: 145%;
+            margin-top: 0;
+            margin-bottom: 10px;
         }
     </style>
 </head>
