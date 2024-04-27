@@ -4,7 +4,9 @@
 
     font-family: "Acme", sans-serif;
     font-style: normal;
-    --background-default-color: red;
+    --box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
+    --border: 3px solid black;
+    --border-radius: 30px;
 }
 
 body {
@@ -29,29 +31,6 @@ td {
 
 th {
     background-color: #f2f2f2;
-}
-
-/**
- * Tabelle create dal professore
- */
-table.printed {
-    max-width: 50%;
-}
-
-.printed th,
-td {
-    border: 1px solid black;
-    padding: 8px;
-    text-align: center;
-}
-
-.printed th {
-    background-color: #f2f2f2;
-}
-
-.printed table img {
-    max-width: 250px;
-    max-height: 250px;
 }
 
 input {
@@ -235,7 +214,10 @@ input[type="checkbox"] {
     margin-top: 10px;
 }
 
-input[type='text']::placeholder {
+input[type='text']::placeholder,
+input[type='password']::placeholder,
+input[type='email']::placeholder,
+input[type='number']::placeholder {
     text-align: center;
     padding: 0;
 }
@@ -260,4 +242,9 @@ input[type='text']::placeholder {
 #intestazione {
     display: grid;
     grid-template-columns: 0.1fr 0.8fr;
+}
+
+.widget-professore:hover {
+    background-color: rgb(205 173 133);
+    transition: all 0.3s;
 }

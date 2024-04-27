@@ -1,5 +1,7 @@
 <?php
 session_start();
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 ?>
 
 
@@ -27,10 +29,10 @@ session_start();
 // se non è stato un post non fare nulla
 require_once '../helper/connessione_mysql.php';
 require_once '../helper/connessione_mongodb.php';
+require_once '../composer/vendor/autoload.php';
 require_once 'tabella_logica.php';
 require_once 'tabella_fisica.php';
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+
 if ($_SERVER['REQUEST_METHOD'] != 'POST') {
     throw new Exception("Richiesta non valida");
 } else {
@@ -86,38 +88,47 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
 
         if ($stmt->execute()) {
             $db = null;
-            $documento = (
-                array(
-                    'creazione_tabella' => 'creazione_tabella',
-                    'nome_tabella' => $nome_tabella,
-                    // 'errore' => $th->getMessage(),
-                    'data' => date('Y-m-d'),
-                    'query' => $query_corrente
-                )
+
+            insertOnMONGODB(
+                'creazione_tabella',
+                [
+                    'tabella' => $nome_tabella,
+                    'attributi' => $nome_attributo,
+                    'tipi' => $tipo_attributo,
+                    'chiavi_primarie' => $primary_keys,
+                    'chiavi_esterne' => $foreign_keys
+                ],
+                'Creazione della tabella ' . $nome_tabella,
             );
 
-            // insertOnMONGODB($documento);
             echo "<script>alert('Tabella creata con successo, riempila'); window.location.replace('/pages/professore/riempi_tabella.php?nome_tabella=$nome_tabella&factory=true')</script>";
         } else {
             echo "<script>alert('Errore nella creazione della tabella')</script>";
         }
     } catch (\Throwable $th) {
+
         // eliminare la tabella logica
         $db = connectToDatabaseMYSQL();
         $stmt = $db->prepare("CALL EliminaTabella(:nome_tabella)");
         $stmt->bindParam(':nome_tabella', $nome_tabella, PDO::PARAM_STR);
         $stmt->execute();
         $stmt->closeCursor();
-        $documento = (
-            array(
-                'creazione_tabella' => 'creazione_tabella',
-                'nome_tabella' => $nome_tabella,
-                'errore' => $th->getMessage(),
-                'data' => date('Y-m-d'),
-                'query' => $query_corrente
-            )
+
+
+        // prova ad eliminare la tabella fisica
+        $stmt = $db->prepare("DROP TABLE IF EXISTS :nome_tabella");
+        $stmt->bindParam(':nome_tabella', $nome_tabella, PDO::PARAM_STR);
+        $stmt->execute();
+        $stmt->closeCursor();
+
+
+        insertOnMONGODB(
+            'eliminazione_tabella',
+            [
+                'tabella' => $nome_tabella
+            ],
+            'Eliminazione della tabella ' . $nome_tabella . ' a causa di un errore nella creazione fisica',
         );
-        // insertOnMONGODB($documento);
         echo "<script>console.log('" . $nome_tabella . " eliminata a causa di un errore nella creazione fisica')</script>";
         echo "<script>console.log('" . json_encode($_POST) . "')</script>";
         echo "<script>console.log('" . $query_corrente . "')</script>";

@@ -41,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Inserisci i valori nel database MongoDB
             insertOnMONGODB(
-                'inserimento in tabella',
+                'inserimento_in_tabella',
                 [
                     'tabella' => $nome_tabella,
                     'valori' => $valori_inviati

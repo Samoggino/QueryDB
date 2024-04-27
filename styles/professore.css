@@ -5,9 +5,9 @@
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    column-gap: 50px;
+    column-gap: 1dvw;
     margin-top: 4dvh;
-}   
+}
 
 .widget-professore {
     margin: 10px;
@@ -22,12 +22,6 @@
     flex-direction: column;
     justify-content: center;
 }
-
-.widget-professore:hover {
-    background-color: var(--background-default-color);
-    transition: all 0.3s;
-}
-
 
 h2 {
     text-align: center;
@@ -53,3 +47,4 @@ h3 {
     justify-content: center;
     align-items: center;
 }
+

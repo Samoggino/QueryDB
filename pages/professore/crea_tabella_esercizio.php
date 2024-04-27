@@ -88,6 +88,10 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
             margin-top: 35px;
             margin-bottom: -75px;
         }
+
+        h1 {
+            margin-left: -100px;
+        }
     </style>
 </head>
 
@@ -268,7 +272,7 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
         }
 
 
-        
+
         document.getElementById("crea_tabella_form").addEventListener("submit", function(event) {
             var nomeTabella = document.getElementById("nome_tabella").value;
             var attributi = document.getElementsByName("nome_attributo[]");
@@ -365,7 +369,6 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
                 }
             }
         });
-        
     </script>
 
 </body>

@@ -26,6 +26,14 @@ $stmt->execute();
 $test_concluso_bool = $stmt->fetch(PDO::FETCH_ASSOC);
 $stmt->closeCursor();
 
+// prendi i dati dello studente
+$sql = "CALL GetInfoStudente(:email);";
+$stmt = $db->prepare($sql);
+$stmt->bindParam(':email', $_SESSION['email'], PDO::PARAM_STR);
+$stmt->execute();
+$studente = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt->closeCursor();
+
 echo "<script>console.log(" . $test_concluso_bool['check'] . ")</script>";
 ?>
 <!DOCTYPE html>
@@ -38,15 +46,33 @@ echo "<script>console.log(" . $test_concluso_bool['check'] . ")</script>";
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../../styles/global.css">
     <link rel="stylesheet" href="../../styles/studente.css">
-
+    <link rel="stylesheet" href="../../styles/profile.css">
+    <script src="../../js/popup.js"></script>
 </head>
 
 <body>
-    <div id="intestazione">
+    <div id="intestazione" class="homepage">
         <div class="icons-container">
             <a class="logout" href='/pages/logout.php'></a>
         </div>
-        <h1>Buongiorno <?php echo   $_SESSION['nome'] . " " . $_SESSION['cognome'] ?></h1>
+        <h1>Buongiorno <?php echo $_SESSION['nome'] ?></h1>
+        <button id="popup-btn" onclick="openClosePopup()"></button>
+        <div class="widget-professore popup" id="myPopup">
+            <span class="close-btn" onclick="openClosePopup()">
+                &times;
+            </span>
+            <div class="popup-content">
+                <h2>Profilo</h2>
+                <span><?php echo $studente['nome'] . " " .  $studente['cognome'] ?></span>
+                <span><?php echo $studente['email'] ?></span>
+                <span> <?php echo "Matricola: " . $studente['matricola'] ?></span>
+                <?php
+                if ($studente['telefono'] != null) {
+                ?>
+                    <span><?php echo "Telefono: " . $studente['telefono'];
+                        } ?></span>
+            </div>
+        </div>
     </div>
 
     <div class="links">

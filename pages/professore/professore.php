@@ -30,6 +30,14 @@ if (isset($_POST['logout'])) {
     }
 }
 
+$db = connectToDatabaseMYSQL();
+$sql = "CALL GetInfoProfessore(:email);";
+$stmt = $db->prepare($sql);
+$stmt->bindParam(':email', $_SESSION['email'], PDO::PARAM_STR);
+$stmt->execute();
+$studente = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt->closeCursor();
+
 ?>
 
 
@@ -41,6 +49,7 @@ if (isset($_POST['logout'])) {
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../../styles/global.css">
     <link rel="stylesheet" href="../../styles/professore.css">
+    <link rel="stylesheet" href="../../styles/profile.css">
     <script>
         // Definizione della funzione updateActionConcludiTest
         function updateActionConcludiTest(concludi) {
@@ -61,15 +70,41 @@ if (isset($_POST['logout'])) {
     <style>
 
     </style>
+
+    <script src="../../js/popup.js"></script>
+
+
 </head>
 
 <body>
 
-    <div id="intestazione">
+    <div id="intestazione" class="homepage">
         <div class="icons-container">
             <a class="logout" href='/pages/logout.php'></a>
         </div>
-        <h1>Buongiorno professore</h1>
+        <h1>Buongiorno professor <?php echo $studente['cognome'] ?> </h1>
+
+        <button id="popup-btn" onclick="openClosePopup()"></button>
+
+        <div class="widget-professore popup" id="myPopup">
+            <span class="close-btn" onclick="openClosePopup()">
+                &times;
+            </span>
+            <div class="popup-content">
+                <h2>Profilo</h2>
+                <span><?php echo $studente['nome'] . " " .  $studente['cognome'] ?></span>
+                <span><?php echo $studente['email'] ?></span>
+                <span><?php echo $studente['corso'] ?></span>
+                <span> <?php echo "Dipartimento di " . $studente['dipartimento'] ?></span>
+                <?php
+                if ($studente['telefono'] != null) {
+                ?>
+                    <p>Telefono: <span><?php echo $studente['telefono'];
+                                    } ?></span></p>
+            </div>
+        </div>
+
+
     </div>
 
     <div class="container-professore">
@@ -78,36 +113,48 @@ if (isset($_POST['logout'])) {
             <button onclick="window.location.href='/pages/professore/crea_test.php';">Crea</button>
         </div>
 
-        <div class="widget-professore">
-            <h3>Aggiungi quesito ad un test</h3>
-            <!-- <h4>Scegli un test</h4> -->
-            <form id="aggiungi-quesito-form" method="post">
-                <div>
-                    <select name="test_associato" for="test_associato" onchange="updateActionAggiungiQuesito(this)">
-                        <?php
-                        require_once "./tendina_test.php";
-                        tendinaTest();
-                        ?>
-                    </select>
-                </div>
-                <button type="submit" style="width:fit-content"> Aggiungi quesito </button>
-            </form>
-        </div>
+        <?php
+        require_once '../../helper/connessione_mysql.php';
+        $db = connectToDatabaseMYSQL();
+        $sql = "CALL GetTestDelProfessoreAperti(:email);";
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':email', $_SESSION['email'], PDO::PARAM_STR);
+        $stmt->execute();
+        $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
 
-        <div class="widget-professore">
-            <h3>Concludi test</h3>
-            <form id="concludi-quesito-form" method="post">
-                <div>
-                    <select name="concludi" for="concludi" onchange="updateActionConcludiTest(this)">
-                        <?php
-                        require_once "./tendina_test.php";
-                        tendinaTest();
-                        ?>
-                    </select>
-                </div>
-                <button type="submit" style="width:fit-content"> Concludi test </button>
-            </form>
-        </div>
+        if ($tests != null && count($tests) > 0) {
+        ?>
+            <div class="widget-professore">
+                <h3>Aggiungi quesito ad un test</h3>
+                <form id="aggiungi-quesito-form" method="post">
+                    <div>
+                        <select name="test_associato" for="test_associato" onchange="updateActionAggiungiQuesito(this)">
+                            <?php
+                            require_once "./tendina_test.php";
+                            tendinaTest();
+                            ?>
+                        </select>
+                    </div>
+                    <button type="submit" style="width:fit-content"> Aggiungi quesito </button>
+                </form>
+            </div>
+
+            <div class="widget-professore">
+                <h3>Concludi test</h3>
+                <form id="concludi-quesito-form" method="post">
+                    <div>
+                        <select name="concludi" for="concludi" onchange="updateActionConcludiTest(this)">
+                            <?php
+                            require_once "./tendina_test.php";
+                            tendinaTest();
+                            ?>
+                        </select>
+                    </div>
+                    <button type="submit" style="width:fit-content"> Concludi test </button>
+                </form>
+            </div>
+        <?php } ?>
 
         <div class="widget-professore" style="cursor: pointer;">
             <h3>Vai ai messaggi</h3>
@@ -116,12 +163,12 @@ if (isset($_POST['logout'])) {
 
 
         <div class="widget-professore">
-            <h3>Vai a creazione tabella </h3>
+            <h3>Vai a creazione tabella</h3>
             <button onclick="window.location.href='/pages/professore/crea_tabella_esercizio.php';">Crea tabella</button>
         </div>
 
         <div class="widget-professore">
-            <h3>Vai a classifiche </h3>
+            <h3>Vai a classifiche</h3>
             <button onclick="window.location.href='/pages/classifiche.php';">Classifiche</button>
         </div>
 
