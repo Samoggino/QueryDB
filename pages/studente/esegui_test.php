@@ -21,7 +21,7 @@ if (isset($_GET['test_associato'])) {
         test_gia_svolto($test);
 
         // Prepara la query per selezionare i quesiti associati al test
-        $sql = "CALL GetQuesitiTest(:test_associato);";
+        $sql = "CALL GetQuesitiAssociatiAlTest(:test_associato);";
 
         $stmt = $db->prepare($sql);
         $stmt->bindParam(':test_associato', $test);

@@ -40,7 +40,7 @@ try {
             $stmt = $db->query("SELECT @id_nuovo_quesito AS id_quesito");
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
-            $id_quesito = $result['id_quesito'];
+            $titolo_test = $result['id_quesito'];
         } catch (\Throwable $th) {
             echo  "Errore nel creare il quesito: <br> ";
             echo  "<br> SQL: " . $sql . "<br>" . $th->getMessage();
@@ -53,7 +53,7 @@ try {
                     $soluzioni[$i] = str_replace('"', "'", $soluzioni[$i]);
                     $sql = "CALL InserisciNuovaSoluzioneQuesitoAperto(:id_quesito, :soluzione)";
                     $stmt = $db->prepare($sql);
-                    $stmt->bindParam(':id_quesito', $id_quesito, PDO::PARAM_STR);
+                    $stmt->bindParam(':id_quesito', $titolo_test, PDO::PARAM_STR);
                     $stmt->bindParam(':soluzione', $soluzioni[$i], PDO::PARAM_STR);
                     $stmt->execute();
                     $stmt->closeCursor();
@@ -75,7 +75,7 @@ try {
                     $sql = "CALL InserisciNuovaOpzioneQuesitoChiuso(:numero_opzione, :id_quesito, :opzioni, :opzioni_vera)";
                     $stmt = $db->prepare($sql);
                     $stmt->bindParam(':numero_opzione', $n_opzione, PDO::PARAM_INT);
-                    $stmt->bindParam(':id_quesito', $id_quesito, PDO::PARAM_STR);
+                    $stmt->bindParam(':id_quesito', $titolo_test, PDO::PARAM_STR);
                     $stmt->bindParam(':opzioni', $opzioni[$i], PDO::PARAM_STR);
                     $stmt->bindParam(':opzioni_vera', $opzioni_vera[$i], PDO::PARAM_STR);
                     $stmt->execute();
@@ -95,7 +95,7 @@ try {
                 foreach ($tabelle as $tabella) {
                     $sql = "CALL InserisciQuesitoTabella(:id_quesito, :tabella_riferimento)";
                     $stmt = $db->prepare($sql);
-                    $stmt->bindParam(':id_quesito', $id_quesito, PDO::PARAM_INT);
+                    $stmt->bindParam(':id_quesito', $titolo_test, PDO::PARAM_INT);
                     $stmt->bindParam(':tabella_riferimento', $tabella, PDO::PARAM_STR);
                     $stmt->execute();
                     $stmt->closeCursor();
@@ -110,7 +110,7 @@ try {
             insertOnMONGODB(
                 'quesiti',
                 [
-                    'id_quesito' => $id_quesito,
+                    'id_quesito' => $titolo_test,
                     'numero_quesito' => $numero_quesito,
                     'test_associato' => $test_associato,
                     'descrizione' => $descrizione,

@@ -9,7 +9,7 @@ if ($_SESSION['ruolo'] != 'PROFESSORE' || !isset($_SESSION['email'])) {
 function tendinaTest()
 {
     $db = connectToDatabaseMYSQL();
-    $sql = "CALL GetTestDelProfessore(:email_professore);";
+    $sql = "CALL GetTestsDelProfessore(:email_professore);";
     $stmt = $db->prepare($sql);
     $stmt->bindParam(':email_professore', $_SESSION['email']);
     try {
@@ -17,7 +17,9 @@ function tendinaTest()
         $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo "<option hidden value=0>Seleziona un test</option>";
         foreach ($tests as $test) {
-            if ($test['VisualizzaRisposte'] == 0) {
+            if (isset($_SESSION['modifica'])) {
+                echo "<option value='" . $test['titolo'] . "'required>" . $test['titolo'] . "</option>";
+            } elseif ($test['VisualizzaRisposte'] == 0) {
                 echo "<option value='" . $test['titolo'] . "'required>" . $test['titolo'] . "</option>";
             }
         }

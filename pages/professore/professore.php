@@ -59,7 +59,7 @@ $stmt->closeCursor();
 
                 var selectedValue = concludi.value; // Usare l'elemento passato come parametro
                 var form = document.getElementById("concludi-quesito-form");
-                form.action = "/pages/professore/modifica_test.php?test_associato=" + selectedValue;
+                form.action = "/pages/professore/concludi_test.php?test_associato=" + selectedValue;
             }
         }
 
@@ -116,7 +116,7 @@ $stmt->closeCursor();
         <?php
         require_once '../../helper/connessione_mysql.php';
         $db = connectToDatabaseMYSQL();
-        $sql = "CALL GetTestDelProfessoreAperti(:email);";
+        $sql = "CALL GetTestsDelProfessoreAperti(:email);";
         $stmt = $db->prepare($sql);
         $stmt->bindParam(':email', $_SESSION['email'], PDO::PARAM_STR);
         $stmt->execute();
@@ -126,17 +126,19 @@ $stmt->closeCursor();
         if ($tests != null && count($tests) > 0) {
         ?>
             <div class="widget-professore">
-                <h3>Aggiungi quesito ad un test</h3>
+                <h3>Modifica test</h3>
                 <form id="aggiungi-quesito-form" method="post">
                     <div>
                         <select name="test_associato" for="test_associato" onchange="updateActionAggiungiQuesito(this)">
                             <?php
                             require_once "./tendina_test.php";
+                            $_SESSION['modifica'] = true;
                             tendinaTest();
+                            unset($_SESSION['modifica']);
                             ?>
                         </select>
                     </div>
-                    <button type="submit" style="width:fit-content"> Aggiungi quesito </button>
+                    <button type="submit" style="width:fit-content"> Modifica </button>
                 </form>
             </div>
 

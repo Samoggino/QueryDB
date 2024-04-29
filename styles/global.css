@@ -137,24 +137,26 @@ button {
 }
 
 
-
-#intestazione a.home {
+#intestazione a.home,
+#intestazione a.bin,
+#intestazione a.logout {
     display: inline-block;
-    background-image: url("../images/icons/home.svg");
-    width: 30px;
-    height: 30px;
     background-size: contain;
     background-repeat: no-repeat;
-    /* margin-left: 50px; */
+    width: 30px;
+    height: 30px;
+}
+
+#intestazione a.home {
+    background-image: url("../images/icons/home.svg");
 }
 
 #intestazione a.logout {
-    display: inline-block;
     background-image: url("../images/icons/logout.svg");
-    width: 30px;
-    height: 30px;
-    background-size: contain;
-    background-repeat: no-repeat;
+}
+
+#intestazione a.bin {
+    background-image: url("../images/icons/bin.svg");
 }
 
 #intestazione h1 {
@@ -247,4 +249,11 @@ input[type='number']::placeholder {
 .widget-professore:hover {
     background-color: rgb(205 173 133);
     transition: all 0.3s;
+}
+
+#intestazione.homepage {
+    display: grid;
+    grid-template-columns: 0.1fr 0.8fr 0.1fr;
+    justify-items: center;
+    align-items: center;
 }

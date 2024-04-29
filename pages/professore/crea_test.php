@@ -145,131 +145,168 @@ try {
     <!-- Se ho già il test ma devo riempirlo con i quesiti -->
     <?php if (isset($_GET['test_associato']) || isset($_POST['titolo_test_creato'])) {
         $test_associato = $_GET['test_associato'] ?? $_POST['titolo_test_creato'];
+
+        $sql = "CALL GetTest(:test_associato)";
+        $db = connectToDatabaseMYSQL();
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':test_associato', $test_associato);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+
+        if ($result == null) {
+            echo "<script>window.location.replace('/pages/professore/crea_test.php');</script>";
+        }
+
     ?>
-        <div id="intestazione">
+        <div id="intestazione" class="homepage">
             <div class="icons-container">
                 <a class="logout" href="/pages/logout.php"></a>
                 <a class="home" href="/pages/<?php echo strtolower($_SESSION['ruolo']) . '/' . strtolower($_SESSION['ruolo']) . ".php" ?>"></a>
             </div>
-            <?php echo "<h1> $test_associato</h1>" ?>
+            <?php
+            echo "<h1> $test_associato</h1>";
+            ?>
+            <a class="bin" title="Elimina test" onclick="deleteTest('<?php echo $test_associato ?> ');"></a>
         </div>
         <input hidden id='test_associato' value='<?php echo $test_associato ?>'></input>
 
         <div id="quesiti" class="on">
-            <div style="display: flex;">
-                <?php
-                $db = connectToDatabaseMYSQL();
-                // Recupera l'immagine dal database
-                $sql = "CALL RecuperaFotoTest(:test_associato)";
-                $stmt = $db->prepare($sql);
-                $stmt->bindParam(':test_associato', $test_associato);
-                $stmt->execute();
-                $quesito = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                // Se è stata trovata un'immagine, visualizzala
-                if ($quesito != null && count($quesito) > 0) {
-                ?>
-                    <div class="widget-professore immagine-test">
-                        <h2>Immagine del test</h2>
-                        <?php
-                        $immagine = $quesito['foto'];
-                        echo "<img src='data:image/jpeg;base64," . base64_encode($immagine) . "' alt='Errore'>";
-                        ?>
-                    </div>
-                <?php
+            <?php
+            $db = connectToDatabaseMYSQL();
+            $sql = "CALL GetTestsDelProfessoreAperti(:email_professore)";
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':email_professore', $_SESSION['email']);
+            $stmt->execute();
+            $tests_aperti_del_prof = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+
+            // se il test non è aperto, non permettere di aggiungere quesiti
+            $test_aperto = false;
+            foreach ($tests_aperti_del_prof as $test) {
+                if ($test['titolo'] == $test_associato) {
+                    $test_aperto = true;
+                    break;
                 }
-                ?>
+            }
 
-                <div class="widget-professore">
-                    <h2 style="margin-bottom:0">Aggiungi quesito</h2>
-                    <div class="scrollable-widget">
-                        <!-- crea dei quesiti per il test, il quesito è fatto con un enum per la difficoltà e un campo per la descrizione -->
-                        <form method="POST" action="crea_quesito.php?test_associato=<?php echo $test_associato ?>" id="form-quesito">
-                            <div class="lable-input-container" style="flex-direction: row; gap:5px; align-items:flex-start">
-                                <div style="flex-direction: column;display:flex;align-items:center">
-                                    <label for="descrizione" name="descrizione">Descrizione:</label>
-                                    <input for="descrizione" name="descrizione" placeholder="Descrizione" type="text" required>
+            if ($test_aperto) {
+            ?>
+                <div style="display: flex;">
+                    <?php
+                    $db = connectToDatabaseMYSQL();
+                    // Recupera l'immagine dal database
+                    $sql = "CALL RecuperaFotoTest(:test_associato)";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindParam(':test_associato', $test_associato);
+                    $stmt->execute();
+                    $quesito = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    // Se è stata trovata un'immagine, visualizzala
+                    if ($quesito != null && count($quesito) > 0) {
+                    ?>
+                        <div class="widget-professore immagine-test">
+                            <h2>Immagine del test</h2>
+                            <?php
+                            $immagine = $quesito['foto'];
+                            echo "<img src='data:image/jpeg;base64," . base64_encode($immagine) . "' alt='Errore'>";
+                            ?>
+                        </div>
+                    <?php
+                    }
+                    ?>
+
+                    <div class="widget-professore">
+                        <h2 style="margin-bottom:0">Aggiungi quesito</h2>
+                        <div class="scrollable-widget">
+                            <!-- crea dei quesiti per il test, il quesito è fatto con un enum per la difficoltà e un campo per la descrizione -->
+                            <form method="POST" action="crea_quesito.php?test_associato=<?php echo $test_associato ?>" id="form-quesito">
+                                <div class="lable-input-container" style="flex-direction: row; gap:5px; align-items:flex-start">
+                                    <div style="flex-direction: column;display:flex;align-items:center">
+                                        <label for="descrizione" name="descrizione">Descrizione:</label>
+                                        <input for="descrizione" name="descrizione" placeholder="Descrizione" type="text" required>
+                                    </div>
+                                    <div style="flex-direction: column;display:flex;">
+                                        <label for="difficolta" name="difficolta">Difficoltà:</label>
+                                        <select for="difficolta" name="difficolta" id="difficolta" required>
+                                            <option value="BASSO">Basso</option>
+                                            <option value="MEDIO">Medio</option>
+                                            <option value="ALTO">Alto</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div style="flex-direction: column;display:flex;">
-                                    <label for="difficolta" name="difficolta">Difficoltà:</label>
-                                    <select for="difficolta" name="difficolta" id="difficolta" required>
-                                        <option value="BASSO">Basso</option>
-                                        <option value="MEDIO">Medio</option>
-                                        <option value="ALTO">Alto</option>
+
+
+
+                                <div>
+                                    <div class="checkbox-container">
+                                        <label for="quesito-aperto-checkbox">Aperto</label>
+                                        <input type="checkbox" id="quesito-aperto-checkbox" name="APERTO">
+                                    </div>
+                                    <div id="APERTO" style="display: none;">
+                                        <div class="add-remove-container">
+                                            <button type="button" id="aggiungi_soluzione">Aggiungi soluzione</button><br>
+                                            <button type="button" id="rimuovi_soluzione">Rimuovi soluzione</button><br>
+                                        </div>
+                                        <div id="soluzione_aperto">
+                                            <div class="quesito-aperto">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="checkbox-container">
+                                        <label for="quesito-chiuso-checkbox">Chiuso</label>
+                                        <input type="checkbox" id="quesito-chiuso-checkbox" name="CHIUSO">
+                                    </div>
+                                    <div id="CHIUSO" style="display: none;">
+                                        <div class="add-remove-container">
+                                            <button type="button" id="aggiungi_opzione">Aggiungi opzione</button><br>
+                                            <button type="button" id="rimuovi_opzione">Rimuovi opzione</button><br>
+                                        </div>
+                                        <div id="opzioni_chiuso">
+                                            <div class="quesito-chiuso">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- seleziona le tabelle di esercizio a cui fare riferimento -->
+
+                                <div class="lable-input-container">
+                                    <label for="tabelleRiferimento">Tabelle di riferimento:</label>
+                                    <select id="tabelleRiferimento" name="tabelle[]" multiple>
+                                        <?php
+                                        $sql = "CALL GetTabelleCreate()";
+                                        $db = connectToDatabaseMYSQL();
+                                        $stmt = $db->prepare($sql);
+                                        $stmt->execute();
+                                        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                        foreach ($result as $row) {
+                                            echo "<option value='" . $row['nome_tabella'] . "'>" . $row['nome_tabella'] . "</option>";
+                                        }
+                                        ?>
                                     </select>
                                 </div>
-                            </div>
 
+                                <input type="hidden" for="tipo_quesito" name="tipo_quesito" id="tipo_quesito" value="">
+                        </div>
 
-
-                            <div>
-                                <div class="checkbox-container">
-                                    <label for="quesito-aperto-checkbox">Aperto</label>
-                                    <input type="checkbox" id="quesito-aperto-checkbox" name="APERTO">
-                                </div>
-                                <div id="APERTO" style="display: none;">
-                                    <div class="add-remove-container">
-                                        <button type="button" id="aggiungi_soluzione">Aggiungi soluzione</button><br>
-                                        <button type="button" id="rimuovi_soluzione">Rimuovi soluzione</button><br>
-                                    </div>
-                                    <div id="soluzione_aperto">
-                                        <div class="quesito-aperto">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="checkbox-container">
-                                    <label for="quesito-chiuso-checkbox">Chiuso</label>
-                                    <input type="checkbox" id="quesito-chiuso-checkbox" name="CHIUSO">
-                                </div>
-                                <div id="CHIUSO" style="display: none;">
-                                    <div class="add-remove-container">
-                                        <button type="button" id="aggiungi_opzione">Aggiungi opzione</button><br>
-                                        <button type="button" id="rimuovi_opzione">Rimuovi opzione</button><br>
-                                    </div>
-                                    <div id="opzioni_chiuso">
-                                        <div class="quesito-chiuso">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- seleziona le tabelle di esercizio a cui fare riferimento -->
-
-                            <div class="lable-input-container">
-                                <label for="tabelleRiferimento">Tabelle di riferimento:</label>
-                                <select id="tabelleRiferimento" name="tabelle[]" multiple>
-                                    <?php
-                                    $sql = "CALL GetTabelleCreate()";
-                                    $db = connectToDatabaseMYSQL();
-                                    $stmt = $db->prepare($sql);
-                                    $stmt->execute();
-                                    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                                    foreach ($result as $row) {
-                                        echo "<option value='" . $row['nome_tabella'] . "'>" . $row['nome_tabella'] . "</option>";
-                                    }
-                                    ?>
-                                </select>
-                            </div>
-
-                            <input type="hidden" for="tipo_quesito" name="tipo_quesito" id="tipo_quesito" value="">
+                        <button type="submit" value="crea il test" style="width:fit-content;">Aggiungi quesito</button>
+                        </form>
                     </div>
-
-                    <button type="submit" value="crea il test" style="width:fit-content;">Aggiungi quesito</button>
-                    </form>
                 </div>
-            </div>
+            <?php } ?>
 
-            <div id="quesiti-test" style="max-width: 580px;" class="widget-classifica">
-                <?php
-                require "../../helper/print_quesiti_di_test.php";
-                if (isset($_GET['test_associato']) || isset($_POST['titolo_test_creato'])) {
-                    // stampa i quesiti associati al test
-                    $test_associato = isset($_GET['test_associato']) ? $_GET['test_associato'] : $_POST['titolo_test_creato'];
-                    printQuesitiDiTest($test_associato);
-                }
-                ?>
-            </div>
+
+            <?php
+            require "../../helper/print_quesiti_di_test.php";
+            if (isset($_GET['test_associato']) || isset($_POST['titolo_test_creato'])) {
+                // stampa i quesiti associati al test
+                $test_associato = isset($_GET['test_associato']) ? $_GET['test_associato'] : $_POST['titolo_test_creato'];
+                printQuesitiDiTest($test_associato, $test_aperto);
+            }
+            ?>
         </div>
     <?php } ?>
 </body>
@@ -451,6 +488,24 @@ try {
             return;
         }
     });
+
+    function deleteTest(titolo_test) {
+        if (confirm("Sei sicuro di voler eliminare questo test?")) {
+            fetch('/helper/elimina_test.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'titolo_test=' + titolo_test
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert("Errore nella cancellazione del quesito");
+                }
+            });
+        }
+    }
 </script>
 
 </html>

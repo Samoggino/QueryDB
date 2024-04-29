@@ -946,7 +946,7 @@ END $$ DELIMITER;
 
 -- prendi test del docente
 DELIMITER $$
-CREATE PROCEDURE GetTestDelProfessore (IN p_email_professore VARCHAR(100)) BEGIN
+CREATE PROCEDURE GetTestsDelProfessore (IN p_email_professore VARCHAR(100)) BEGIN
 SELECT
     *
 FROM
@@ -2047,9 +2047,9 @@ WHERE
 
 END $$ DELIMITER;
 
--- GetTestDelProfessoreAperti
+-- GetTestsDelProfessoreAperti
 DELIMITER $$
-CREATE PROCEDURE IF NOT EXISTS GetTestDelProfessoreAperti (IN p_email_professore VARCHAR(100)) BEGIN
+CREATE PROCEDURE IF NOT EXISTS GetTestsDelProfessoreAperti (IN p_email_professore VARCHAR(100)) BEGIN
 SELECT
     *
 FROM
@@ -2083,5 +2083,23 @@ FROM
     JOIN UTENTE ON STUDENTE.email_studente = UTENTE.email
 WHERE
     email_studente = p_email_studente;
+
+END $$ DELIMITER;
+
+-- EliminaQuesito
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS EliminaQuesito (IN p_id_quesito INT) BEGIN
+DELETE FROM QUESITO
+WHERE
+    ID = p_id_quesito;
+
+END $$ DELIMITER;
+
+-- EliminaTest 
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS EliminaTest (IN p_titolo VARCHAR(100)) BEGIN
+DELETE FROM TEST
+WHERE
+    titolo = p_titolo;
 
 END $$ DELIMITER;
