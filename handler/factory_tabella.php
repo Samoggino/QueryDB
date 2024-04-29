@@ -114,24 +114,26 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
         $stmt->execute();
         $stmt->closeCursor();
 
-
-        // prova ad eliminare la tabella fisica
-        $stmt = $db->prepare("DROP TABLE IF EXISTS :nome_tabella");
-        $stmt->bindParam(':nome_tabella', $nome_tabella, PDO::PARAM_STR);
+        // Costruisci la query SQL per eliminare la tabella
+        $sql = "DROP TABLE IF EXISTS $nome_tabella";
+        // Esegui la query
+        $stmt = $db->prepare($sql);
         $stmt->execute();
         $stmt->closeCursor();
+
 
 
         insertOnMONGODB(
             'eliminazione_tabella',
             [
-                'tabella' => $nome_tabella
+                'tabella' => $nome_tabella,
+                'query_corrente' => $query_corrente,
             ],
             'Eliminazione della tabella ' . $nome_tabella . ' a causa di un errore nella creazione fisica',
         );
         echo "<script>console.log('" . $nome_tabella . " eliminata a causa di un errore nella creazione fisica')</script>";
         echo "<script>console.log('" . json_encode($_POST) . "')</script>";
         echo "<script>console.log('" . $query_corrente . "')</script>";
-        echo "<script>alert('Errore nella creazione della tabella'); window.location.replace('/pages/professore/crea_tabella.php')</script>";
+        echo "<script>alert('Errore nella creazione della tabella'); window.location.replace('/pages/professore/crea_tabella_esercizio.php')</script>";
     }
 }

@@ -106,8 +106,6 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
             }
         });
 
-
-
         function creaAttributoContainer(i, container, div) {
             div.className = "widget-professore";
             div.innerHTML = '<input type="text" id="nome_attributo_' + i + '" placeholder= "Nome Attributo ' + (i + 1) + '"name="nome_attributo[]" required>' +
@@ -117,8 +115,6 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
                 '<option value="INT">INT</option>' +
                 '<option value="VARCHAR">VARCHAR</option>' +
                 '<option value="DATE">DATE</option>' +
-                '<option value="BOOLEAN">BOOLEAN</option>' +
-                '<option value="TEXT">TEXT</option>' +
                 '<option value="DECIMAL">DECIMAL</option>' +
                 '<option value="FLOAT">FLOAT</option>' +
                 '</select>' +
@@ -301,7 +297,7 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
                 "CURRENT_USER", "CURSOR", "DATABASE", "DATABASES", "DAY_HOUR", "DAY_MICROSECOND", "DAY_MINUTE",
                 "DAY_SECOND", "DEC", "DECIMAL", "DECLARE", "DEFAULT", "DELAYED", "DELETE", "DESC", "DESCRIBE",
                 "DETERMINISTIC", "DISTINCT", "DISTINCTROW", "DIV", "DOUBLE", "DROP", "DUAL", "EACH", "ELSE", "ELSEIF",
-                "ENCLOSED", "ESCAPED", "EXISTS", "EXIT", "EXPLAIN", "FALSE", "FETCH", "FLOAT", "FLOAT4", "FLOAT8", "FOR",
+                "ENCLOSED", "ESCAPED", "EXISTS", "EXIT", "EXPLAIN", "FALSE", "FETCH", "FLOAT", "FOR",
                 "FORCE", "FOREIGN", "FROM", "FULLTEXT", "GENERAL", "GRANT", "GROUP", "HAVING", "HIGH_PRIORITY", "HOUR_MICROSECOND",
                 "HOUR_MINUTE", "HOUR_SECOND", "IF", "IGNORE", "IN", "INDEX", "INFILE", "INNER", "INOUT", "INSENSITIVE", "INSERT",
                 "INT", "INT1", "INT2", "INT3", "INT4", "INT8", "INTEGER", "INTERVAL", "INTO", "IS", "ITERATE", "JOIN", "KEY",

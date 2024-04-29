@@ -1,5 +1,8 @@
 <?php
 require_once 'connessione_mysql.php';
+require_once 'connessione_mongodb.php';
+require_once '../composer/vendor/autoload.php';
+
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['titolo_test'])) {
     $titolo_test = $_POST['titolo_test'];
@@ -15,6 +18,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['titolo_test'])) {
     $eliminato = $stmt->rowCount() > 0;
 
     if ($eliminato) {
+
+        insertOnMONGODB(
+            "eliminazione_test",
+            "Il test " . $titolo_test . " è stato eliminato.",
+            'Il professore ' . $_SESSION['cognome'] . ' ' . $_SESSION['nome'] . ' ha eliminato il test ' . $titolo_test . '.'
+        );
+
         // Se l'eliminazione è avvenuta con successo, reindirizza l'utente alla pagina precedente o ad una specifica pagina
         echo "<script>alert('Test eliminato con successo!'); window.location.href = '/pages/professore/professore.php';</script>";
     } else {
