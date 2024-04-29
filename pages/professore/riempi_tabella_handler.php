@@ -68,5 +68,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 function redirect($messaggio)
 {
     $nome_tabella = $_GET['nome_tabella'];
-    echo "<script>alert('$messaggio ciao'); window.location.replace('/pages/professore/riempi_tabella.php?nome_tabella=$nome_tabella')</script>";
+    echo "<script>alert('$messaggio'); window.location.replace('/pages/professore/riempi_tabella.php?nome_tabella=$nome_tabella')</script>";
 }

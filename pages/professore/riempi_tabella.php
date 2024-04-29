@@ -24,11 +24,42 @@ if (isset($_GET['nome_tabella'])) {
         $stmt->closeCursor();
 
 
-        // prendi i valori degli attributi
-        $stmt = $db->prepare("SELECT * FROM $nome_tabella");
-        $stmt->execute();
-        $valori = $stmt->fetchAll();
-        $stmt->closeCursor();
+        try {
+            // prendi i valori degli attributi
+            $stmt = $db->prepare("SELECT * FROM $nome_tabella");
+            $stmt->execute();
+            $valori = $stmt->fetchAll();
+            $stmt->closeCursor();
+        } catch (PDOException $e) {
+            $errorCode = $e->errorInfo[1];
+            // se la tabella non esiste, non continuare l'esecuzione ma return
+            if ($errorCode == 1146) {
+                // eliminare la tabella logica
+                $db = connectToDatabaseMYSQL();
+                $stmt = $db->prepare("CALL EliminaTabella(:nome_tabella)");
+                $stmt->bindParam(':nome_tabella', $nome_tabella, PDO::PARAM_STR);
+                $stmt->execute();
+                $stmt->closeCursor();
+
+
+                // prova ad eliminare la tabella fisica
+                $stmt = $db->prepare("DROP TABLE IF EXISTS :nome_tabella");
+                $stmt->bindParam(':nome_tabella', $nome_tabella, PDO::PARAM_STR);
+                $stmt->execute();
+                $stmt->closeCursor();
+
+
+                insertOnMONGODB(
+                    'eliminazione_tabella',
+                    [
+                        'tabella' => $nome_tabella
+                    ],
+                    'Eliminazione della tabella ' . $nome_tabella . ' a causa di un errore',
+                );
+                echo "<script> alert('Tabella non esistente'); window.location.href = '" . strtolower($_SESSION['ruolo']) . ".php'; </script>";
+                return;
+            }
+        }
 
         try {
             $db = connectToDatabaseMYSQL();
@@ -36,6 +67,7 @@ if (isset($_GET['nome_tabella'])) {
             $stmt->bindParam(':nome_tabella', $nome_tabella, PDO::PARAM_STR);
             $stmt->execute();
             $tabelle_riferite = $stmt->fetchAll();
+            echo "<script>console.log('TABELLE RIFERITE: " . json_encode($tabelle_riferite) . "');</script>";
             $stmt->closeCursor();
         } catch (\Throwable $th) {
             echo "<script>alert('PROBLEM VINCOLI <br>" . $th->getMessage() . ")</script>";
@@ -62,7 +94,7 @@ if (isset($_GET['nome_tabella'])) {
     <link rel="stylesheet" href="../../styles/global.css">
     <style>
         <?php
-        if ($tabelle_riferite != null) {
+        if (isset($tabelle_riferite) && $tabelle_riferite != null) {
 
         ?>.tabelle {
             display: grid;
@@ -110,38 +142,52 @@ if (isset($_GET['nome_tabella'])) {
             display: none;
         }
 
-
         .mostra-vincoli {
             position: relative;
-            left: 90%;
-            bottom: 145%;
             margin-top: 0;
             margin-bottom: 10px;
+        }
+
+        .widget-classifica {
+            padding: 0px 20px 0px 20px;
+            max-height: 751px;
+        }
+
+        .widget-classifica button {
+            margin-top: 4px;
+            margin-bottom: 8px;
+        }
+
+        #intestazione.homepage {
+            display: grid;
+            grid-template-columns: 0.1fr 0.8fr 0.1fr;
+            justify-items: center;
+            align-items: center;
         }
     </style>
 </head>
 
 <body>
-    <div id="riempi">
 
-        <div id="intestazione">
-            <div class="icons-container">
-                <a class="logout" href="/pages/logout.php"></a>
-                <a class="home" href="/pages/<?php echo strtolower($_SESSION['ruolo']) . '/' . strtolower($_SESSION['ruolo']) . ".php" ?>"></a>
-            </div>
-            <h1>Inserisci valori</h1>
+    <!-- FIXME: sistema il bottone del "mostra-vincoli" che ho modificato aggiungendo la grid di intestazione -->
 
+    <div id="intestazione" class="homepage">
+        <div class="icons-container">
+            <a class="logout" href="/pages/logout.php"></a>
+            <a class="home" href="/pages/<?php echo strtolower($_SESSION['ruolo']) . '/' . strtolower($_SESSION['ruolo']) . ".php" ?>"></a>
         </div>
-
+        <h1>Inserisci valori</h1>
         <?php
         if ($tabelle_riferite != null) {
             echo ' <button class="mostra-vincoli" onclick="mostraVincoli()">Mostra vincoli</button>';
         } ?>
+    </div>
+    <div id="riempi">
+
         <?php
-        if ($tabelle_riferite != null) {
+        if (isset($tabelle_riferite) && $tabelle_riferite != null) {
         ?>
             <div class="vincoli widget-classifica off">
-                <h2>Vincoli di integrità</h2>
                 <table>
                     <tr>
                         <th>Attributo in <?php echo $nome_tabella ?></th>
@@ -160,7 +206,7 @@ if (isset($_GET['nome_tabella'])) {
         <?php } ?>
         <div class="tabelle">
             <div class="widget-classifica">
-                <form id="insert_values" method='post' action='/pages/professore/riempi_tabella_handler.php?nome_tabella=<?php echo $nome_tabella; ?>'>
+                <form style="margin-bottom:0" method='post' action='/pages/professore/riempi_tabella_handler.php?nome_tabella=<?php echo $nome_tabella; ?>'>
 
                     <?php
                     require_once '../../helper/print_table.php';
@@ -200,12 +246,20 @@ if (isset($_GET['nome_tabella'])) {
             <!-- mostra anche le tabelle a cui la tabella in get fa reference se ne ha-->
             <?php
 
-            if ($tabelle_riferite != null) {
+            if (isset($tabelle_riferite) && $tabelle_riferite != null) {
             ?>
-
-
                 <?php
                 require_once '../../helper/print_table.php';
+                require_once '../../helper/connessione_mysql.php';
+
+                $db = connectToDatabaseMYSQL();
+
+                $sql = "CALL GetTabelleRiferite(:nome_tabella)";
+                $stmt = $db->prepare($sql);
+                $stmt->bindParam(':nome_tabella', $nome_tabella, PDO::PARAM_STR);
+                $stmt->execute();
+                $tabelle_riferite = $stmt->fetchAll();
+                $stmt->closeCursor();
 
                 foreach ($tabelle_riferite as $tabella) {
 

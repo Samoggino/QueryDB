@@ -1,4 +1,3 @@
-/* Stili per il container delle opzioni di chiave esterna */
 .foreign-key-options {
     margin-top: 10px;
     padding: 10px;
@@ -11,7 +10,6 @@
     margin-bottom: 5px;
 }
 
-/* Stili per il display delle opzioni di chiave esterna */
 .foreign-key-options select {
     width: 100%;
     padding: 8px;
@@ -21,7 +19,6 @@
     box-sizing: border-box;
 }
 
-/* Stili per nascondere il container delle opzioni di chiave esterna */
 .foreign-key-options.hidden {
     display: none;
 }
@@ -29,13 +26,9 @@
 
 .attributo-container {
     margin-bottom: 20px;
-    /* Aggiunge spazio tra i container degli attributi */
     border: 1px solid #ccc;
-    /* Aggiunge un bordo intorno al container */
     padding: 10px;
-    /* Aggiunge spazio interno al container */
     border-radius: 5px;
-    /* Aggiunge bordi arrotondati al container */
 }
 
 input[type="text"],
@@ -48,4 +41,39 @@ input[type="number"] {
 form select {
     border-radius: 4px;
     margin-top: 10px;
+}
+
+.grid-container {
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+    gap: 5dvw;
+}
+
+#attributi_container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    column-gap: 20px;
+    row-gap: 0px;
+}
+
+#attributi_container .widget-professore {
+    width: 220px;
+    height: max-content;
+    max-height: 380px;
+}
+
+.foreign-key-container {
+    display: flex;
+    flex-direction: column;
+    place-content: center;
+    align-items: center;
+    margin-top: 35px;
+    margin-bottom: -75px;
+}
+
+h1{
+    padding-right: 90px;
 }

@@ -55,44 +55,7 @@ echo "<script>var attributiPerTabella = " . json_encode($attributi) . ";</script
     <link rel="icon" href="../../images/favicon/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../../styles/global.css">
     <link rel="stylesheet" href="../../styles/creaTabella.css">
-    <title>Inserimento Dati Tabella</title>
-
-    <style>
-        .grid-container {
-            display: flex;
-            flex-direction: row;
-            align-content: center;
-            align-items: center;
-            justify-content: center;
-            gap: 5dvw;
-        }
-
-        #attributi_container {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            column-gap: 20px;
-            row-gap: 0px;
-        }
-
-        #attributi_container .widget-professore {
-            width: 220px;
-            height: max-content;
-            max-height: 380px;
-        }
-
-        .foreign-key-container {
-            display: flex;
-            flex-direction: column;
-            place-content: center;
-            align-items: center;
-            margin-top: 35px;
-            margin-bottom: -75px;
-        }
-
-        h1 {
-            margin-left: -100px;
-        }
-    </style>
+    <title>Crea tabella</title>
 </head>
 
 <body>

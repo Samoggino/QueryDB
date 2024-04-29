@@ -8,14 +8,22 @@ function generateTable($tabella)
         $stmt->execute();
         $valori_tabella_fisica = $stmt->fetchAll();
         $stmt->closeCursor();
-
+    } catch (PDOException $e) {
+        $errorCode = $e->errorInfo[1];
+        // se la tabella non esiste, non continuare l'esecuzione ma return
+        if ($errorCode == 1146) {
+            echo "<script> alert('Tabella non esistente'); window.location.href = '" . strtolower($_SESSION['ruolo']) . ".php'; </script>";
+            return;
+        }
+    }
+    try {
         $stmt = $db->prepare("CALL GetAttributiTabella(:nome_tabella)");
         $stmt->bindParam(':nome_tabella', $tabella, PDO::PARAM_STR);
         $stmt->execute();
         $attributi = $stmt->fetchAll();
         $stmt->closeCursor();
     } catch (\Throwable $th) {
-        echo "PROBLEM RIGHE TABELLA VINCOLATA <br>" . $th->getMessage();
+        echo "<script>alert('Errore nel prendere gli attributi della tabella <br>" . $th->getMessage() . ")</script>";
     }
 ?>
 
