@@ -55,35 +55,35 @@ INSERT INTO
     )
 VALUES
     (
-        'studente1@example.com',
-        'Mario'                ,
-        'Rossi'                ,
-        '1234'                 ,
-        '12324567'             ,
+        'studente1@unibo.it',
+        'Mario'             ,
+        'Rossi'             ,
+        '1234'              ,
+        '12324567'          ,
         'STUDENTE'
     ),
     (
-        'studente2@example.com',
-        'Luca'                 ,
-        'Bianchi'              ,
-        '1234'                 ,
-        '12324567'             ,
+        'studente2@unibo.it',
+        'Luca'              ,
+        'Bianchi'           ,
+        '1234'              ,
+        '12324567'          ,
         'STUDENTE'
     ),
     (
-        'vincenzo.scollo@example.com',
-        'Anna'                       ,
-        'Verdi'                      ,
-        '1234'                       ,
-        '12324567'                   ,
+        'vincenzo.scollo@unibo.it',
+        'Anna'                    ,
+        'Verdi'                   ,
+        '1234'                    ,
+        '12324567'                ,
         'PROFESSORE'
     ),
     (
-        'mariagrazia.fabbri@example.com',
-        'Carlo'                         ,
-        'Neri'                          ,
-        '1234'                          ,
-        '12324567'                      ,
+        'mariagrazia.fabbri@unibo.it',
+        'Carlo'                      ,
+        'Neri'                       ,
+        '1234'                       ,
+        '12324567'                   ,
         'PROFESSORE'
     ),
     (
@@ -115,8 +115,8 @@ VALUES
 INSERT INTO
     STUDENTE (email_studente, anno_immatricolazione, matricola)
 VALUES
-    ('studente1@example.com', 2019, '00123456') ,
-    ('studente2@example.com', 2020, '00987654') ,
+    ('studente1@unibo.it', 2019, '00123456')    ,
+    ('studente2@unibo.it', 2020, '00987654')    ,
     ('simosamoggia@gmail.com', 2020, '00970758'),
     ('studente@unibo.it', 2020, '00567890');
 
@@ -125,13 +125,13 @@ INSERT INTO
     PROFESSORE (email_professore, dipartimento, corso)
 VALUES
     (
-        'vincenzo.scollo@example.com',
-        'Informatica'                ,
+        'vincenzo.scollo@unibo.it',
+        'Informatica'             ,
         'scienze applicate'
     ),
     (
-        'mariagrazia.fabbri@example.com',
-        'Matematica'                    ,
+        'mariagrazia.fabbri@unibo.it',
+        'Matematica'                 ,
         'scienze applicate'
     ),
     (
@@ -1071,11 +1071,9 @@ FROM
 END $$ DELIMITER;
 
 -- SONO QUI
--- TRIGGER che si aziona quando un utente inserisce una risposta
+-- trigger che si aziona quando un utente inserisce una risposta
 -- la tabella svolgimento_test viene aggiornata e viene settata la data di inizio e lo stato IN_COMPLETAMENTO
 DELIMITER $$
-DROP TRIGGER IF EXISTS update_svolgimento_test;
-
 CREATE TRIGGER IF NOT EXISTS update_svolgimento_test AFTER
 INSERT
     ON RISPOSTA FOR EACH ROW BEGIN DECLARE is_prima_risposta INT;
@@ -1163,7 +1161,6 @@ END $$ DELIMITER;
 
 -- se il prof modifica il test impostanto visualizzatest come true, allora contrassegna tutti i test come conclusi
 DELIMITER $$
-DROP TRIGGER IF EXISTS update_test_conclusi $$
 CREATE TRIGGER IF NOT EXISTS update_test_conclusi AFTER
 UPDATE ON TEST FOR EACH ROW BEGIN
 -- Se il professore ha impostato VisualizzaRisposte a 1, contrassegna tutti i test come CONCLUSI
@@ -2035,5 +2032,56 @@ FROM
     UTENTE
 WHERE
     email = p_email;
+
+END $$ DELIMITER;
+
+-- GetTabelleRiferite
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS GetTabelleRiferite (IN p_nome_tabella VARCHAR(20)) BEGIN
+SELECT DISTINCT
+    (tabella_vincolata)
+FROM
+    CHIAVI_ESTERNE_DELLE_TABELLE
+WHERE
+    nome_tabella = p_nome_tabella;
+
+END $$ DELIMITER;
+
+-- GetTestDelProfessoreAperti
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS GetTestDelProfessoreAperti (IN p_email_professore VARCHAR(100)) BEGIN
+SELECT
+    *
+FROM
+    TEST
+WHERE
+    email_professore = p_email_professore
+    AND VisualizzaRisposte = 0;
+
+END $$ DELIMITER;
+
+-- getInfoProfessore
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS GetInfoProfessore (IN p_email_professore VARCHAR(100)) BEGIN
+SELECT
+    *
+FROM
+    PROFESSORE
+    JOIN UTENTE ON PROFESSORE.email_professore = UTENTE.email
+WHERE
+    email_professore = p_email_professore;
+
+END $$ DELIMITER;
+
+-- GetInfoStudente
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS GetInfoStudente (IN p_email_studente VARCHAR(100)) BEGIN
+SELECT
+    *
+FROM
+    STUDENTE
+    JOIN UTENTE ON STUDENTE.email_studente = UTENTE.email
+WHERE
+    email_studente = p_email_studente;
 
 END $$ DELIMITER;
