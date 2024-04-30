@@ -35,10 +35,19 @@ function registrazione()
             $annoImmatricolazione = $_POST["anno_immatricolazione"];
             $matricola = $_POST["matricola"];
 
+            if ($annoImmatricolazione == "" || $matricola == "") {
+                echo "<script>alert('Inserisci l\'anno di immatricolazione e la matricola'); window.location.href = '../pages/login.php' </script>";
+            }
+
             insertNewStudent($db, $email, $nome, $cognome, $PASSWORD, $telefono, $annoImmatricolazione, $matricola);
         } elseif ($tipoUtente == "professore") {
             $dipartimento = $_POST["dipartimento"];
             $corso = $_POST["corso"];
+
+            if ($dipartimento == "" || $corso == "") {
+                echo "<script>alert('Inserisci il dipartimento e il corso di appartenenza'); window.location.href = '../pages/login.php' </script>";
+            }
+
             insertNewProfessor($db, $email, $nome, $cognome, $PASSWORD, $telefono, $dipartimento, $corso);
         } elseif ($tipoUtente == "" || $tipoUtente == null) {
             echo "<script>alert('Seleziona almeno una delle opzioni: Studente o Professore.'); </script>";
@@ -51,7 +60,7 @@ function insertNewStudent($db, $email, $nome, $cognome, $password, $telefono, $a
 
 
     try {
-        $sql = "CALL InserisciNuovoStudente(:email, :nome, :cognome, :password, :annoImmatricolazione, :matricola, :telefono)";
+        $sql = "CALL InserisciNuovoStudente(:email, :nome, :cognome, :password, :matricola, :annoImmatricolazione, :telefono)";
         $query = $db->prepare($sql);
         $query->bindParam(':email', $email, PDO::PARAM_STR);
         $query->bindParam(':nome', $nome, PDO::PARAM_STR);
@@ -68,6 +77,7 @@ function insertNewStudent($db, $email, $nome, $cognome, $password, $telefono, $a
 
         if ($query->execute()) {
 
+            echo "<script>alert('TEST')</script>";
 
             $_SESSION['nome'] = $nome;
             $_SESSION['cognome'] = $cognome;
@@ -90,7 +100,7 @@ function insertNewStudent($db, $email, $nome, $cognome, $password, $telefono, $a
                     ],
                     'Lo studente ' .  $cognome . " " . $nome  .  ' è stato registrato con successo! La sua email è: ' . $email
                 );
-                echo "<script>console.log('Benvenuto professor $nome $cognome'); window.location.href = 'studente/studente.php';</script>";
+                echo "<script>alert('Benvenuto $nome $cognome'); window.location.href = './studente/studente.php';</script>";
             } catch (\Throwable $th) {
                 echo "<script>alert('Errore di mongoDB: " . $th->getMessage() . "'); window.location.href = '../pages/login.php' </script>";
             }
@@ -138,7 +148,7 @@ function insertNewProfessor($db, $email, $nome, $cognome, $password, $telefono, 
                     ],
                     'Il professore ' .  $cognome . " " . $nome  .  ' è stato registrato con successo! La sua email è: ' . $email
                 );
-                echo "<script>alert('Benvenuto professor $nome $cognome'); window.location.href = 'professore/professore.php';</script>";
+                echo "<script>alert('Benvenuto professor $nome $cognome'); window.location.href = './professore/professore.php';</script>";
             } catch (\Throwable $th) {
                 echo "<script>alert('Errore di mongoDB: " . $th->getMessage() . "'); window.location.href = '../pages/login.php' </script>";
             }

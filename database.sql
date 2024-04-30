@@ -476,7 +476,7 @@ CREATE TABLE IF NOT EXISTS
         id_quesito INT NOT NULL                                                             ,
         id_soluzione INT AUTO_INCREMENT NOT NULL, -- soluzione 1, soluzione 2 ... soluzione n
         soluzione_professore TEXT NOT NULL                               ,
-        PRIMARY KEY (id_soluzione, id_quesito)                           ,
+        PRIMARY KEY (id_soluzione)                                       ,
         FOREIGN KEY (id_quesito) REFERENCES QUESITO (ID) ON DELETE CASCADE
     );
 
@@ -692,10 +692,11 @@ CREATE TABLE IF NOT EXISTS
 -- messaggio che invia un professore a tutti gli studenti
 CREATE TABLE IF NOT EXISTS
     BROADCAST (
-        id_messaggio INT NOT NULL                                            ,
-        mittente VARCHAR(100) NOT NULL                                       ,
-        PRIMARY KEY (id_messaggio)                                           ,
-        FOREIGN KEY (id_messaggio) REFERENCES MESSAGGIO (id) ON DELETE CASCADE
+        id_messaggio INT NOT NULL                                                       ,
+        mittente VARCHAR(100) NOT NULL                                                  ,
+        PRIMARY KEY (id_messaggio)                                                      ,
+        FOREIGN KEY (id_messaggio) REFERENCES MESSAGGIO (id) ON DELETE CASCADE          ,
+        FOREIGN KEY (mittente) REFERENCES PROFESSORE (email_professore) ON DELETE CASCADE
     );
 
 -- crea tabella dei quesiti-tabella
@@ -2018,6 +2019,7 @@ SELECT
     *
 FROM
     SVOLGIMENTO_TEST
+    JOIN TEST ON SVOLGIMENTO_TEST.titolo_test = TEST.titolo
 WHERE
     email_studente = p_email_studente;
 

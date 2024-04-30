@@ -42,19 +42,23 @@ session_start();
                             <input for="email" name="email" class="flip-card__input" placeholder="Email" type="email" autocomplete="off" required>
                             <input for="password" name="password" class="flip-card__input" placeholder="Password" type="password" autocomplete="off" required>
 
-                            <input for="telefono" name="telefono" class="flip-card__input" placeholder="Telefono" type="number">
+                            <input for="telefono" name="telefono" class="flip-card__input" placeholder="Telefono" type="number" min="1111111111" max="9999999999">
                             <input type="hidden" name="action" value="registrazione"> <!-- Campo nascosto per indicare registrazione -->
                             <div>
-                                <label for="studente-checkbox" class="flip-card__label">Studente</label>
-                                <input type="checkbox" id="studente-checkbox" class="flip-card__checkbox" name="studente">
+                                <div class="checkbox-container">
+                                    <label for="studente-checkbox" class="flip-card__label">Studente</label>
+                                    <input type="checkbox" id="studente-checkbox" class="flip-card__checkbox" name="studente">
+                                </div>
                                 <div id="studente" style="display: none;">
-                                    <input for="anno_immatricolazione" name="anno_immatricolazione" class="flip-card__input" placeholder="Anno di immatricolazione" value="1000" type="number" min="0" max="<?php echo date('Y') ?>" required>
-                                    <input for="matricola" name="matricola" class="flip-card__input" placeholder="Codice" value="1000" required>
+                                    <input for="anno_immatricolazione" name="anno_immatricolazione" class="flip-card__input" placeholder="Anno di immatricolazione" type="number" min="0" max="<?php echo date('Y') ?>">
+                                    <input for="matricola" name="matricola" class="flip-card__input" placeholder="Codice" type="text">
                                 </div>
                             </div>
                             <div>
-                                <label for="professore-checkbox" class="flip-card__label">Professore</label>
-                                <input type="checkbox" id="professore-checkbox" class="flip-card__checkbox" name="professore">
+                                <div class="checkbox-container">
+                                    <label for="professore-checkbox" class="flip-card__label">Professore</label>
+                                    <input type="checkbox" id="professore-checkbox" class="flip-card__checkbox" name="professore">
+                                </div>
                                 <div id="professore" style="display: none;">
                                     <input for="dipartimento" name="dipartimento" class="flip-card__input" placeholder="Dipartimento" type="text">
                                     <input for="corso" name="corso" class="flip-card__input" placeholder="Corso" type="text">

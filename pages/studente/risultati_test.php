@@ -9,6 +9,9 @@ if (isset($_SESSION['email']) == false || $_SESSION['ruolo'] != "STUDENTE") {
     header('Location: ../index.php');
 }
 
+//TODO: se un test è ha visualizzaRisposte devo visualizzare le soluzioni del professore 
+// (quella giusta per quelle chiuse e la prima per le soluzioni aperte)
+
 $db = connectToDatabaseMYSQL();
 $sql = "CALL CheckRisultatiStudente(:email);";
 $stmt = $db->prepare($sql);
@@ -57,7 +60,34 @@ function costruisciTabellaRisultati()
             echo "</tr>";
 
             if (count($risposte) == 0) {
-                echo "<tr><td colspan='5'>Non hai inserito risposte, ma il test ora è concluso</td></tr>";
+
+                $db = connectToDatabaseMYSQL();
+                $sql = "CALL GetQuesitiTest(:titolo_test);";
+                $stmt = $db->prepare($sql);
+                $stmt->bindParam(':titolo_test', $test_associato);
+                $stmt->execute();
+                $quesiti = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+
+                foreach ($quesiti as $quesito) {
+                    echo "<tr>";
+                    echo "<td>" . $quesito['numero_quesito'] . "</td>";
+                    echo "<td>-</td>";
+                    echo "<td>-</td>";
+                    if ($test['VisualizzaRisposte'] == 1) {
+                        if ($quesito['tipo_quesito'] == 'CHIUSO') {
+                            echo "<td>" . mostraSoluzioneChiuso($quesito['ID']) . "</td>";
+                        } else {
+                            echo "<td>" . mostraSoluzione($quesito['ID'], $test) . "</td>";
+                        }
+                    } else {
+                        echo "<td></td>";
+                    }
+
+                    echo "<td>SBAGLIATA <br> (non hai risposto)</td>";
+                    echo "</tr>";
+                }
+
                 echo "</table>";
                 echo "</div>";
                 echo "<br>";
@@ -79,14 +109,12 @@ function costruisciTabellaRisultati()
                     $stmt->closeCursor();
                     echo "<td>" . $scelta['opzione_scelta'] . "</td>";
 
-                    $sql = "CALL GetOpzioniCorrette(:id_quesito)";
-                    $stmt = $db->prepare($sql);
-                    $stmt->bindParam(':id_quesito', $id_quesito);
-                    $stmt->execute();
-                    $opzioni = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                    $stmt->closeCursor();
 
-                    echo "<td>" . $opzioni[0]['numero_opzione'] . "</td>";
+                    if ($test['VisualizzaRisposte'] == 1) {
+                        echo "<td>" . mostraSoluzioneChiuso($risposta['id_quesito']) . "</td>";
+                    } else {
+                        echo "<td></td>";
+                    }
                 } elseif ($risposta['tipo_risposta'] == 'APERTA') {
 
                     $sql = "CALL GetRispostaQuesitoAperto(:id_quesito, :email_studente);";
@@ -97,7 +125,7 @@ function costruisciTabellaRisultati()
                     $scelta = $stmt->fetch(PDO::FETCH_ASSOC);
                     $stmt->closeCursor();
                     echo "<td>" . $scelta['risposta'] . "</td>";
-                    echo "<td>" . mostraSoluzione($scelta['esito'], $scelta['risposta'], $id_quesito) . "</td>";
+                    echo "<td>" . mostraSoluzione($id_quesito, $test) . "</td>";
                 }
 
                 echo "<td>" . $risposta['esito'] . "</td>";
@@ -111,42 +139,39 @@ function costruisciTabellaRisultati()
 }
 
 
-function mostraSoluzione($esito, $risposta_studente, $id_quesito)
+function mostraSoluzione($id_quesito, $test)
 {
 
-    // TODO: mostra la soluzione se il test è concluso, a prescindere dall'esito
 
-    if ($esito == "GIUSTA") {
+    if ($test['VisualizzaRisposte'] == 1) {
         $db = connectToDatabaseMYSQL();
         $sql = "CALL GetSoluzioneQuesitoAperto(:id_quesito);";
         $stmt = $db->prepare($sql);
         $stmt->bindParam(':id_quesito', $id_quesito);
         $stmt->execute();
-        $soluzioni = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $soluzione = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
 
-        foreach ($soluzioni as $soluzione) {
-            try {
-                $stmt = $db->prepare($soluzione['soluzione_professore']);
-                $stmt->execute();
-                $sol = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                $stmt->closeCursor();
+        echo "<script>console.log(" . json_encode($soluzione) . ")</script>";
 
-                $stmt = $db->prepare($risposta_studente);
-                $stmt->execute();
-                $sce = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                $stmt->closeCursor();
 
-                if ($sol == $sce) {
-                    return $soluzione['soluzione_professore'];
-                }
-            } catch (\Throwable $th) {
-                echo "Errore nella risposta aperta <br>"  . $th->getMessage();
-            }
-        }
+        return $soluzione[0]['soluzione_professore'];
     } else {
         return "";
     }
+}
+
+function mostraSoluzioneChiuso($id_quesito)
+{
+    $db = connectToDatabaseMYSQL();
+    $sql = "CALL GetOpzioniCorrette(:id_quesito)";
+    $stmt = $db->prepare($sql);
+    $stmt->bindParam(':id_quesito', $id_quesito);
+    $stmt->execute();
+    $opzioni = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt->closeCursor();
+
+    return $opzioni[0]['numero_opzione'];
 }
 ?>
 

@@ -132,6 +132,11 @@ textarea {
     max-width: 300px;
 }
 
+.widget-professore img {
+    max-width: 300px;
+}
+
+
 .widget-professore.crea {
     height: 350px;
 }
@@ -149,6 +154,7 @@ textarea {
     min-width: 350px;
     height: 650px;
     justify-content: space-evenly;
+    max-width: max-content;
 }
 
 #quesiti .widget-classifica {
