@@ -154,8 +154,9 @@ function mostraSoluzione($id_quesito, $test)
 
         echo "<script>console.log(" . json_encode($soluzione) . ")</script>";
 
+        $stringa_soluzione = str_replace("ciao", "'", $soluzione[0]['soluzione_professore']);
 
-        return $soluzione[0]['soluzione_professore'];
+        return $stringa_soluzione;
     } else {
         return "";
     }

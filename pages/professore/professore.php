@@ -82,7 +82,7 @@ $stmt->closeCursor();
         <div class="icons-container">
             <a class="logout" href='/pages/logout.php'></a>
         </div>
-        <h1>Buongiorno professor <?php echo $studente['cognome'] ?> </h1>
+        <h1>Buongiorno prof. <?php echo $studente['cognome'] ?> </h1>
 
         <button id="popup-btn" onclick="openClosePopup()"></button>
 

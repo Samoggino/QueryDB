@@ -308,7 +308,8 @@ function test_gia_svolto($test)
         form.addEventListener('submit', function(event) {
             var textareas = document.querySelectorAll('textarea');
             for (var i = 0; i < textareas.length; i++) {
-                textareas[i].value = textareas[i].value.replace(/"/g, "'");
+                textareas[i].value = textareas[i].value.replace(/"/g, " ciao ");
+                textareas[i].value = textareas[i].value.replace(/'/g, " ciao ");
             }
         });
     </script>

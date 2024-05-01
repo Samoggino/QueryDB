@@ -1,10 +1,9 @@
 #quesiti.on {
     display: flex;
     flex-direction: row;
-    align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 15%;
+    gap: 10%;
 }
 
 #quesiti.off {
@@ -158,6 +157,7 @@ textarea {
 }
 
 #quesiti .widget-classifica {
-    min-height: 500px;
+    height: 650px;
     background-color: transparent;
+    margin-top: 10px;
 }

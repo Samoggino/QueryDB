@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $email_studente = $_SESSION['email'];
 
         if (check_svolgimento($test_associato, $email_studente)) {
-            echo "<script>alert('Test già svolto')</script>";
+            // echo "<script>alert('Test già svolto')</script>";
             header("Location: ../pages/studente/risultati_test.php");
             exit();
         }
@@ -45,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $stmt->closeCursor();
 
                     $tipo_quesito = $quesito['tipo_quesito'];
-                    $scelta = str_replace('"', "'", $scelta);
+
 
                     // Inserisci la risposta nel database in base al tipo di quesito
                     if ($tipo_quesito == 'APERTO') {
@@ -69,7 +69,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 foreach ($soluzioni as $soluzione) {
                                     try {
-                                        $stmt = $db->prepare($soluzione['soluzione_professore']);
+                                        $scelta = str_replace("ciao", "'", $scelta);
+                                        $query_prof = $soluzione['soluzione_professore'];
+                                        $query_prof = str_replace('ciao', "'", $query_prof);
+
+                                        echo  $scelta;
+                                        echo  $query_prof;
+
+                                        $stmt = $db->prepare($query_prof);
                                         $stmt->execute();
                                         $sol = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         $stmt->closeCursor();
@@ -84,19 +91,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                             break;
                                         }
                                     } catch (PDOException $e) {
-                                        $errorCode = $e->errorInfo[1];
-                                        if ($errorCode == 1062) {
-                                            alert("Errore: Chiave primaria duplicata.");
-                                            continue;
-                                        } else if ($errorCode == 1451 || $errorCode == 1452) {
-                                            alert("Errore: Violazione vincolo di chiave esterna.");
-                                            continue;
-                                        } else {
-                                            alert('Errore: ' . $e->getMessage());
-                                            continue;
-                                        }
+                                        continue;
                                     } catch (Exception $e) {
-                                        alert('Errore: ' . $e->getMessage());
                                         continue;
                                     }
                                 }
@@ -189,11 +185,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
             if (check_svolgimento($test_associato, $email_studente) == 1) {
-                echo "<script>console.log('Test concluso');
-                 window.location.href = '../pages/studente/risultati_test.php';</script>";
+                echo "<script>console.log('Test concluso'); window.location.href = '../pages/studente/risultati_test.php';</script>";
             } else {
-                echo "<script>console.log('Il test non è concluso');
-                 window.location.href = '../pages/studente/esegui_test.php?test_associato=" . $test_associato . "';</script>";
+                echo "<script>console.log('Il test non è concluso'); window.location.href = '../pages/studente/esegui_test.php?test_associato=" . $test_associato . "';</script>";
             }
 
 
@@ -212,7 +206,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     exit();
 }
 
-function alert($messaggio)
-{
-    echo "<script>alert('$messaggio')</script>";
-}
+// function alert($messaggio)
+// {
+//     echo "<script>alert('$messaggio')</script>";
+// }

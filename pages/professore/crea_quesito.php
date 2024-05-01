@@ -42,15 +42,15 @@ try {
             $stmt->closeCursor();
             $titolo_test = $result['id_quesito'];
         } catch (\Throwable $th) {
-            echo  "Errore nel creare il quesito: <br> ";
-            echo  "<br> SQL: " . $sql . "<br>" . $th->getMessage();
+            echo "<script>alert('Errore nel creare il quesito: <br> SQL: " . $sql . "<br>" . $th->getMessage() . "')</script>";
         }
 
         if ($tipo_quesito == "APERTO") {
             try {
                 $soluzioni = $_POST['soluzione'];
                 for ($i = 0; $i < count($soluzioni); $i++) {
-                    $soluzioni[$i] = str_replace('"', "'", $soluzioni[$i]);
+                    $soluzioni[$i] = str_replace("'", " ciao ", $soluzioni[$i]);
+                    $soluzioni[$i] = str_replace('"', " ciao ", $soluzioni[$i]);
                     $sql = "CALL InserisciNuovaSoluzioneQuesitoAperto(:id_quesito, :soluzione)";
                     $stmt = $db->prepare($sql);
                     $stmt->bindParam(':id_quesito', $titolo_test, PDO::PARAM_STR);
@@ -59,8 +59,7 @@ try {
                     $stmt->closeCursor();
                 }
             } catch (\Throwable $th) {
-                echo  "Errore nel creare il quesito aperto: <br> ";
-                echo  "<br> SQL: " . $sql . "<br>" . $th->getMessage();
+                echo "<script>alert('Errore nel creare il quesito aperto: <br> SQL: " . $sql . "<br>" . $th->getMessage() . "')</script>";
             }
         } elseif ($tipo_quesito == "CHIUSO") {
 
@@ -83,8 +82,7 @@ try {
                     $stmt->closeCursor();
                 }
             } catch (\Throwable $th) {
-                echo  "Errore nel creare il quesito chiuso: <br> ";
-                echo  "<br> SQL: " . $sql . "<br>" . $th->getMessage();
+                echo "<script>alert('Errore nel creare il quesito chiuso: <br> SQL: " . $sql . "<br>" . $th->getMessage() . "')</script>";
             }
         }
 
@@ -101,8 +99,7 @@ try {
                     $stmt->closeCursor();
                 }
             } catch (\Throwable $th) {
-                echo  "Errore nel creare il riferimento: <br> ";
-                echo  "<br> SQL: " . $sql . "<br>" . $th->getMessage();
+                echo "<script>alert('Errore nel creare il quesito con tabelle: <br> SQL: " . $sql . "<br>" . $th->getMessage() . "')</script>";
             }
         }
 
@@ -129,5 +126,5 @@ try {
     header("Location: crea_test.php?test_associato=" . $test_associato);
     exit();
 } catch (\Throwable $th) {
-    echo  "Errore: " . $th->getMessage();
+    echo "<script>alert('Errore: " . $th->getMessage() . "')</script>";
 }

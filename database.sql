@@ -217,22 +217,7 @@ CREATE PROCEDURE IF NOT EXISTS InserisciNuovoStudente (
     IN p_matricola VARCHAR(16)    ,
     IN p_anno_immatricolazione INT,
     IN p_telefono VARCHAR(20)
-) BEGIN DECLARE EXIT
-HANDLER FOR SQLEXCEPTION BEGIN
-ROLLBACK;
-
-RESIGNAL;
-
-END;
-
-DECLARE EXIT
-HANDLER FOR SQLWARNING BEGIN
-ROLLBACK;
-
-RESIGNAL;
-
-END;
-
+) BEGIN
 START TRANSACTION;
 
 -- Inserisce l'utente nella tabella Utente
@@ -267,22 +252,7 @@ CREATE PROCEDURE IF NOT EXISTS InserisciNuovoProfessore (
     IN p_dipartimento VARCHAR(100),
     IN p_corso VARCHAR(100)       ,
     IN p_telefono VARCHAR(20)
-) BEGIN DECLARE EXIT
-HANDLER FOR SQLEXCEPTION BEGIN
-ROLLBACK;
-
-RESIGNAL;
-
-END;
-
-DECLARE EXIT
-HANDLER FOR SQLWARNING BEGIN
-ROLLBACK;
-
-RESIGNAL;
-
-END;
-
+) BEGIN
 START TRANSACTION;
 
 -- Inserisce l'utente nella tabella Utente
@@ -304,45 +274,6 @@ VALUES
     (p_email, p_dipartimento, p_corso);
 
 COMMIT;
-
-END $$ DELIMITER;
-
--- Procedura per verificare se l'email appartiene a uno studente o a un professore
-DELIMITER $$
-CREATE PROCEDURE IF NOT EXISTS VerificaTipoUtente (IN p_email VARCHAR(100)) BEGIN DECLARE is_studente INT DEFAULT 0;
-
-DECLARE is_professore INT DEFAULT 0;
-
--- Controlla se l'email è presente nella tabella Studente
-SELECT
-    COUNT(*) INTO is_studente
-FROM
-    STUDENTE
-WHERE
-    email_studente = p_email;
-
--- Controlla se l'email è presente nella tabella Professore
-SELECT
-    COUNT(*) INTO is_professore
-FROM
-    PROFESSORE
-WHERE
-    email_professore = p_email;
-
--- Restituisce il tipo di utente in base ai risultati ottenuti
-IF is_studente > 0 THEN
-SELECT
-    'STUDENTE' AS RUOLO;
-
-ELSEIF is_professore > 0 THEN
-SELECT
-    'PROFESSORE' AS RUOLO;
-
-ELSE
-SELECT
-    'Nessun utente trovato' AS RUOLO;
-
-END IF;
 
 END $$ DELIMITER;
 
@@ -371,22 +302,7 @@ DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS InserisciNuovoTest (
     IN p_titolo VARCHAR(100)         ,
     IN p_email_professore VARCHAR(100)
-) BEGIN DECLARE EXIT
-HANDLER FOR SQLEXCEPTION BEGIN
-ROLLBACK;
-
-RESIGNAL;
-
-END;
-
-DECLARE EXIT
-HANDLER FOR SQLWARNING BEGIN
-ROLLBACK;
-
-RESIGNAL;
-
-END;
-
+) BEGIN
 START TRANSACTION;
 
 -- Inserisce il test nella tabella Test
@@ -404,22 +320,7 @@ DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS InserisciNuovaFotoTest (
     IN p_foto LONGBLOB             ,
     IN p_test_associato VARCHAR(100)
-) BEGIN DECLARE EXIT
-HANDLER FOR SQLEXCEPTION BEGIN
-ROLLBACK;
-
-RESIGNAL;
-
-END;
-
-DECLARE EXIT
-HANDLER FOR SQLWARNING BEGIN
-ROLLBACK;
-
-RESIGNAL;
-
-END;
-
+) BEGIN
 START TRANSACTION;
 
 -- Inserisce la foto del test nella tabella Foto_test
@@ -620,7 +521,7 @@ CREATE TABLE IF NOT EXISTS
 
 -- -- crea tabella delle CHIAVI ESTERNE delle TABELLE create dai PROFESSORI
 CREATE TABLE IF NOT EXISTS
-    CHIAVI_ESTERNE_DELLE_TABELLE (
+    VINCOLI (
         nome_tabella VARCHAR(20) NOT NULL        ,
         nome_attributo VARCHAR(100) NOT NULL     ,
         tabella_vincolata VARCHAR(20) NOT NULL   ,
@@ -635,22 +536,62 @@ CREATE TABLE IF NOT EXISTS
         FOREIGN KEY (tabella_vincolata, attributo_vincolato) REFERENCES TAB_ATT (nome_tabella, nome_attributo) ON DELETE CASCADE
     );
 
-CREATE TABLE IF NOT EXISTS
-    tabella_di_esempio (
-        nome VARCHAR(100) NOT NULL   ,
-        cognome VARCHAR(100) NOT NULL,
-        eta INT NOT NULL             ,
-        PRIMARY KEY (nome, cognome)
+-- CREATE TABLE IF NOT EXISTS
+--     tabella_di_esempio (
+--         nome VARCHAR(100) NOT NULL   ,
+--         cognome VARCHAR(100) NOT NULL,
+--         eta INT NOT NULL             ,
+--         PRIMARY KEY (nome, cognome)
+--     );
+-- CREATE TABLE IF NOT EXISTS
+--     provolone (
+--         NomeR VARCHAR(100) NOT NULL                                                                 ,
+--         CognomeR VARCHAR(100) NOT NULL                                                              ,
+--         numero INT NOT NULL                                                                         ,
+--         PRIMARY KEY (NomeR, CognomeR)                                                               ,
+--         FOREIGN KEY (NomeR, CognomeR) REFERENCES tabella_di_esempio (nome, cognome) ON DELETE CASCADE
+--     );
+create table
+    `TIPI_POKEMON` (
+        `TIPO` varchar(255) not null,
+        primary key (`TIPO`)
     );
 
-CREATE TABLE IF NOT EXISTS
-    provolone (
-        NomeR VARCHAR(100) NOT NULL                                                                 ,
-        CognomeR VARCHAR(100) NOT NULL                                                              ,
-        numero INT NOT NULL                                                                         ,
-        PRIMARY KEY (NomeR, CognomeR)                                                               ,
-        FOREIGN KEY (NomeR, CognomeR) REFERENCES tabella_di_esempio (nome, cognome) ON DELETE CASCADE
+create table
+    `POKEMON` (
+        `PS` int not null                                                       ,
+        `nome` varchar(255) not null                                            ,
+        `tipo` varchar(255) not null                                            ,
+        primary key (`nome`)                                                    ,
+        foreign key (`tipo`) references `TIPI_POKEMON` (`TIPO`) ON DELETE CASCADE
     );
+
+INSERT INTO
+    `TIPI_POKEMON` (`TIPO`)
+VALUES
+    ('Dragon')  ,
+    ('Electric'),
+    ('Fighting'),
+    ('Fire')    ,
+    ('Flying')  ,
+    ('Grass')   ,
+    ('Ground')  ,
+    ('Ice')     ,
+    ('Normal')  ,
+    ('Poison')  ,
+    ('Water');
+
+INSERT INTO
+    `POKEMON` (`PS`, `nome`, `tipo`)
+VALUES
+    (15, 'Chimchar', 'Fire')      ,
+    (30, 'Dragonite', 'Dragon')   ,
+    (30, 'Electabuzz', 'Electric'),
+    (20, 'Machop', 'Fighting')    ,
+    (10, 'Pikachu', 'Electric')   ,
+    (8, 'Piplup', 'Water')        ,
+    (14, 'Staraptor', 'Flying')   ,
+    (8, 'Turtwig', 'Grass');
 
 -- CREA tabella SVOLGIMENTO TEST
 CREATE TABLE IF NOT EXISTS
@@ -883,21 +824,6 @@ ORDER BY
 
 END $$ DELIMITER;
 
-DELIMITER $$
-CREATE PROCEDURE GetTipoQuesito (
-    IN p_numero_quesito INT        ,
-    IN p_test_associato VARCHAR(255)
-) BEGIN
-SELECT
-    tipo_quesito
-FROM
-    QUESITO
-WHERE
-    numero_quesito = p_numero_quesito
-    AND test_associato = p_test_associato;
-
-END $$ DELIMITER;
-
 -- getAllTests
 DELIMITER $$
 CREATE PROCEDURE GetAllTests () BEGIN
@@ -1018,40 +944,6 @@ WHERE
         LIMIT
             1
     );
-
-END $$ DELIMITER;
-
--- CREA PROCEDURA per inserire un nuovo SVOLGIMENTO TEST
-DELIMITER $$
-DROP PROCEDURE IF EXISTS InserisciNuovoSvolgimentoTest $$
-CREATE PROCEDURE IF NOT EXISTS InserisciNuovoSvolgimentoTest (
-    IN p_titolo_test VARCHAR(100)  ,
-    IN p_email_studente VARCHAR(100)
-) BEGIN DECLARE EXIT
-HANDLER FOR SQLEXCEPTION BEGIN
-ROLLBACK;
-
-RESIGNAL;
-
-END;
-
-DECLARE EXIT
-HANDLER FOR SQLWARNING BEGIN
-ROLLBACK;
-
-RESIGNAL;
-
-END;
-
-START TRANSACTION;
-
--- Inserisce il svolgimento del test nella tabella Svolgimento_test
-INSERT INTO
-    SVOLGIMENTO_TEST (titolo_test, email_studente)
-VALUES
-    (p_titolo_test, p_email_studente);
-
-COMMIT;
 
 END $$ DELIMITER;
 
@@ -1177,120 +1069,6 @@ END IF;
 
 END $$ DELIMITER;
 
--- Inserimento valori di esempio per la tabella TEST
-INSERT INTO
-    TEST (titolo, email_professore)
-VALUES
-    ("Test di Matematica", "professore@unibo.it") ,
-    ("Test di Storia", "professore@unibo.it")     ,
-    ("Test di Informatica", "professore@unibo.it");
-
--- Inserimento valori di esempio per la tabella QUESITO
-INSERT INTO
-    QUESITO (
-        numero_quesito    ,
-        test_associato    ,
-        descrizione       ,
-        livello_difficolta,
-        numero_risposte   ,
-        tipo_quesito
-    )
-VALUES
-    (
-        1                            ,
-        "Test di Matematica"         ,
-        "Risolvi l'equazione x-2 = 0",
-        "MEDIO"                      ,
-        0                            ,
-        "APERTO"
-    ),
-    (
-        2                   ,
-        "Test di Matematica",
-        "Quanto fa 2+2?"    ,
-        "BASSO"             ,
-        0                   ,
-        "CHIUSO"
-    ),
-    (
-        1                                               ,
-        "Test di Storia"                                ,
-        "Chi era il primo presidente degli Stati Uniti?",
-        "ALTO"                                          ,
-        0                                               ,
-        "APERTO"
-    ),
-    (
-        3                   ,
-        "Test di Matematica",
-        "Quanto fa 5x5?"    ,
-        "MEDIO"             ,
-        0                   ,
-        "CHIUSO"
-    ),
-    (
-        2                                                  ,
-        "Test di Storia"                                   ,
-        "Chi è stato il primo uomo a camminare sulla Luna?",
-        "MEDIO"                                            ,
-        0                                                  ,
-        "CHIUSO"
-    ),
-    (
-        3                                             ,
-        "Test di Storia"                              ,
-        "Quando è scoppiata la prima guerra mondiale?",
-        "ALTO"                                        ,
-        0                                             ,
-        "CHIUSO"
-    ),
-    (
-        1                                                                    ,
-        "Test di Informatica"                                                ,
-        "Mostra in quest'ordinde NOME, COGNOME ed ETA del signor Mario Rossi",
-        "BASSO"                                                              ,
-        0                                                                    ,
-        "APERTO"
-    );
-
--- Inserimento valori di esempio per la tabella QUESITO_CHIUSO_OPZIONE
-INSERT INTO
-    QUESITO_CHIUSO_OPZIONE (numero_opzione, id_quesito, testo, is_corretta)
-VALUES
-    (1, 2, "4", "TRUE")             ,
-    (2, 2, "5", "FALSE")            ,
-    (3, 2, "6", "FALSE")            ,
-    (1, 4, "25", "TRUE")            ,
-    (2, 4, "30", "FALSE")           ,
-    (3, 4, "20", "FALSE")           ,
-    (1, 5, "Neil Armstrong", "TRUE"),
-    (2, 5, "Buzz Aldrin", "FALSE")  ,
-    (3, 5, "Yuri Gagarin", "FALSE") ,
-    (1, 6, "1914", "TRUE")          ,
-    (2, 6, "1939", "FALSE")         ,
-    (3, 6, "1945", "FALSE");
-
--- Inserimento valori di esempio per la tabella QUESITO_APERTO_SOLUZIONE
-insert into
-    `QUESITO_APERTO_SOLUZIONE` (
-        `id_quesito`         ,
-        `id_soluzione`       ,
-        `soluzione_professore`
-    )
-values
-    (1, 1, "SELECT * FROM provolone"),
-    (3, 2, 'George Washington')      ,
-    (
-        7                                                                             ,
-        3                                                                             ,
-        "SELECT eta FROM tabella_di_esempio WHERE cognome = 'Rossi' AND nome = 'Mario'"
-    ),
-    (
-        7                                                                                          ,
-        4                                                                                          ,
-        "SELECT nome,cognome,eta FROM tabella_di_esempio WHERE cognome = 'Rossi' AND nome = 'Mario'"
-    );
-
 -- studente invia messaggio
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS InviaMessaggioDaStudente (
@@ -1299,22 +1077,7 @@ CREATE PROCEDURE IF NOT EXISTS InviaMessaggioDaStudente (
     IN p_test_associato VARCHAR(100),
     IN p_mittente VARCHAR(100)      ,
     IN p_destinatario VARCHAR(100)
-) BEGIN DECLARE EXIT
-HANDLER FOR SQLEXCEPTION BEGIN
-ROLLBACK;
-
-RESIGNAL;
-
-END;
-
-DECLARE EXIT
-HANDLER FOR SQLWARNING BEGIN
-ROLLBACK;
-
-RESIGNAL;
-
-END;
-
+) BEGIN
 START TRANSACTION;
 
 -- Inserisce il messaggio nella tabella MESSAGGIO
@@ -1341,13 +1104,6 @@ CREATE PROCEDURE InviaMessaggioDaDocente (
     IN p_testo TEXT                ,
     IN p_test_associato VARCHAR(100)
 ) BEGIN DECLARE last_id INT;
-
--- Dichiarazione del gestore degli errori
-DECLARE CONTINUE
-HANDLER FOR SQLEXCEPTION BEGIN
-ROLLBACK;
-
-END;
 
 START TRANSACTION;
 
@@ -1402,90 +1158,6 @@ WHERE
     AND DM.destinatario = p_email_professore;
 
 END $$ DELIMITER;
-
--- Inserimento di 3 messaggi privati da studente@unibo.it a professore@unibo.it con il test associato "Test di Matematica"
-INSERT INTO
-    MESSAGGIO (titolo, testo, test_associato)
-VALUES
-    (
-        'Domanda su argomento trattato in classe'                                                                                                                  ,
-        'Salve Professore, avrei bisogno di chiarimenti sull''argomento trattato durante l''ultima lezione di Matematica. Potrebbe fornirmi qualche delucidazione?',
-        'Test di Matematica'
-    );
-
-INSERT INTO
-    MESSAGGIO_PRIVATO (id_messaggio, mittente, destinatario)
-VALUES
-    (
-        LAST_INSERT_ID()    ,
-        'studente@unibo.it' ,
-        'professore@unibo.it'
-    );
-
-INSERT INTO
-    MESSAGGIO (titolo, testo, test_associato)
-VALUES
-    (
-        'Richiesta di proroga per consegna compito'                                                                                                                                  ,
-        'Buongiorno Professore, mi trovo in difficoltà e vorrei chiederle gentilmente una proroga per la consegna del compito di Matematica. Spero possa concedermela. Grazie mille.',
-        'Test di Matematica'
-    );
-
-INSERT INTO
-    MESSAGGIO_PRIVATO (id_messaggio, mittente, destinatario)
-VALUES
-    (
-        LAST_INSERT_ID()    ,
-        'studente@unibo.it' ,
-        'professore@unibo.it'
-    );
-
-INSERT INTO
-    MESSAGGIO (titolo, testo, test_associato)
-VALUES
-    (
-        'Richiesta appuntamento per consulenza'                                                                                                                   ,
-        'Salve Professore, vorrei fissare un appuntamento per discutere alcune questioni relative al progetto di Matematica. Quando potrebbe essermi disponibile?',
-        'Test di Matematica'
-    );
-
-INSERT INTO
-    MESSAGGIO_PRIVATO (id_messaggio, mittente, destinatario)
-VALUES
-    (
-        LAST_INSERT_ID()    ,
-        'studente@unibo.it' ,
-        'professore@unibo.it'
-    );
-
--- Inserimento di 2 messaggi di broadcast da professore@unibo.it a tutti gli studenti con il test associato "Test di Storia"
-INSERT INTO
-    MESSAGGIO (titolo, testo, test_associato)
-VALUES
-    (
-        "Comunicazione importante riguardante l'esame"                                                                                                                             ,
-        'Buongiorno studenti, vi scrivo per comunicarvi un cambiamento nella data dell''esame di Storia. Si prega di fare riferimento al sito web del corso per maggiori dettagli.',
-        'Test di Storia'
-    );
-
-INSERT INTO
-    BROADCAST (id_messaggio, mittente)
-VALUES
-    (LAST_INSERT_ID(), 'professore@unibo.it');
-
-INSERT INTO
-    MESSAGGIO (titolo, testo, test_associato)
-VALUES
-    (
-        'Avviso: lezioni sospese'                                                                                                                                                                                              ,
-        "Cari studenti, vi informo che le lezioni di domani saranno sospese a causa di un'imprevista emergenza riguardante il corso di Storia. Vi aggiornerò appena possibile riguardo alla ripresa delle attività didattiche.",
-        'Test di Storia'
-    );
-
-INSERT INTO
-    BROADCAST (id_messaggio, mittente)
-VALUES
-    (LAST_INSERT_ID(), 'professore@unibo.it');
 
 -- classifica test conclusi dagli studenti
 CREATE VIEW
@@ -1638,7 +1310,7 @@ WHERE
 
 END $$ DELIMITER;
 
--- insert into TAB_ATT
+-- INSERT INTO TAB_ATT
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS InserisciAttributo (
     IN p_nome_tabella VARCHAR(20)   ,
@@ -1656,7 +1328,7 @@ VALUES
 
 END $$ DELIMITER;
 
--- insert into TABELLA_DELLE_TABELLE
+-- INSERT INTO TABELLA_DELLE_TABELLE
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS InserisciTabellaDiEsercizio (
     IN p_nome_tabella VARCHAR(20),
@@ -1669,7 +1341,7 @@ VALUES
 
 END $$ DELIMITER;
 
--- insert into CHIAVI_ESTERNE_DELLE_TABELLE
+-- INSERT INTO VINCOLI
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS InserisciChiaveEsterna (
     IN p_nome_tabella VARCHAR(20)       ,
@@ -1677,9 +1349,9 @@ CREATE PROCEDURE IF NOT EXISTS InserisciChiaveEsterna (
     IN p_tabella_vincolata VARCHAR(20)  ,
     IN p_attributo_vincolato VARCHAR(100)
 ) BEGIN
--- Inserisce la chiave esterna nella tabella CHIAVI_ESTERNE_DELLE_TABELLE
+-- Inserisce la chiave esterna nella tabella VINCOLI
 INSERT INTO
-    CHIAVI_ESTERNE_DELLE_TABELLE (
+    VINCOLI (
         nome_tabella      ,
         nome_attributo    ,
         tabella_vincolata ,
@@ -1710,32 +1382,6 @@ WHERE
 
 END $$ DELIMITER;
 
-INSERT INTO
-    TABELLA_DELLE_TABELLE (nome_tabella, creatore)
-VALUES
-    ('tabella_di_esempio', "professore@unibo.it"),
-    ('provolone', "professore@unibo.it");
-
-INSERT INTO
-    `TAB_ATT` (
-        `nome_tabella`  ,
-        `nome_attributo`,
-        `tipo_attributo`,
-        `key_part`
-    )
-VALUES
-    ('tabella_di_esempio', 'nome', 'VARCHAR', "TRUE"),
-    (
-        'tabella_di_esempio',
-        'cognome'           ,
-        'VARCHAR'           ,
-        "TRUE"
-    )                                            ,
-    ('tabella_di_esempio', 'eta', 'INT', "FALSE"),
-    ('provolone', 'NomeR', 'VARCHAR', "TRUE")    ,
-    ('provolone', 'CognomeR', 'VARCHAR', "TRUE") ,
-    ('provolone', 'numero', 'INT', "FALSE");
-
 -- get attributi tabella
 DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS GetAttributiTabella (IN p_nome_tabella VARCHAR(20)) BEGIN
@@ -1758,98 +1404,39 @@ CREATE PROCEDURE IF NOT EXISTS GetChiaviEsterne (IN p_nome_tabella VARCHAR(20)) 
 SELECT
     *
 FROM
-    CHIAVI_ESTERNE_DELLE_TABELLE
+    VINCOLI
 WHERE
     nome_tabella = p_nome_tabella;
 
 END $$ DELIMITER;
 
+-- trigger per una tabella di prova preinserita
 DELIMITER $$
-CREATE TRIGGER IF NOT EXISTS after_insert_provolone AFTER
+CREATE TRIGGER IF NOT EXISTS after_insert_tipi_pokemon AFTER
 INSERT
-    ON provolone FOR EACH ROW BEGIN
+    ON TIPI_POKEMON FOR EACH ROW BEGIN
     -- Incrementa il numero di righe nella tabella
 UPDATE TABELLA_DELLE_TABELLE
 SET
     num_righe = num_righe + 1
 WHERE
-    nome_tabella = 'provolone';
+    nome_tabella = 'TIPI_POKEMON';
 
 END $$ DELIMITER;
 
+-- trigger per una tabella di prova preinserita
 DELIMITER $$
-CREATE TRIGGER IF NOT EXISTS after_insert_tabella_di_esempio AFTER
+CREATE TRIGGER IF NOT EXISTS after_insert_pokemon AFTER
 INSERT
-    ON tabella_di_esempio FOR EACH ROW BEGIN
+    ON POKEMON FOR EACH ROW BEGIN
     -- Incrementa il numero di righe nella tabella
 UPDATE TABELLA_DELLE_TABELLE
 SET
     num_righe = num_righe + 1
 WHERE
-    nome_tabella = 'tabella_di_esempio';
+    nome_tabella = 'POKEMON';
 
 END $$ DELIMITER;
-
--- Insert into tabella_di_esempio
-INSERT INTO
-    tabella_di_esempio (nome, cognome, eta)
-VALUES
-    ('Mario', 'Rossi', 30)     ,
-    ('Luigi', 'Verdi', 25)     ,
-    ('Giovanna', 'Bianchi', 35),
-    ('Paola', 'Neri', 40)      ,
-    ('Marco', 'Gialli', 28)    ,
-    ('Alessandra', 'Rosa', 33) ,
-    ('Giacomo', 'Viola', 45)   ,
-    ('Elena', 'Blu', 27)       ,
-    ('Stefano', 'Arancio', 32) ,
-    ('Federica', 'Marrone', 38),
-    ('Roberto', 'Grigio', 29)  ,
-    ('Simona', 'Rosa', 36)     ,
-    ('Andrea', 'Azzurro', 31)  ,
-    ('Laura', 'Celeste', 42)   ,
-    ('Davide', 'Indaco', 34);
-
--- Insert into provolone
-INSERT INTO
-    provolone (NomeR, CognomeR, numero)
-VALUES
-    -- ('Mario', 'Rossi', 123)          ,
-    --     ('Luigi', 'Verdi', 456)      ,
-    --     ('Giovanna', 'Bianchi', 789) ,
-    --     ('Paola', 'Neri', 1011)      ,
-    --     ('Marco', 'Gialli', 1213)    ,
-    --     ('Alessandra', 'Rosa', 1415) ,
-    --     ('Giacomo', 'Viola', 1617)   ,
-    --     ('Elena', 'Blu', 1819)       ,
-    --     ('Stefano', 'Arancio', 2021) ,
-    --     ('Federica', 'Marrone', 2223),
-    --     ('Roberto', 'Grigio', 2425)  ,
-    --     ('Simona', 'Rosa', 2627)     ,
-    --     ('Andrea', 'Azzurro', 2829)  ,
-    --     ('Laura', 'Celeste', 3031)   ,
-    ('Davide', 'Indaco', 3233);
-
-INSERT INTO
-    CHIAVI_ESTERNE_DELLE_TABELLE (
-        nome_tabella      ,
-        nome_attributo    ,
-        tabella_vincolata ,
-        attributo_vincolato
-    )
-VALUES
-    (
-        'provolone'         ,
-        'NomeR'             ,
-        'tabella_di_esempio',
-        'nome'
-    ),
-    (
-        'provolone'         ,
-        'CognomeR'          ,
-        'tabella_di_esempio',
-        'cognome'
-    );
 
 -- get ID quesito
 DELIMITER $$
@@ -1893,16 +1480,128 @@ WHERE
 END $$ DELIMITER;
 
 INSERT INTO
-    QUESITI_TABELLA (id_quesito, nome_tabella)
+    `TEST` (
+        `VisualizzaRisposte`,
+        `dataCreazione`     ,
+        `email_professore`  ,
+        `titolo`
+    )
 VALUES
-    (1, 'tabella_di_esempio'),
-    (1, 'provolone')         ,
-    (2, 'tabella_di_esempio'),
-    (3, 'tabella_di_esempio'),
-    (4, 'tabella_di_esempio'),
-    (5, 'tabella_di_esempio'),
-    (6, 'tabella_di_esempio'),
-    (7, 'tabella_di_esempio');
+    (
+        0                    ,
+        '2024-05-01 14:23:55',
+        'professore@unibo.it',
+        'Test pokemon'
+    );
+
+INSERT INTO
+    `QUESITO` (
+        `descrizione`       ,
+        `livello_difficolta`,
+        `numero_quesito`    ,
+        `numero_risposte`   ,
+        `test_associato`    ,
+        `tipo_quesito`
+    )
+VALUES
+    (
+        'Pikachu è tipo acqua',
+        'BASSO'               ,
+        1                     ,
+        0                     ,
+        'Test pokemon'        ,
+        'CHIUSO'
+    ),
+    (
+        'Seleziona il NOME dei pokemon di tipo \'Electric\'',
+        'BASSO'                                             ,
+        2                                                   ,
+        0                                                   ,
+        'Test pokemon'                                      ,
+        'APERTO'
+    );
+
+INSERT INTO
+    `QUESITO_CHIUSO_OPZIONE` (
+        `id_quesito`    ,
+        `is_corretta`   ,
+        `numero_opzione`,
+        `testo`
+    )
+VALUES
+    (1, 'FALSE', 1, 'Vero'),
+    (1, 'TRUE', 2, 'Falso');
+
+INSERT INTO
+    `QUESITO_APERTO_SOLUZIONE` (
+        `id_quesito`         ,
+        `id_soluzione`       ,
+        `soluzione_professore`
+    )
+VALUES
+    (
+        2                                                        ,
+        1                                                        ,
+        "SELECT nome FROM POKEMON WHERE tipo = ciao Electric ciao"
+    ),
+    (
+        2                                                        ,
+        2                                                        ,
+        'SELECT nome FROM POKEMON WHERE tipo = ciao Electric ciao'
+    );
+
+INSERT INTO
+    `TABELLA_DELLE_TABELLE` (
+        `creatore`      ,
+        `data_creazione`,
+        `nome_tabella`  ,
+        `num_righe`
+    )
+VALUES
+    (
+        'professore@unibo.it',
+        '2024-05-01 14:11:59',
+        'POKEMON'            ,
+        8
+    ),
+    (
+        'professore@unibo.it',
+        '2024-05-01 14:01:59',
+        'TIPI_POKEMON'       ,
+        12
+    );
+
+INSERT INTO
+    `TAB_ATT` (
+        `ID`            ,
+        `key_part`      ,
+        `nome_attributo`,
+        `nome_tabella`  ,
+        `tipo_attributo`
+    )
+VALUES
+    (1, 'TRUE', 'TIPO', 'TIPI_POKEMON', 'VARCHAR'),
+    (2, 'TRUE', 'nome', 'POKEMON', 'VARCHAR')     ,
+    (3, 'FALSE', 'tipo', 'POKEMON', 'VARCHAR')    ,
+    (4, 'FALSE', 'PS', 'POKEMON', 'INT');
+
+INSERT INTO
+    `VINCOLI` (
+        `attributo_vincolato`,
+        `nome_attributo`     ,
+        `nome_tabella`       ,
+        `tabella_vincolata`
+    )
+VALUES
+    ('TIPO', 'tipo', 'POKEMON', 'TIPI_POKEMON');
+
+INSERT INTO
+    `QUESITI_TABELLA` (`ID`, `id_quesito`, `nome_tabella`)
+VALUES
+    (1, 1, 'POKEMON')     ,
+    (2, 1, 'TIPI_POKEMON'),
+    (3, 2, 'POKEMON')     ,
+    (4, 2, 'TIPI_POKEMON');
 
 -- get matricola
 DELIMITER $$
@@ -2043,7 +1742,7 @@ CREATE PROCEDURE IF NOT EXISTS GetTabelleRiferite (IN p_nome_tabella VARCHAR(20)
 SELECT DISTINCT
     (tabella_vincolata)
 FROM
-    CHIAVI_ESTERNE_DELLE_TABELLE
+    VINCOLI
 WHERE
     nome_tabella = p_nome_tabella;
 
