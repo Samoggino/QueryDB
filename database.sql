@@ -1,8 +1,8 @@
-DROP DATABASE IF EXISTS ESQLDB;
+DROP DATABASE IF EXISTS POKEDB;
 
-CREATE DATABASE IF NOT EXISTS ESQLDB DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+CREATE DATABASE IF NOT EXISTS POKEDB DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 
-USE ESQLDB;
+USE POKEDB;
 
 -- Tabella Utente
 CREATE TABLE IF NOT EXISTS
@@ -536,21 +536,6 @@ CREATE TABLE IF NOT EXISTS
         FOREIGN KEY (tabella_vincolata, attributo_vincolato) REFERENCES TAB_ATT (nome_tabella, nome_attributo) ON DELETE CASCADE
     );
 
--- CREATE TABLE IF NOT EXISTS
---     tabella_di_esempio (
---         nome VARCHAR(100) NOT NULL   ,
---         cognome VARCHAR(100) NOT NULL,
---         eta INT NOT NULL             ,
---         PRIMARY KEY (nome, cognome)
---     );
--- CREATE TABLE IF NOT EXISTS
---     provolone (
---         NomeR VARCHAR(100) NOT NULL                                                                 ,
---         CognomeR VARCHAR(100) NOT NULL                                                              ,
---         numero INT NOT NULL                                                                         ,
---         PRIMARY KEY (NomeR, CognomeR)                                                               ,
---         FOREIGN KEY (NomeR, CognomeR) REFERENCES tabella_di_esempio (nome, cognome) ON DELETE CASCADE
---     );
 create table
     `TIPI_POKEMON` (
         `TIPO` varchar(255) not null,
@@ -562,6 +547,7 @@ create table
         `PS` int not null                                                       ,
         `nome` varchar(255) not null                                            ,
         `tipo` varchar(255) not null                                            ,
+        `is_legendary` INT default 0 not null                                   ,
         primary key (`nome`)                                                    ,
         foreign key (`tipo`) references `TIPI_POKEMON` (`TIPO`) ON DELETE CASCADE
     );
@@ -582,16 +568,16 @@ VALUES
     ('Water');
 
 INSERT INTO
-    `POKEMON` (`PS`, `nome`, `tipo`)
+    `POKEMON` (`PS`, `nome`, `tipo`, `is_legendary`)
 VALUES
-    (15, 'Chimchar', 'Fire')      ,
-    (30, 'Dragonite', 'Dragon')   ,
-    (30, 'Electabuzz', 'Electric'),
-    (20, 'Machop', 'Fighting')    ,
-    (10, 'Pikachu', 'Electric')   ,
-    (8, 'Piplup', 'Water')        ,
-    (14, 'Staraptor', 'Flying')   ,
-    (8, 'Turtwig', 'Grass');
+    (15, 'Chimchar', 'Fire', 0)      ,
+    (30, 'Dragonite', 'Dragon', 0)   ,
+    (30, 'Electabuzz', 'Electric', 0),
+    (20, 'Machop', 'Fighting', 0)    ,
+    (10, 'Pikachu', 'Electric', 0)   ,
+    (8, 'Piplup', 'Water', 0)        ,
+    (14, 'Staraptor', 'Flying', 0)   ,
+    (8, 'Turtwig', 'Grass', 0);
 
 -- CREA tabella SVOLGIMENTO TEST
 CREATE TABLE IF NOT EXISTS
@@ -1519,6 +1505,14 @@ VALUES
         0                                                   ,
         'Test pokemon'                                      ,
         'APERTO'
+    ),
+    (
+        'Seleziona il nome di tutti i tipo Water oppure Fire',
+        'MEDIO'                                              ,
+        3                                                    ,
+        1                                                    ,
+        'Test pokemon'                                       ,
+        'APERTO'
     );
 
 INSERT INTO
@@ -1548,6 +1542,11 @@ VALUES
         2                                                        ,
         2                                                        ,
         'SELECT nome FROM POKEMON WHERE tipo = ciao Electric ciao'
+    ),
+    (
+        3                                                                                     ,
+        3                                                                                     ,
+        'SELECT nome FROM POKEMON WHERE (tipo =  ciao Water ciao  || tipo =  ciao Fire ciao ) '
     );
 
 INSERT INTO
@@ -1583,7 +1582,8 @@ VALUES
     (1, 'TRUE', 'TIPO', 'TIPI_POKEMON', 'VARCHAR'),
     (2, 'TRUE', 'nome', 'POKEMON', 'VARCHAR')     ,
     (3, 'FALSE', 'tipo', 'POKEMON', 'VARCHAR')    ,
-    (4, 'FALSE', 'PS', 'POKEMON', 'INT');
+    (4, 'FALSE', 'PS', 'POKEMON', 'INT')          ,
+    (5, 'FALSE', 'is_legendary', 'POKEMON', 'INT');
 
 INSERT INTO
     `VINCOLI` (
