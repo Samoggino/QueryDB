@@ -7,7 +7,7 @@ function connectToDatabaseMYSQL()
 {
 
     $hostname = "localhost";
-    $dbname = "ESQLDB";
+    $dbname = "POKEDB";
 
     $dsn = "mysql:host=$hostname;dbname=$dbname";
     $username = 'root';

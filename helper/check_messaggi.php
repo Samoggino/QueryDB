@@ -41,7 +41,5 @@ function visualizzaMessaggi()
             </table>
         </div>
 
-    <?php } else { ?>
-        <h2>Non hai ricevuto messaggi</h2>
-<?php }
+    <?php }
 }

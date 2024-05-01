@@ -85,9 +85,9 @@ echo "<script>console.log(" . $test_concluso_bool['check'] . ")</script>";
             <h3>Vai alle classifiche</h3>
             <button onclick="location.href='/pages/classifiche.php'">Classifiche</button>
         </div>
-        <div class="widget-professore">
+        <div class="widget-professore"  <?php echo $test_concluso_bool['check'] > 0  ?  '' :  'style = "display:none;"' ?>>
             <h3>Visualizza i tuoi test</h3>
-            <button onclick="location.href='/pages/studente/risultati_test.php' <?php echo $test_concluso_bool['check'] > 0  ?  '' :  'disable' ?>">Risultati</button>
+            <button onclick="location.href='/pages/studente/risultati_test.php'">Risultati</button>
         </div>
     </div>
 

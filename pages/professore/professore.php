@@ -156,12 +156,12 @@ $stmt->closeCursor();
                     <button type="submit" style="width:fit-content"> Concludi test </button>
                 </form>
             </div>
-        <?php } ?>
 
-        <div class="widget-professore" style="cursor: pointer;">
-            <h3>Vai ai messaggi</h3>
-            <button onclick="window.location.href='/pages/messaggi.php';">Messaggi</button>
-        </div>
+            <div class="widget-professore" style="cursor: pointer;">
+                <h3>Vai ai messaggi</h3>
+                <button onclick="window.location.href='/pages/messaggi.php';">Messaggi</button>
+            </div>
+        <?php } ?>
 
 
         <div class="widget-professore">

@@ -360,7 +360,7 @@ try {
                     quesito_chiuso.innerHTML = `
                     <input name="opzione[]" placeholder="Opzione" type="text" required>
                     <div style="display:flex;flex-direction:column;margin-left: 25px;align-items: center;"> 
-                        <label for="opzione_vera">Opzione vera</label>
+                        <label for="opzione_vera">Corretta</label>
                         <input name="opzione_vera[]" type="checkbox">
                     </div>
                 `;
@@ -440,7 +440,7 @@ try {
             quesito_chiuso.innerHTML = `
                     <input name="opzione[]" placeholder="Opzione" type="text" required>
                     <div style="display:flex;flex-direction:column;margin-left: 25px;align-items: center;"> 
-                        <label for="opzione_vera">Opzione vera</label>
+                        <label for="opzione_vera">Corretta</label>
                         <input name="opzione_vera[]" type="checkbox">
                     </div>
                 `;

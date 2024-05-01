@@ -76,7 +76,7 @@ function costruisciTabellaRisultati()
                     echo "<td>-</td>";
                     if ($test['VisualizzaRisposte'] == 1) {
                         if ($quesito['tipo_quesito'] == 'CHIUSO') {
-                            echo "<td>" . mostraSoluzioneChiuso($quesito['ID']) . "</td>";
+                            echo "<td>" . mostraSoluzioneChiuso($quesito['ID'], $test) . "</td>";
                         } else {
                             echo "<td>" . mostraSoluzione($quesito['ID'], $test) . "</td>";
                         }
@@ -109,12 +109,7 @@ function costruisciTabellaRisultati()
                     $stmt->closeCursor();
                     echo "<td>" . $scelta['opzione_scelta'] . "</td>";
 
-
-                    if ($test['VisualizzaRisposte'] == 1) {
-                        echo "<td>" . mostraSoluzioneChiuso($risposta['id_quesito']) . "</td>";
-                    } else {
-                        echo "<td></td>";
-                    }
+                    echo "<td>" . mostraSoluzioneChiuso($risposta['id_quesito'], $test) . "</td>";
                 } elseif ($risposta['tipo_risposta'] == 'APERTA') {
 
                     $sql = "CALL GetRispostaQuesitoAperto(:id_quesito, :email_studente);";
@@ -158,21 +153,26 @@ function mostraSoluzione($id_quesito, $test)
 
         return $stringa_soluzione;
     } else {
-        return "";
+        return "-";
     }
 }
 
-function mostraSoluzioneChiuso($id_quesito)
+function mostraSoluzioneChiuso($id_quesito, $test)
 {
-    $db = connectToDatabaseMYSQL();
-    $sql = "CALL GetOpzioniCorrette(:id_quesito)";
-    $stmt = $db->prepare($sql);
-    $stmt->bindParam(':id_quesito', $id_quesito);
-    $stmt->execute();
-    $opzioni = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $stmt->closeCursor();
+    if ($test['VisualizzaRisposte'] == 1) {
 
-    return $opzioni[0]['numero_opzione'];
+        $db = connectToDatabaseMYSQL();
+        $sql = "CALL GetOpzioniCorrette(:id_quesito)";
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':id_quesito', $id_quesito);
+        $stmt->execute();
+        $opzioni = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+
+        return $opzioni[0]['numero_opzione'];
+    } else {
+        return "-";
+    }
 }
 ?>
 
